@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.5 2003/01/23 21:11:38 jrust Exp $ */
+/** $Id: List.php,v 1.6 2003/01/23 21:44:18 jrust Exp $ */
 // {{{ class FastFrame_List
 
 /**
@@ -1182,6 +1182,37 @@ class FastFrame_List {
         }
 
         return $a_data;
+    }
+
+    // }}}
+    // {{{ getCellData()
+
+    /**
+     * Gets the cell data using the database connection and the field map.
+     *
+     * @param object $in_obj_data The data object
+     * @param array $in_arr_fieldMapElement The field map element
+     *
+     * @access public
+     * @return string The text to put in the cell in the list.
+     */
+    function getCellData(&$in_obj_data, $in_arr_fieldMapElement)
+    {
+        if (isset($in_arr_fieldMapElement['method']) && 
+            method_exists($in_obj_data, $in_arr_fieldMapElement['method'])) {
+            $s_cellData = $in_obj_data->$in_arr_fieldMapElement['method']();
+        }
+        else {
+            if (!isset($in_arr_fieldMapElement['field']) || 
+                !isset($in_obj_data->$in_arr_fieldMapElement['field'])) {
+                $s_cellData = sprintf(_('Warning: field property for %s is not set!'), $in_arr_fieldMapElement['description']);
+            }
+            else {
+                $s_cellData = $in_obj_data->$in_arr_fieldMapElement['field'];
+            }
+        }
+
+        return $s_cellData;
     }
 
     // }}}
