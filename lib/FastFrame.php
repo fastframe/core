@@ -1,5 +1,5 @@
 <?php
-/** $Id: FastFrame.php,v 1.9 2003/02/22 01:44:39 jrust Exp $ */
+/** $Id: FastFrame.php,v 1.10 2003/03/18 23:41:12 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -184,6 +184,9 @@ class FastFrame {
     {
         // get the arguments passed in
         $argv = func_get_args();
+
+        // add on the module and app to the beginning
+        array_unshift($argv, array('app' => FastFrame::getCGIParam('app', 'gp'), 'module' => FastFrame::getCGIParam('module', 'gp'))); 
 
         // add on the url to the beginning
         array_unshift($argv, $_SERVER['PHP_SELF']);
