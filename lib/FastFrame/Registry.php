@@ -443,8 +443,8 @@ class FF_Registry {
      * Lookup a configuration variable for a particular application
      *
      * Lookup the configuration variable for a particular appliation and if it does not
-     * exist then look in the fastframe configuration and see if it is there.  If the variable
-     * is found in neither place then it returns null.
+     * exists then look in the fastframe configuration and see if it is there.  If the variable
+     * is found in neither place then it returns the default.
      *
      * @param  string $in_paramPath The path of the configuration parameter (e.g. general/language) 
      * @param  string $in_default (optional) Default value to give if param is not present
@@ -462,9 +462,9 @@ class FF_Registry {
         }
 
         list($tmp1, $tmp2) = explode('/', $in_paramPath);
-        return !empty($this->config[$in_app][$tmp1][$tmp2]) ? 
+        return isset($this->config[$in_app][$tmp1][$tmp2]) ? 
             $this->config[$in_app][$tmp1][$tmp2] :
-            (!empty($this->config[FASTFRAME_DEFAULT_APP][$tmp1][$tmp2]) ?
+            (isset($this->config[FASTFRAME_DEFAULT_APP][$tmp1][$tmp2]) ?
              $this->config[FASTFRAME_DEFAULT_APP][$tmp1][$tmp2] : $in_default);
     }
 
