@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.12 2003/04/08 21:15:50 jrust Exp $ */
+/** $Id: List.php,v 1.13 2003/04/10 21:50:31 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -607,7 +607,14 @@ class FF_List {
     function setAdvancedList($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->advancedList = (bool) FastFrame::getCGIParam('advancedList', 'gp', false);
+            // if it's a form submit then take whatever they choose
+            if (FastFrame::getCGIParam('pageOffset', 'gp', false) !== false) {
+                $this->advancedList = FastFrame::getCGIParam('advancedList', 'gp', false);
+            }
+            // otherwise take their default from session 
+            else {
+                $this->advancedList = FastFrame::getCGIParam('advancedList', 's', false);
+            }
         }
         else {
             $this->advancedList = (bool) $in_value;
