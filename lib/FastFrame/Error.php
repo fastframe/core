@@ -110,7 +110,7 @@ class FF_Error extends PEAR_Error {
                 FASTFRAME_OK                    => 'no error',
                 FASTFRAME_ERROR                 => 'unknown error',
                 FASTFRAME_NO_PERMISSIONS        => 'improper permissions to perform operation',
-                FASTFRAME_NOT_CONFIGURED        => 'fastframe is not properly configured',
+                FASTFRAME_NOT_CONFIGURED        => 'FastFrame is not properly configured',
             );  
         }
 

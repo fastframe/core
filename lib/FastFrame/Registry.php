@@ -109,29 +109,28 @@ class FF_Registry {
 
     function FF_Registry()
     {
-        $this->importConfig();
+        $this->pushApp(FASTFRAME_DEFAULT_APP);
 
         // Initial FastFrame-wide settings
         // Set the error reporting level in accordance with the config settings.
-        error_reporting($this->getConfigParam('error/debug_level', null, array('app' => FASTFRAME_DEFAULT_APP)));
+        error_reporting($this->getConfigParam('error/debug_level'));
 
         // Set the maximum execution time in accordance with the config settings.
-        @set_time_limit($this->getConfigParam('general/max_exec_time', null, array('app' => FASTFRAME_DEFAULT_APP)));
+        @set_time_limit($this->getConfigParam('general/max_exec_time'));
 
         // Set the umask according to config settings
-        if (!is_null($umask = $this->getConfigParam('general/umask', null, array('app' => FASTFRAME_DEFAULT_APP)))) {
+        if (!is_null($umask = $this->getConfigParam('general/umask'))) {
             umask($umask);
         }
 
         // Setup the default language, pending change based on app prefs
-        $s_language = $this->getConfigParam('general/language', 'en_US', array('app' => FASTFRAME_DEFAULT_APP));
+        $s_language = $this->getConfigParam('general/language', 'en_US');
         setlocale(LC_MESSAGES, $s_language);
         putenv('LANG=' . $s_language);
         putenv('LANGUAGE=' . $s_language);
 
         // Set other common defaults like templates and graphics
         // All apps to be used must be included in the apps.php file
-        // still need to enforce this though
         foreach (array_keys($this->apps) as $s_name) {
             $a_app =& $this->apps[$s_name];
             // load the overrides for the different location paths in the application
@@ -184,31 +183,37 @@ class FF_Registry {
         $config =& $this->config;
         $apps =& $this->apps;
 
-        // make sure we have the fastframe configuration loaded
+        // Make sure we have the fastframe configuration loaded
         if (empty($config)) {
             $config = array();
             include_once FASTFRAME_ROOT . 'config/conf.php';
             $config[FASTFRAME_DEFAULT_APP] =& $conf;
         } 
 
-        // make sure we have the apps loaded
+        // Make sure we have the apps loaded
         if (empty($apps)) {
             $apps = array();
             include_once FASTFRAME_ROOT . 'config/apps.php';
-            // add the default app which might not be in the apps file since it is sort of a pseudo app
+            // Add the default app which might not be in the apps file
+            // since it is sort of a pseudo app
             if (!isset($apps[FASTFRAME_DEFAULT_APP])) {
                 $apps[FASTFRAME_DEFAULT_APP] = array();
             }
         }
 
-        // now load the configuration for this specific app
-        if ($in_app != FASTFRAME_DEFAULT_APP && isset($apps[$in_app]) && !isset($config[$in_app])) {
+        if (!isset($apps[$in_app])) {
+            $tmp_error = PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, null, E_USER_ERROR, "The application $in_app is not a defined application.  Check your apps.php file.", 'FF_Error', true);
+            FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
+        }
+
+        // Now load the configuration for this specific app
+        if (!isset($config[$in_app]) && $in_app != FASTFRAME_DEFAULT_APP) {
             // Look up which profile to use for the config files
             if (isset($apps[$in_app]['profile'])) {
-                $s_configFile=sprintf('conf.%s.php', $apps[$in_app]['profile']);
+                $s_configFile = sprintf('conf.%s.php', $apps[$in_app]['profile']);
             } 
             else {
-                $s_configFile='conf.php';
+                $s_configFile = 'conf.php';
             }
 
             // here we change our root, but not our basic FastFrame structure in that root
@@ -535,7 +540,7 @@ class FF_Registry {
             $result = eval('return ' . $s_varName . ';'); 
         } 
         else {
-            // first check the default app for the setting before returning default val
+            // First check the default app for the setting before returning default val
             $s_varName = '$this->config[\'' . FASTFRAME_DEFAULT_APP . '\'][\'' . $s_path . '\']';
             $result = eval('return isset(' . $s_varName . ');') ? eval('return ' . $s_varName . ';') : $in_default;
         }

@@ -195,19 +195,24 @@ class FF_Menu {
             $s_cacheMTime = filemtime($this->_getCacheFileName());
         }
 
-        // see if any of the menu files have been updated
+        // Changing an app setting, such as whether it is enabled can change the menu
+        if (filemtime($this->o_registry->getRootFile('apps.php', 'config')) > $s_cacheMTime) {
+            return false;
+        }
+
+        // See if any of the menu files have been updated
         foreach ($this->o_registry->getApps() as $s_app) {
-            // make sure this app is enabled 
+            // Make sure this app is enabled 
             if ($this->o_registry->getAppParam('status', 'disabled', array('app' => $s_app)) != 'enabled') {
                 continue;
             }
                 
             // Get the profile specific application menu
             if ($this->o_registry->getAppParam('profile', null, array('app'=>$s_app))) {
-                $s_menuFile=sprintf('menu.%s.php', $this->o_registry->getAppParam('profile',null, array('app'=>$s_app)));
+                $s_menuFile = sprintf('menu.%s.php', $this->o_registry->getAppParam('profile',null, array('app'=>$s_app)));
             }
             else {
-                $s_menuFile='menu.php';
+                $s_menuFile = 'menu.php';
             }
 
             $pth_menu = $this->o_registry->getAppFile($s_menuFile, $s_app, 'config');
