@@ -1,5 +1,5 @@
 <?php
-/** $Id: sql.php,v 1.8 2003/02/22 02:02:20 jrust Exp $ */
+/** $Id: sql.php,v 1.9 2003/03/18 23:55:46 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -39,12 +39,6 @@ require_once 'DB.php';
 // }}}
 class AuthSource_sql extends AuthSource {
     // {{{ properties
-
-    /**
-     * The basename of the DataObject class
-     * @type string
-     */
-    var $dataBasename;
 
     /**
      * The type of encoding used for the password. It can be either
@@ -89,7 +83,6 @@ class AuthSource_sql extends AuthSource {
     function AuthSource_sql($in_name, $in_params)
     {
         $this->sourceName = $in_name;
-        $this->dataBasename = $in_params['basename'];
         $this->encryptionType = $in_params['encryption'];
         $this->table = $in_params['table'];
         $this->userField = $in_params['userField'];
