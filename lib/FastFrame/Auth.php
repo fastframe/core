@@ -30,9 +30,8 @@ define('FASTFRAME_AUTH_EXPIRED',   2);
 define('FASTFRAME_AUTH_NO_LOGIN',  3);
 define('FASTFRAME_AUTH_BAD_APP',   4);
 define('FASTFRAME_AUTH_NO_ANCHOR', 5);
-define('FASTFRAME_AUTH_SESSIONIP', 6);
-define('FASTFRAME_AUTH_BROWSER',   7);
-define('FASTFRAME_AUTH_LOGOUT',    8);
+define('FASTFRAME_AUTH_BROWSER',   6);
+define('FASTFRAME_AUTH_LOGOUT',    7);
 
 // }}}
 // {{{ includes
@@ -134,11 +133,7 @@ class FF_Auth {
 
         $o_registry =& FF_Registry::singleton();
         if (FF_Request::getParam('__auth__', 's', false) != false) {
-            if (FF_Request::getParam('__auth__[\'remote_addr\']', 's', false) != @$_SERVER['REMOTE_ADDR']) {
-                FF_Auth::_setStatus(FASTFRAME_AUTH_SESSIONIP);
-                return false;
-            }
-            elseif (FF_Request::getParam('__auth__[\'browser\']', 's', false) != @$_SERVER['HTTP_USER_AGENT']) {
+            if (FF_Request::getParam('__auth__[\'browser\']', 's', false) != @$_SERVER['HTTP_USER_AGENT']) {
                 FF_Auth::_setStatus(FASTFRAME_AUTH_BROWSER);
                 return false;
             }
@@ -321,9 +316,6 @@ class FF_Auth {
         $o_result =& new FF_Result();
         $s_status = FF_Request::getParam('__auth__[\'status\']', 's');
         switch ($s_status) {
-            case FASTFRAME_AUTH_SESSIONIP:
-                $o_result->addMessage(_('Your internet address has changed since the beginning of your session. To protect your security, you must login again.'));
-            break;
             case FASTFRAME_AUTH_BROWSER:
                 $o_result->addMessage(_('Your browser has changed since the beginning of your session. To protect your security, you must login again.'));
             break;
@@ -350,7 +342,6 @@ class FF_Auth {
          * session, since that would end the session for the real user.
          */
         if ($s_status != FASTFRAME_AUTH_NO_ANCHOR && 
-            $s_status != FASTFRAME_AUTH_SESSIONIP && 
             $s_status != FASTFRAME_AUTH_BROWSER) {
             FF_Auth::destroySession();
         }
