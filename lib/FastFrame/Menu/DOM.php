@@ -49,7 +49,7 @@ class FF_Menu_DOM extends FF_Menu {
             $this->_importMenuVars();
             // Create all the javascript needed for the menu 
             $s_domMenu = '
-            <script type="text/javascript" src="' . $this->o_registry->getRootFile('domMenu.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>
+            <script type="text/javascript" src="' . $this->o_registry->getRootFile('domMenu_strip.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>
             <script type="text/javascript">
             domMenu_settings.set("domMenu_main", new Hash(
                 "expandMenuArrowUrl", "' . $this->o_output->imgTag('right-black.gif', 'arrows', array('onlyUrl' => true)) . '",

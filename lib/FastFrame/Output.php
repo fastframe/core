@@ -176,8 +176,8 @@ class FF_Output extends FF_Template {
         // include some common js, needs to be at top before any of their functions are used
         $this->assignBlockData(
             array(
-                'T_javascript' => '<script language="Javascript" src="' . $this->o_registry->getRootFile('domLib.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" .
-                                  '<script language="Javascript" src="' . $this->o_registry->getRootFile('domTT.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" .
+                'T_javascript' => '<script language="Javascript" src="' . $this->o_registry->getRootFile('domLib_strip.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" .
+                                  '<script language="Javascript" src="' . $this->o_registry->getRootFile('domTT_strip.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" .
                                   '<script language="Javascript" src="' . $this->o_registry->getRootFile('core.lib.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>',
             ),
             'javascript'
