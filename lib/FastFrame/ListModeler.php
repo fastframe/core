@@ -101,7 +101,7 @@ class FF_ListModeler {
      */
     function getTotalModelsCount()
     {
-        return $this->o_dataAccess->getTotal();
+        return $this->o_dataAccess->getTotal($this->_getListFilter(true));
     }
 
     // }}}
@@ -223,31 +223,32 @@ class FF_ListModeler {
     /**
      * Gets the filter for the list.
      *
+     * @param bool $in_allRows Get all rows (in which case we don't use the search string)?
+     *
      * @access private
      * @return string The SQL filter clause
      */
-    function _getListFilter()
+    function _getListFilter($in_allRows = false)
     {
-        static $s_filter;
-        if (!isset($s_filter)) {
-            $s_searchField = $this->o_list->getSearchField();
-            if ($s_searchField == $this->o_list->getAllFieldsKey()) {
-                $a_searchFields = array(); 
-                foreach ($this->o_list->getSearchableFields(true) as $a_val) {
-                    $a_searchFields[] = $a_val['search'];
-                }
+        $s_searchField = $this->o_list->getSearchField();
+        if ($s_searchField == $this->o_list->getAllFieldsKey()) {
+            $a_searchFields = array(); 
+            foreach ($this->o_list->getSearchableFields(true) as $a_val) {
+                $a_searchFields[] = $a_val['search'];
             }
-            else {
-                $a_searchFields = array($s_searchField);
-            }
-
-            $s_filter = $this->o_dataAccess->getListFilter(
-                    $this->o_list->getSearchString(), 
-                    $a_searchFields, 
-                    $this->filterName);
+        }
+        else {
+            $a_searchFields = array($s_searchField);
         }
 
+        $s_searchString = $in_allRows ? '' : $this->o_list->getSearchString();
+        $s_filter = $this->o_dataAccess->getListFilter(
+                $s_searchString,
+                $a_searchFields, 
+                $this->filterName);
         return $s_filter;
     }
+
+    // }}}
 }
 ?>

@@ -212,8 +212,7 @@ class FF_DataAccess {
         $s_query = sprintf('DELETE FROM %s WHERE %s=%s',
                               $this->table,
                               $s_field,
-                              $this->o_data->quote($in_value)
-                          );
+                              $this->o_data->quote($in_value));
         if (DB::isError($result = $this->o_data->query($s_query))) {
             $o_result->addMessage($result->getMessage());
             $o_result->setSuccess(false);
@@ -244,13 +243,11 @@ class FF_DataAccess {
         $s_query = sprintf('SELECT COUNT(*) FROM %s WHERE %s=%s',
                               $this->table,
                               $in_dataField,
-                              $this->o_data->quote($in_data)
-                          );
+                              $this->o_data->quote($in_data));
         if ($in_isUpdate) {
             $s_query .= sprintf(' AND %s!=%s',
                                    $this->primaryKey,
-                                   $this->o_data->quote($in_id)
-                               );
+                                   $this->o_data->quote($in_id));
         }
 
         if (!is_null($in_where)) {
@@ -321,8 +318,7 @@ class FF_DataAccess {
                               $this->table,
                               $in_where,
                               $in_orderByField,
-                              $in_orderByDir
-                          );
+                              $in_orderByDir);
         $s_query = $this->o_data->modifyLimitQuery($s_query, $in_offset, $in_limit);
         return $this->o_data->query($s_query);
     }
@@ -337,10 +333,10 @@ class FF_DataAccess {
      *
      * @param string $in_searchString The string to search for
      * @param array $in_searchFields The array of fields to search.
-     * @param string $in_filter The name of any additional filters to apply in case the list
+     * @param string $in_filter The name of an additional filter to apply in case the list
      *               needs to be further limited. 
      *
-     * @access private 
+     * @access public 
      * @return string A WHERE condition for the list data
      */
     function getListFilter($in_searchString, $in_searchFields, $in_filter)
@@ -381,20 +377,17 @@ class FF_DataAccess {
     /**
      * Gets the total number of records in the table based on the WHERE condition.
      *
-     * @param string $in_where (optional) The where condition.  If not specified, defaults
-     *               to 1
+     * @param string $in_where The where condition.
      *
      * @access public
      * @return int The number of records in the main table
      */
-    function getTotal($in_where = 1)
+    function getTotal($in_where)
     {
         $s_query = sprintf('SELECT COUNT(*) FROM %s WHERE %s',
                               $this->table,
-                              $in_where
-                          );
-        $result = $this->o_data->getOne($s_query);
-        return $result;
+                              $in_where);
+        return $this->o_data->getOne($s_query);
     }
 
     // }}}
@@ -415,8 +408,7 @@ class FF_DataAccess {
                               $in_fields,
                               $this->table,
                               $this->primaryKey,
-                              $this->o_data->quote($in_id)
-                          );
+                              $this->o_data->quote($in_id));
         if (DB::isError($result = $this->o_data->getAll($s_query))) {
             return array();
         }
