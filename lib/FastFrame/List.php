@@ -172,14 +172,15 @@ class FF_List {
         $this->o_output =& FF_Output::singleton();
         $this->listId = $in_listId;
         // These variables can change the number of results returned,
-        // and thus could leave the user on an invalid page.  So we
-        // always set the page to 1 if these variables have changed.
-        if (FF_Request::getParam("searchString[$this->listId]", 'gp') !=
+        // and thus could leave the user on an invalid page.  So, if we
+        // are on a list page and they have changed we set the page to 1.
+        if (FF_Request::getParam("searchString[$this->listId]", 'gp', false) !== false &&
+            (FF_Request::getParam("searchString[$this->listId]", 'gp') !=
                 FF_Request::getParam("searchString[$this->listId]", 's') ||
-            FF_Request::getParam("searchField[$this->listId]", 'gp') !=
+             FF_Request::getParam("searchField[$this->listId]", 'gp') !=
                 FF_Request::getParam("searchField[$this->listId]", 's') ||
-            FF_Request::getParam("displayLimit[$this->listId]", 'gp') !=
-                FF_Request::getParam("displayLimit[$this->listId]", 's')) {
+             FF_Request::getParam("displayLimit[$this->listId]", 'gp') !=
+                FF_Request::getParam("displayLimit[$this->listId]", 's'))) {
             FF_Request::setParam("pageOffset[$this->listId]", 1, 'gp');
         }
 

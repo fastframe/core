@@ -179,7 +179,7 @@ class FF_ActionHandler {
             foreach ($this->o_registry->getApps() as $s_app) {
                 $m_hosts = (array) $this->o_registry->getAppParam('hostnames', array(), $s_app); 
                 foreach ($m_hosts as $s_host ) {
-                    if ($_SERVER['HTTP_HOST'] == $s_host ) {
+                    if (!empty($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] == $s_host ) {
                         $this->setActionId('');
                         $this->setModuleId('');
                         $this->setAppId($s_app);
