@@ -72,6 +72,18 @@ class FF_Action_Tree extends FF_Action {
      */
     var $numRootNodes;
 
+    /**
+     * Template block that the container is rendered into
+     * @var string
+     */
+    var $templateBlock = 'content_middle';
+
+    /**
+     * Template variable name that the container is rendered into
+     * @var string
+     */
+    var $templateVar = 'W_content_middle';
+
     // }}}
     // {{{ run()
     
@@ -100,7 +112,6 @@ class FF_Action_Tree extends FF_Action {
             $this->renderContainer($this->renderNodes($a_nodes));
         }
 
-        $this->o_output->output();
         return $this->o_nextAction;
     }
 
@@ -139,7 +150,7 @@ class FF_Action_Tree extends FF_Action {
         $o_tableWidget->touchBlock('table_row');
         $o_tableWidget->cycleBlock('table_content_cell');
         $o_tableWidget->assignBlockData(array('T_table_content_cell' => $in_tree), 'table_content_cell');
-        $this->o_output->assignBlockData(array('W_content_middle' => $o_tableWidget->render()), 'content_middle');
+        $this->o_output->assignBlockData(array($this->templateVar => $o_tableWidget->render()), $this->templateBlock);
     }
 
     // }}}
@@ -247,9 +258,9 @@ class FF_Action_Tree extends FF_Action {
             $s_expand = $in_isOpen ? 0 : 1;
             $s_branch = $this->o_output->link(
                     FastFrame::selfURL(array(
-                            'nodeId' => $this->o_model->getId(), 
-                            'expand' => $s_expand,
-                            'actionId' => $this->currentActionId)), 
+                        'nodeId' => $this->o_model->getId(), 
+                        'expand' => $s_expand),
+                        $this->getBranchUrlParams()),
                     $s_branch);
         }
 
@@ -258,6 +269,20 @@ class FF_Action_Tree extends FF_Action {
         $s_html .= $this->getNodeData();
         $s_html .= '</div>' . "\n";
         return $s_html;
+    }
+
+    // }}}
+    // {{{ getBranchUrlParams()
+
+    /**
+     * Gets any extra parameters for the branch (open/close) url.
+     *
+     * @access public
+     * @return array The array of url params
+     */
+    function getBranchUrlParams()
+    {
+        return array('actionId' => $this->currentActionId);
     }
 
     // }}}

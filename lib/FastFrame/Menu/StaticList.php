@@ -54,7 +54,7 @@ class FF_Menu_StaticList extends FF_Menu {
         // Turn on menu
         $s_menu = $this->_getCachedMenu();
         if (!FastFrame::isEmpty($s_menu, false)) {
-            $this->o_output->assignBlockData(array('T_content_left' => $s_menu), 'switch_content_left');
+            $this->o_output->assignBlockData(array('T_content_left' => $s_menu), 'content_left');
         }
     }
 

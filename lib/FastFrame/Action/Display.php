@@ -59,7 +59,6 @@ class FF_Action_Display extends FF_Action {
 
         $this->o_output->setPageName($this->getPageName());
         $this->renderDisplay();
-        $this->o_output->output();
         return $this->o_nextAction;
     }
 

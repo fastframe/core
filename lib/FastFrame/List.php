@@ -27,6 +27,13 @@ require_once 'HTML/QuickForm.php';
 require_once 'HTML/QuickForm/Renderer/QuickHtml.php';
 
 // }}}
+// {{{ constants
+
+define('SEARCH_BOX_SIMPLE', 1);
+define('SEARCH_BOX_NORMAL', 2);
+define('SEARCH_BOX_ADVANCED', 3);
+
+// }}}
 // {{{ class FF_List
 
 /**
@@ -104,10 +111,10 @@ class FF_List {
     var $searchField;
 
     /**
-     * Whether or not we are in the advanced list page 
-     * @var bool
+     * Type of search box
+     * @var int
      */
-    var $advancedList;
+    var $searchBoxType;
 
     /**
      * The current page offset 
@@ -165,7 +172,7 @@ class FF_List {
         $this->setSortOrder($in_defaultSortOrder);
         $this->setSearchString();
         $this->setSearchField();
-        $this->setAdvancedList();
+        $this->setSearchBoxType();
         $this->setPageOffset();
         $this->setDisplayLimit($in_defaultDisplayLimit);
     }
@@ -177,8 +184,8 @@ class FF_List {
      * Create a search/navigation box that can be used to search a list or navigate it by
      * page.  Then render the generated form using the genericTable widget. 
      *
-     * @param  string  $in_singularLang Singular description of the data 
-     * @param  string  $in_pluralLang Plural description of the data 
+     * @param string $in_singularLang Singular description of the data 
+     * @param string $in_pluralLang Plural description of the data 
      *
      * @access public
      * @return string The html for the search table 
@@ -208,36 +215,50 @@ class FF_List {
         $o_renderer =& new HTML_QuickForm_Renderer_QuickHtml($o_form);
         $o_form->setConstants($a_listVars);
         
-        // Add all the form elements
-        if ($a_listVars['advancedList']) {
-            // need to set page offset to one when we search or change limit
-            $tmp_onclick = ($this->getTotalPages() > 1) ? 
-                'document.search_box.pageOffset.options[0].selected = true;' :
-                'void(0);';
+        // Need to set page offset to one when we search or change limit
+        $tmp_onclick = ($this->getTotalPages() > 1) ? 
+            'document.search_box.pageOffset.options[0].selected = true;' :
+            'void(0);';
 
-            $o_form->addElement('text', 'displayLimit', null, array('class' => 'input_content', 'style' => 'vertical-align: middle;', 'size' => 3, 'maxlength' => 3));
-            $o_form->addElement('submit', 'displayLimit_submit', _('Update'), array('style' => 'vertical-align: middle;', 'onclick' => $tmp_onclick));
-            $o_form->addElement('select', 'searchField', null, $a_searchFields, array('class' => 'input_content', 'style' => 'vertical-align: text-top;')); 
-            $o_form->addElement('text', 'searchString', null, array('size' => 15, 'class' => 'input_content', 'style' => 'vertical-align: text-top;'));
-            $o_form->addElement('submit', 'query_submit', _('Search'), array('onclick' => $tmp_onclick, 'style' => 'vertical-align: middle;'));
-            $o_form->addElement('submit', 'listall_submit', _('List All'), array('onclick' => 'document.search_box.searchString.value = \'\';' . $tmp_onclick, 'style' => 'vertical-align: middle;'));
-
-            $o_form->addElement('select', 'sortOrder', null, array(0 => 'DESC', 1 => 'ASC'), array('class' => 'input_content'));
-            $o_form->addElement('select', 'sortField', null, $a_sortFields, array('class' => 'input_content'));
+        // Add form elements which go only on advanced list in normal mode
+        if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
+            $o_form->addElement('text', 'displayLimit', null, 
+                    array('style' => 'vertical-align: middle;', 'size' => 3, 'maxlength' => 3));
+            $o_form->addElement('submit', 'displayLimit_submit', _('Update'), 
+                    array('style' => 'vertical-align: middle;', 'onclick' => $tmp_onclick));
+            $o_form->addElement('select', 'sortOrder', null, array(0 => 'DESC', 1 => 'ASC'));
+            $o_form->addElement('select', 'sortField', null, $a_sortFields);
             $o_form->addElement('submit', 'sort_submit', _('Sort'));
         }
-        // just make them all hidden if not in the advanced view
         else {
             $o_form->addElement('hidden', 'displayLimit');
-            $o_form->addElement('hidden', 'searchField');
-            $o_form->addElement('hidden', 'searchString');
             $o_form->addElement('hidden', 'sortOrder');
             $o_form->addElement('hidden', 'sortField');
         }
 
+        // Add form elements which go in advanced list or simple mode
+        if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED ||
+            $a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
+            $o_form->addElement('select', 'searchField', null, $a_searchFields, 
+                    array('style' => 'vertical-align: text-top;')); 
+            $o_form->addElement('text', 'searchString', null, 
+                    array('size' => 15, 'style' => 'vertical-align: text-top;', 'onfocus' => 'this.value = ""'));
+            $o_form->addElement('submit', 'query_submit', _('Search'), 
+                    array('onclick' => $tmp_onclick, 'style' => 'vertical-align: middle;'));
+            $o_form->addElement('submit', 'listall_submit', _('List All'), 
+                    array('onclick' => 'document.search_box.searchString.value = \'\';' . $tmp_onclick, 
+                        'style' => 'vertical-align: middle;'));
+        }
+        else {
+            $o_form->addElement('hidden', 'searchField');
+            $o_form->addElement('hidden', 'searchString');
+        }
 
-        // common elements on all pages
-        $o_form->addElement('checkbox', 'advancedList', null, _('Advanced List'), array('onclick' => 'if (this.checked) { this.form.submit(); } else if (validate_search_box()) { document.search_box.searchString.value = \'\'; this.form.submit(); } else { return false; }'));
+        if ($a_listVars['searchBoxType'] != SEARCH_BOX_SIMPLE) {
+            $o_form->addElement('advcheckbox', 'searchBoxType', null, _('Advanced List'), 
+                    array('onclick' => 'if (this.checked) { this.form.submit(); } else if (validate_search_box()) { document.search_box.searchString.value = \'\'; this.form.submit(); } else { return false; }'),
+                    array(SEARCH_BOX_NORMAL, SEARCH_BOX_ADVANCED));
+        }
 
         // common rules
         $o_form->addRule('displayLimit', _('Limit must be an integer'), 'nonzero', null, 'client', true); 
@@ -253,9 +274,10 @@ class FF_List {
                 $a_pageOptions[$i] = sprintf(_('%1$d of %2$d'), $i, $this->getTotalPages());
             }
 
-            // you can't change anything when changing pages...doesn't make sense, so
+            // You can't change anything when changing pages...doesn't make sense, so
             // reset the form before going on to the next page
-            $o_form->addElement('select', 'pageOffset', null, $a_pageOptions, array('style' => 'vertical-align: middle;', 'onchange' => 'var tmp = this.selectedIndex; this.form.reset(); this.options[tmp].selected = true; if (validate_search_box()) { this.form.submit(); } else { return false; }'));
+            $o_form->addElement('select', 'pageOffset', null, $a_pageOptions, 
+                    array('style' => 'vertical-align: middle;', 'onchange' => 'var tmp = this.selectedIndex; this.form.reset(); this.options[tmp].selected = true; if (validate_search_box()) { this.form.submit(); } else { return false; }'));
             $s_pagination = $o_renderer->elementToHtml('pageOffset');
         }
         else {
@@ -266,64 +288,66 @@ class FF_List {
         // }}}
         // {{{ template preparation
 
-        $o_searchWidget =& $this->o_output->getWidgetObject('searchTable');
+        if ($a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
+            $o_searchWidget =& $this->o_output->getWidgetObject('searchTableSimple');
+        }
+        else {
+            $o_searchWidget =& $this->o_output->getWidgetObject('searchTable');
+        }
 
-        $s_foundText = sprintf(
-                        _('%1$d Found (%2$d%%), %3$d Listed out of %4$d Total %5$s'),
-                        $this->getMatchedRecords(), 
-                        $this->getMatchedRecordsPercentage(), 
-                        min(($this->getMatchedRecords() - $this->getRecordOffset()), 
-                            $this->getDisplayLimit(), $this->getMatchedRecords()),
-                        $this->totalRecords, 
-                        $this->totalRecords == 1 ? $in_singularLang : $in_pluralLang
-                    );
-
-        $s_printLink = $this->o_output->link(
-                FastFrame::selfURL($this->persistentData, $this->getAllListVariables(), 
-                    array('printerFriendly' => 1)), 
-                _('Printer Friendly'));
+        $s_foundText = sprintf(_('%1$d Found (%2$d%%), %3$d Listed out of %4$d Total %5$s'), 
+                $this->getMatchedRecords(), 
+                $this->getMatchedRecordsPercentage(), 
+                min(($this->getMatchedRecords() - $this->getRecordOffset()), 
+                    $this->getDisplayLimit(), $this->getMatchedRecords()),
+                $this->totalRecords, 
+                $this->totalRecords == 1 ? $in_singularLang : $in_pluralLang);
 
         $o_searchWidget->assignBlockData(
-            array(
-                'T_search_header' => _('Search Results and Options'),
-                'T_search_viewing' => sprintf(_('Viewing Page %s'), $s_pagination),
-                'T_search_found' => $s_foundText, 
-                'T_search_options' => $o_renderer->elementToHtml('advancedList') . ' | ' . $s_printLink,
-            ),
-            $this->o_output->getGlobalBlockName()
-        );
+                array(
+                    'T_search_header' => _('Search Options'),
+                    'T_search_viewing' => sprintf(_('Viewing Page %s'), $s_pagination),
+                    'T_search_found' => $s_foundText), 
+                $this->o_output->getGlobalBlockName());
 
-        // Add the data to the first row
-        if ($this->getAdvancedList()) {
-            $s_limitText = sprintf(
-                            _('%1$s rows per page %2$s'), 
-                            $o_renderer->elementToHtml('displayLimit'), 
-                            $o_renderer->elementToHtml('displayLimit_submit')
-                        );
+        if ($a_listVars['searchBoxType'] != SEARCH_BOX_SIMPLE) {
+            $s_printLink = $this->o_output->link(
+                    FastFrame::selfURL($this->persistentData, $this->getAllListVariables(), 
+                        array('printerFriendly' => 1)), 
+                    _('Printer Friendly'));
 
-            $tmp_help = _('Find items in the list by entering a search term in the box to the right.  If you want to only search a particular field then select it from the drop down list.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy');
-            $s_findText = sprintf(
-                            _('%1$s %2$s %3$s in %4$s'), 
-                            $this->o_output->getHelpLink($tmp_help, _('Search Help')),
-                            _('Find'),
-                            $o_renderer->elementToHtml('searchString'), 
-                            $o_renderer->elementToHtml('searchField') . ' ' .
-                            $o_renderer->elementToHtml('query_submit') . ' ' .
-                            $o_renderer->elementToHtml('listall_submit')
-                        );
+            $o_searchWidget->assignBlockData(
+                array('T_search_options' => $o_renderer->elementToHtml('searchBoxType') . ' | ' . $s_printLink),
+                $this->o_output->getGlobalBlockName());
+        }
+
+        if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
+            $s_limitText = sprintf(_('%1$s rows per page %2$s'), 
+                    $o_renderer->elementToHtml('displayLimit'), 
+                    $o_renderer->elementToHtml('displayLimit_submit'));
 
             $s_sortText = $o_renderer->elementToHtml('sortOrder') . ' ' .
                           $o_renderer->elementToHtml('sortField') . ' ' .
                           $o_renderer->elementToHtml('sort_submit');
 
             $o_searchWidget->assignBlockData(
-                array(
-                    'T_search_limit' => $s_limitText,
-                    'T_search_find' => $s_findText,
-                    'T_search_sort' => $s_sortText, 
-                ),
-                $this->o_output->getGlobalBlockName()
-            );
+                    array('T_search_limit' => $s_limitText, 'T_search_sort' => $s_sortText), 
+                    $this->o_output->getGlobalBlockName());
+        }
+
+        if ($a_listVars['searchBoxType'] != SEARCH_BOX_NORMAL) {
+            $tmp_help = _('Find items in the list by entering a search term in the box to the right.  If you want to only search a particular field then select it from the drop down list.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy');
+            $s_findText = sprintf(_('%1$s %2$s %3$s in %4$s'), 
+                    $this->o_output->getHelpLink($tmp_help, _('Search Help')), 
+                    _('Find'), 
+                    $o_renderer->elementToHtml('searchString'), 
+                    $o_renderer->elementToHtml('searchField') . ' ' .
+                    $o_renderer->elementToHtml('query_submit') . ' ' .
+                    $o_renderer->elementToHtml('listall_submit'));
+
+            $o_searchWidget->assignBlockData(
+                    array('T_search_find' => $s_findText),
+                    $this->o_output->getGlobalBlockName());
         }
 
         $o_form->accept($o_renderer);
@@ -486,46 +510,64 @@ class FF_List {
     }
 
     // }}}
-    // {{{ getAdvancedList()
+    // {{{ getSearchBoxOptions()
 
     /**
-     * Gets the advanced list variable.
+     * Gets an array of the search box options.
      *
      * @access public
-     * @return bool The advancedList variable.
+     * @return array An array of id => description
      */
-    function getAdvancedList()
+    function getSearchBoxOptions()
     {
-        return $this->advancedList;
+        return array(
+                SEARCH_BOX_SIMPLE => _('Simple'), 
+                SEARCH_BOX_NORMAL => _('Normal'), 
+                SEARCH_BOX_ADVANCED => _('Advanced'));
     }
 
     // }}}
-    // {{{ setAdvancedList()
+    // {{{ getSearchBoxType()
 
     /**
-     * Sets the advanced list variable from $in_value or GET/POST if not passed in,
-     * defaulting to false if value is not present.
+     * Gets the search box type.
      *
-     * @param bool $in_value (optional) Should this be an advanced list or not?
+     * @access public
+     * @return int The searchBoxType variable.
+     */
+    function getSearchBoxType()
+    {
+        return $this->searchBoxType;
+    }
+
+    // }}}
+    // {{{ setSearchBoxType()
+
+    /**
+     * Sets the search box type variable from $in_value or GET/POST/SESSION if not passed
+     * in, defaulting to SEARCH_BOX_NORMAL if value is not present.
+     *
+     * @param int $in_value (optional) Search box type. 
      *
      * @access public
      * @return void
      */
-    function setAdvancedList($in_value = null)
+    function setSearchBoxType($in_value = null)
     {
         if (is_null($in_value)) {
-            // if it's a form submit then take whatever they choose
-            if (FastFrame::getCGIParam('pageOffset', 'gp', false) !== false) {
-                $this->advancedList = (bool) FastFrame::getCGIParam('advancedList', 'gp', false);
-            }
-            // otherwise take their default from session 
-            else {
-                $this->advancedList = (bool) FastFrame::getCGIParam('advancedList', 's', false);
-            }
+            $this->searchBoxType = FastFrame::getCGIParam('searchBoxType', 'gps', SEARCH_BOX_NORMAL);
         }
         else {
-            $this->advancedList = (bool) $in_value;
+            $this->searchBoxType = $in_value;
         }
+
+        // Make sure it is valid type
+        $a_types = $this->getSearchBoxOptions();
+        if (!isset($a_types[$this->searchBoxType])) {
+            $this->searchBoxType = SEARCH_BOX_NORMAL;
+        }
+
+        $_SESSION['searchBoxType'] = $this->searchBoxType;
     }
 
     // }}}
@@ -557,6 +599,7 @@ class FF_List {
     function setDisplayLimit($in_limit)
     {
         $this->displayLimit = (int) abs(FastFrame::getCGIParam('displayLimit', 'gps', $in_limit));
+        $_SESSION['displayLimit'] = $this->displayLimit;
     }
 
     // }}}
@@ -907,7 +950,7 @@ class FF_List {
         $a_vars['sortField'] = $this->getSortField();
         $a_vars['searchString'] = $this->getSearchString();
         $a_vars['searchField'] = $this->getSearchField();
-        $a_vars['advancedList'] = $this->getAdvancedList();
+        $a_vars['searchBoxType'] = $this->getSearchBoxType();
         $a_vars['pageOffset'] = $this->getPageOffset();
         $a_vars['displayLimit'] = $this->getDisplayLimit();
         return $a_vars;

@@ -60,7 +60,7 @@ class FF_NextAction{
      * @var boolean
      */
     var $lastAction = true;
-
+    
     // }}}
     // {{{ isLastAction()
 

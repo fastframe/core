@@ -51,7 +51,6 @@ class FF_Action_Problem extends FF_Action {
     {
         $this->o_output->setPageName($this->getPageName());
         $this->o_output->setMessage($this->getProblemMessage(), FASTFRAME_ERROR_MESSAGE, true);
-        $this->o_output->output();
         return $this->o_nextAction;
     }
 

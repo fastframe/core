@@ -278,6 +278,10 @@ class FF_DataAccess {
         if ($in_date == 0) {
             return "0000-00-00\t00:00:00";
         }
+        // Allows a date to be set way in the future (PHP chokes at 2032)
+        elseif ($in_date == -1) {
+            return "2050-01-01\t00:00:00";
+        }
         else {
             return date("Y-m-d\tH:i:s", $in_date);
         }
@@ -337,11 +341,12 @@ class FF_DataAccess {
      * @param array $in_searchFields The array of fields to search.
      * @param string $in_filter The name of an additional filter to apply in case the list
      *               needs to be further limited. 
+     * @param string $in_tableAlias (optional) The table alias to give the fields
      *
      * @access public 
      * @return string A WHERE condition for the list data
      */
-    function getListFilter($in_searchString, $in_searchFields, $in_filter)
+    function getListFilter($in_searchString, $in_searchFields, $in_filter, $in_tableAlias = null)
     {
         // handle dates (formats of mm/dd/yyyy and mm-dd-yyyy).
         // to search between two days: date1 - date2
@@ -364,10 +369,14 @@ class FF_DataAccess {
             $s_searchCondition = '`%field%` LIKE ' . $this->o_data->quote('%' . $in_searchString . '%');
         }
 
-        if (count($in_searchFields) != 0) {
+        if (!is_null($in_tableAlias)) {
+            $in_tableAlias .= '.';
+        }
+
+        if (count($in_searchFields) != 0 && !empty($in_searchString)) {
             $tmp_fields = array();
             foreach ($in_searchFields as $s_field) {
-                $tmp_fields[] = str_replace('%field%', $s_field, $s_searchCondition);
+                $tmp_fields[] = str_replace('`%field%`', $in_tableAlias . '`' . $s_field . '`', $s_searchCondition);
             }
 
             $s_where = implode(" OR \n", $tmp_fields);

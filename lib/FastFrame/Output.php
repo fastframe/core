@@ -832,17 +832,7 @@ class FF_Output extends FF_Template {
                 $this->assignBlockData(array('CANVAS_WIDTH' => '450px'), $this->getGlobalBlockName());
 
                 // move it down slightly
-                $this->assignBlockData(
-                    array(
-                        'T_css' => '
-                        <style type="text/css">
-                        table.canvas {
-                          margin-top: 100px;
-                        }
-                        </style>',
-                    ),
-                    'css'
-                );
+                $this->assignBlockData(array('T_css' => '<style type="text/css">table.canvas { margin-top: 100px; } </style>'), 'css');
 
                 if ($s_footer = $this->_getFooterText()) {
                     $this->assignBlockData(array('T_banner_bottom' => $s_footer), 'switch_banner_bottom');

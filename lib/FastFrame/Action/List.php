@@ -78,7 +78,8 @@ class FF_Action_List extends FF_Action_Form {
         if (!FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
             $this->renderAdditionalLinks();
             $this->o_output->assignBlockData(
-                    array('W_search_box' => $this->o_list->renderSearchBox($this->getSingularText(), $this->getPluralText())),
+                    array('W_search_box' => $this->o_list->renderSearchBox(
+                            $this->getSingularText(), $this->getPluralText())),
                     'switch_search_box');
         }
         else {
@@ -89,7 +90,7 @@ class FF_Action_List extends FF_Action_Form {
         }
 
         $this->createListTable();
-        $this->o_output->output();
+        $this->setNextAction();
         return $this->o_nextAction; 
     }
 
@@ -426,6 +427,20 @@ class FF_Action_List extends FF_Action_Form {
     function getTableHeaderText()
     {
         return sprintf(_('List of %s'), $this->getPluralText());
+    }
+
+    // }}}
+    // {{{ setNextAction()
+
+    /**
+     * Sets the next action for the list.
+     *
+     * @access public
+     * @return void
+     */
+    function setNextAction()
+    {
+        // normally this is the last action
     }
 
     // }}}

@@ -139,7 +139,6 @@ class FF_Action_Form extends FF_Action {
         $o_table =& $this->renderFormTable();
         $o_tableWidget =& $o_table->getWidgetObject();
         $this->o_output->assignBlockData(array('W_content_middle' => $o_tableWidget->render()), 'content_middle');
-        $this->o_output->output();
         return $this->o_nextAction;
     }
 
