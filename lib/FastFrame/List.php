@@ -190,6 +190,11 @@ class FF_List {
         $o_form =& new HTML_QuickForm('search_box', 'POST', FastFrame::selfURL(), '_self');
         $o_renderer =& new HTML_QuickForm_Renderer_QuickHtml();
         $o_form->setConstants(array_merge($this->persistentData, $a_listVars));
+        $a_searchFields = array();
+        foreach ($this->getSearchableFields() as $a_val) {
+            $a_searchFields[$a_val['search']] = $a_val['name'];
+        }
+        
         
         // Need to set page offset to one when we search or change limit
         $tmp_onclick = ($this->getTotalPages() > 1) ? 
@@ -240,11 +245,6 @@ class FF_List {
         }
 
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
-            $a_searchFields = array();
-            foreach ($this->getSearchableFields() as $a_val) {
-                $a_searchFields[$a_val['search']] = $a_val['name'];
-            }
-            
             $o_form->addElement('select', "searchField[$this->listId]", null, $a_searchFields, 
                     array('style' => 'vertical-align: text-top;')); 
         }
@@ -335,7 +335,11 @@ class FF_List {
         }
 
         if ($a_listVars['searchBoxType'] != SEARCH_BOX_NORMAL) {
-            $tmp_help = _('Find items in the list by entering a search term in the box to the right.  If you want to only search a particular field then select it from the drop down list.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy');
+            if (isset($a_searchFields[$this->allFieldsKey])) {
+                array_shift($a_searchFields);
+            }
+
+            $tmp_help = sprintf(_('Find items in the list by entering a search term in the box to the right.  The following fields can be searched: %s.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy'), implode(', ', $a_searchFields));
             $s_searchField = $a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED ?
                 sprintf(_('in %s'), $o_renderer->elementToHtml("searchField[$this->listId]")) : '';
             $s_findText = $this->o_output->getHelpLink($tmp_help, _('Search Help')) . ' ' . 
