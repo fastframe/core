@@ -78,8 +78,8 @@ class FF_Action_FormSubmit extends FF_Action {
         $o_result =& $this->save();
         if ($o_result->isSuccess()) {
             // This makes sure the objectId is set if this was an add
-            FF_Request::setParam('objectId', $this->o_model->getId(), 'pg');
-            // This lets any action that comes next that it was a success
+            FF_Request::setParam('objectId', $this->o_model->getId(), 'gp');
+            // This lets any action that comes next know that it was a success
             FF_Request::setParam('submitWasSuccess', 1, 'g');
             $this->o_output->setMessage($this->getSuccessMessage(), FASTFRAME_SUCCESS_MESSAGE, true);
             $this->setSuccessActionId();
