@@ -360,12 +360,7 @@ class FF_Action_Form extends FF_Action {
      */
     function getFormDefaults()
     {
-        if ($this->currentActionId == ACTION_EDIT) {
-            return $this->getFormFieldsFromModel(); 
-        }
-        else {
-            return array();
-        }
+        return $this->getFormFieldsFromModel(); 
     }
 
     // }}}
