@@ -68,7 +68,7 @@ class FF_Action_Download extends FF_Action {
         header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
         if (!FF_Request::getParam('displayFile', 'g', false)) {
             header('Content-Type: application/force-download');
-            header('Content-Disposition: attachment; filename=' . $s_name);
+            header('Content-Disposition: attachment; filename="' . $s_name . '"');
             header('Content-Description: File Transfer');
         }
         else {
