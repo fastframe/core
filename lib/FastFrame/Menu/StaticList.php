@@ -40,7 +40,7 @@ class FF_Menu_StaticList extends FF_Menu {
      * The css class we use for the each node
      * @var string
      */
-    var $cssClass = '';
+    var $cssClass = 'staticList';
 
     /**
      * The template variable to which we assign the menu
