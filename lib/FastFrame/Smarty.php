@@ -112,6 +112,41 @@ class FF_Smarty extends Smarty {
     }
 
     // }}}
+    // {{{ is_cached()
+
+    /**
+     * Overrides is_cached so we can pass the widget file name.
+     *
+     * @param string $cache_id
+     * @param string $compile_id
+     *
+     * @return bool Whether or not the file is cached.
+     */
+    function is_cached($cache_id = null, $compile_id = null)
+    {
+        $this->_determinePaths();
+        return parent::is_cached($this->widget, $cache_id, $compile_id);
+    }
+
+    // }}}
+    // {{{ clear_cache()
+
+    /**
+     * Overrides clear_cache so we can pass the widget file name.
+     *
+     * @param string $cache_id name of cache_id
+     * @param string $compile_id name of compile_id
+     * @param string $exp_time expiration time
+     *
+     * @return bool
+     */
+    function clear_cache($cache_id = null, $compile_id = null, $exp_time = null)
+    {
+        $this->_determinePaths();
+        return parent::clear_cache($this->widget, $cache_id, $compile_id, $exp_time);
+    }
+
+    // }}}
     // {{{ _determinePaths()
 
     /**
@@ -123,6 +158,13 @@ class FF_Smarty extends Smarty {
      */
     function _determinePaths()
     {
+        if (!isset($b_done)) {
+            $b_done = true;
+        }
+        else {
+            return;
+        }
+
         $o_output =& FF_Output::singleton();
         $this->theme = is_null($this->theme) ? $o_output->theme : $this->theme;
         if (substr($this->widget, -4) == '.tpl') {
@@ -151,6 +193,7 @@ class FF_Smarty extends Smarty {
 
         $this->template_dir = $pth_tpl; 
         $this->compile_dir = $pth_tplCompile;
+        $this->cache_dir = $pth_tplCompile;
     }
 
     // }}}
