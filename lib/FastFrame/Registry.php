@@ -127,7 +127,13 @@ class FF_Registry {
         // Set other common defaults like templates and graphics
         // All apps to be used must be included in the apps.php file
         foreach (array_keys($this->apps) as $s_name) {
-            $this->apps[$s_name] = array_merge($this->servicePaths, $this->apps[$s_name]);
+            // Don't carry around disabled apps
+            if (isset($this->apps[$s_name]['status']) && $this->apps[$s_name]['status'] == 'disabled') {
+                unset($this->apps[$s_name]);
+            }
+            else {
+                $this->apps[$s_name] = array_merge($this->servicePaths, $this->apps[$s_name]);
+            }
         } 
     }
 
@@ -490,9 +496,7 @@ class FF_Registry {
     {
         $a_apps = array();
         foreach ($this->apps as $s_app => $a_vals) {
-            if (isset($a_vals['status']) && $a_vals['status'] != 'disabled') {
-                $a_apps[] = $s_app;
-            }
+            $a_apps[] = $s_app;
         }
 
         return $a_apps;
