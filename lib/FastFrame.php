@@ -715,22 +715,24 @@ function $funcName(field_name, value) {";
     }
 
     // }}}
-    // {{{ array   createNumericSelect()
+    // {{{ array   createNumericOptionList()
 
     /**
      * Creates a numeric array based on a start and end value
      *
-     * @param int $in_startNum The start number
-     * @param int $in_endNum The end number
+     * @param int $in_start The start number
+     * @param int $in_end The end number
+     * @param int $in_step The step amount
+     * @param string $in_sprintf (optional) The sprintf statement
      *
      * @access public
      * @return array A sequential array of numbers
      */
-    function createNumericSelect($in_startNum, $in_endNum)
+    function createNumericOptionList($in_start, $in_end, $in_step = 1, $in_sprintf = '%02d')
     {
         $select = array();
-        for ($i = $in_startNum; $i <= $in_endNum; $i++) {
-            $select[$i] = $i;
+        for ($i = $in_start; $i <= $in_end; $i = $i + $in_step) {
+            $select[$i] = sprintf($in_sprintf, $i);
         }
 
         return $select;
