@@ -1,5 +1,5 @@
 <?php
-/** $Id: Form.php,v 1.7 2003/04/02 00:21:15 jrust Exp $ */
+/** $Id: Form.php,v 1.8 2003/04/04 23:11:55 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -119,12 +119,27 @@ class FF_Action_Form extends FF_Action {
         }
 
         $this->o_output->setPageName($this->getPageName());
+        $this->renderAdditionalLinks();
         $this->o_form->setConstants($this->getFormConstants());
         $this->o_form->setDefaults($this->getFormDefaults());
         $this->createFormElements();
         $this->renderFormTable();
         $this->o_output->output();
         return $this->o_nextAction;
+    }
+
+    // }}}
+    // {{{ renderAdditionalLinks()
+
+    /**
+     * Renders additional links on the page
+     *
+     * @access public
+     * @return void
+     */
+    function renderAdditionalLinks()
+    {
+        // interface
     }
 
     // }}}
