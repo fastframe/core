@@ -199,8 +199,7 @@ class FF_FileCache {
      *
      * @param string $in_filePath The subpath an filename (i.e.
      *        css/gecko.css)
-     * @param bool $in_useApp (optional) Save it into the current app
-     *        dir?
+     * @param bool $in_useApp (optional) Check in the current app dir?
      *
      * @access public
      * @return bool True if it exists, false otherwise
@@ -224,8 +223,7 @@ class FF_FileCache {
      * @param string $in_prefix The file prefix
      * @param string $in_filePath The subpath an filename (i.e.
      *        css/gecko.css)
-     * @param bool $in_useApp (optional) Save it into the current app
-     *        dir?
+     * @param bool $in_useApp (optional) Check in the current app dir?
      *
      * @access public
      * @return array The array of file names 
@@ -254,8 +252,7 @@ class FF_FileCache {
      *
      * @param string $in_filePath The subpath an filename (i.e.
      *        css/gecko.css)
-     * @param bool $in_useApp (optional) Save it into the current app
-     *        dir?
+     * @param bool $in_useApp (optional) Look in the current app dir?
      *
      * @access public
      * @return void
@@ -273,8 +270,7 @@ class FF_FileCache {
      *
      * @param string $in_filePath The subpath an filename (i.e.
      *        css/gecko.css)
-     * @param bool $in_useApp (optional) Save it into the current app
-     *        dir?
+     * @param bool $in_useApp (optional) Check in the current app dir?
      * @param int $in_type (optional) What type of path to build, based
      *        on the constants (default is FASTFRAME_FILEPATH)
      *
@@ -295,8 +291,7 @@ class FF_FileCache {
      *
      * @param string $in_filePath The subpath an filename (i.e.
      *        css/gecko.css)
-     * @param bool $in_useApp (optional) Save it into the current app
-     *        dir?
+     * @param bool $in_useApp (optional) Check inthe current app dir?
      *
      * @access public
      * @return void
