@@ -625,8 +625,13 @@ class FF_Registry {
      */
     function rootPathToWebPath($in_path)
     {
-        return str_replace($this->getConfigParam('webserver/file_root'), 
-                $this->getConfigParam('webserver/web_root'), $in_path, 1);
+        if (strpos($in_path, $this->getConfigParam('webserver/file_root')) === 0) {
+            return substr_replace($in_path, $this->getConfigParam('webserver/web_root'), 0,
+                strlen($this->getConfigParam('webserver/file_root')));
+        }
+        else {
+            return $in_path;
+        }
     }
 
     // }}}
