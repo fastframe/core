@@ -217,7 +217,10 @@ class FF_Output extends FF_Template {
     function output()
     {
         $this->_renderMessages();
-        $this->renderCSS();
+        // The main style sheet
+        $this->renderCSS('widgets', $this->o_registry->getRootFile('widgets', 'themes'));
+        // The theme-specific style sheet
+        $this->renderCSS($this->theme, $this->themeDir);
         $this->assignBlockData(
             array(
                 'COPYWRITE' => 'Copywrite &#169; 2002-2003 The CodeJanitor Group',
@@ -268,17 +271,18 @@ class FF_Output extends FF_Template {
     // {{{ renderCSS()
 
     /**
-     * Creates a link to the css file (creating it in cache if necessary), and then
-     * registers it as the main CSS in the template.
+     * Creates a link to the css file (creating it in cache if
+     * necessary), and then registers it in the template.
      *
-     * @param bool $in_remakeCSS (optional) Remake the CSS file even if it exists in cache?
+     * @param string $in_theme The theme to make the CSS for
+     * @param string $in_themeDir The theme directory 
      *
      * @access public
      * @return void 
      */
-    function renderCSS($in_remakeCSS = false)
+    function renderCSS($in_theme, $in_themeDir)
     {
-        $s_cssCacheDir = $this->o_registry->getRootFile('css/' . $this->theme, 'cache');
+        $s_cssCacheDir = $this->o_registry->getRootFile('css/' . $in_theme, 'cache');
         if (!is_dir($s_cssCacheDir)) {
             require_once 'System.php';
             if (!@System::mkdir("-p $s_cssCacheDir"))  {
@@ -286,7 +290,7 @@ class FF_Output extends FF_Template {
             }
         }
 
-        $s_cssTemplateFile = $this->themeDir . '/style.tpl';
+        $s_cssTemplateFile = $in_themeDir . '/style.tpl';
         $s_browser = Net_UserAgent_Detect::getBrowser(array('ie', 'gecko'));
         // All other browsers get treated as gecko
         if (is_null($s_browser)) {
@@ -297,36 +301,28 @@ class FF_Output extends FF_Template {
         $s_cssFileName = 'style-' . $s_browser . '.css';
         $s_cssCacheFile = $s_cssCacheDir . '/' . $s_cssFileName;
 
-        // make the CSS file if needed
-        if ($in_remakeCSS ||
-            !file_exists($s_cssCacheFile) || 
+        // Make the CSS file if needed
+        if (!file_exists($s_cssCacheFile) || 
             filemtime($s_cssTemplateFile) > filemtime($s_cssCacheFile)) {
             $o_cssWidget =& $this->getWidgetObject($s_cssTemplateFile); 
             // touch the browser specific block
             $o_cssWidget->touchBlock('switch_is_' . $s_browser);
             // set some variables
-            $o_cssWidget->assignBlockData(
-                array(
-                    'THEME_DIR' => $this->o_registry->rootPathToWebPath($this->themeDir),
-                    'ROOT_GRAPHICS_DIR' => $this->o_registry->getRootFile('', 'graphics', FASTFRAME_WEBPATH),
-                ),
-                $this->getGlobalBlockName()
-            );
+            $o_cssWidget->assignBlockData(array(
+                    'THEME_DIR' => $this->o_registry->rootPathToWebPath($in_themeDir),
+                    'ROOT_GRAPHICS_DIR' => $this->o_registry->getRootFile('', 'graphics', FASTFRAME_WEBPATH)),
+                $this->getGlobalBlockName());
 
             File::write($s_cssCacheFile, $o_cssWidget->render(), FILE_MODE_WRITE);
             File::close($s_cssCacheFile, FILE_MODE_WRITE);
         }
 
-        $s_cssURL = $this->o_registry->getRootFile('css/' . $this->theme . '/' . $s_cssFileName, 
+        $s_cssURL = $this->o_registry->getRootFile('css/' . $in_theme . '/' . $s_cssFileName, 
                 'cache', FASTFRAME_WEBPATH);
         // register the CSS file 
-        $this->assignBlockData(
-            array(
+        $this->assignBlockData(array(
                 // put the filemtime on so that they only grab the new file when it is recreated
-                'MAIN_CSS' => '<link rel="stylesheet" type="text/css" href="' . $s_cssURL . '?fresh=' . filemtime($s_cssCacheFile) . '" />',
-            ),
-            $this->getGlobalBlockName()
-        );
+                'T_css' => '<link rel="stylesheet" type="text/css" href="' . $s_cssURL . '?fresh=' . filemtime($s_cssCacheFile) . '" />'), 'css');
     }
 
     // }}}

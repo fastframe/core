@@ -34,6 +34,27 @@
 
 // }}}
 class FF_Menu_StaticList extends FF_Menu {
+    // {{{ properties
+
+    /**
+     * The css class we use for the each node
+     * @var string
+     */
+    var $cssClass = 'listElement';
+
+    /**
+     * The template variable to which we assign the menu
+     * @var string
+     */
+    var $tmplVar = 'T_content_left';
+
+    /**
+     * The template block to which we assign the menu
+     * @var string
+     */
+    var $tmplBlock = 'content_left';
+
+    // }}}
     // {{{ renderMenu()
 
     /**
@@ -54,7 +75,7 @@ class FF_Menu_StaticList extends FF_Menu {
         // Turn on menu
         $s_menu = $this->_getCachedMenu();
         if (!FastFrame::isEmpty($s_menu, false)) {
-            $this->o_output->assignBlockData(array('T_content_left' => $s_menu), 'content_left');
+            $this->o_output->assignBlockData(array($this->tmplVar => $s_menu), $this->tmplBlock);
         }
     }
 
@@ -102,7 +123,7 @@ class FF_Menu_StaticList extends FF_Menu {
         // Create html for this node
         $tmp_style = empty($in_data['urlParams']) ? 'font-weight: bold;' : '';
         $s_padNum = $in_level * 15;
-        $s_node = "<div class=\"listElement\" style=\"margin-left: {$s_padNum}px; $tmp_style\">";
+        $s_node = "<div class=\"$this->cssClass\" style=\"margin-left: {$s_padNum}px; $tmp_style\">";
         $s_node .= $in_data['icon'];
         if (!empty($in_data['urlParams'])) {
             $s_node .= "<?php echo \$o_output->link('{$in_data['urlParams']}', _('{$in_data['contents']}'), array('title' => _('{$in_data['statusText']}'), 'target' => '{$in_data['target']}')); ?>";

@@ -42,6 +42,27 @@ require_once dirname(__FILE__) . '/StaticList.php';
 
 // }}}
 class FF_Menu_QuickLinks extends FF_Menu_StaticList {
+    // {{{ properties
+
+    /**
+     * The css class we use for the each node
+     * @var string
+     */
+    var $cssClass = 'quickLink';
+
+    /**
+     * The template variable to which we assign the menu
+     * @var string
+     */
+    var $tmplVar = 'T_quick_links';
+
+    /**
+     * The template block to which we assign the menu
+     * @var string
+     */
+    var $tmplBlock = 'quick_links';
+
+    // }}}
     // {{{ renderMenu()
 
     /**
@@ -57,6 +78,22 @@ class FF_Menu_QuickLinks extends FF_Menu_StaticList {
         }
 
         parent::renderMenu();
+    }
+
+    // }}}
+    // {{{ _generateStaticMenu()
+
+    /**
+     * Generates the HTML for the static menu. 
+     *
+     * @access private
+     * @return string The HTML for the menu.
+     */
+    function _generateStaticMenu()
+    {
+        $s_html = parent::_generateStaticMenu();
+        $s_html = preg_replace('/(<\/div>.+?<div class="' . $this->cssClass . '")/s', ' || \\1', $s_html);
+        return $s_html;
     }
 
     // }}}
