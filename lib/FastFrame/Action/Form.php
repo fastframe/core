@@ -319,7 +319,7 @@ class FF_Action_Form extends FF_Action {
      */
     function getSubmitButtons()
     {
-        return $this->o_renderer->elementToHtml('submit');
+        return $this->o_renderer->elementToHtml('submitbutton');
     }
 
     // }}}
@@ -351,7 +351,7 @@ class FF_Action_Form extends FF_Action {
         return array(
                    'actionId' => $this->formActionId,
                    'objectId' => FastFrame::getCGIParam('objectId', 'gp'), 
-                   'submit' => $this->getTableHeaderText(),
+                   'submitbutton' => $this->getTableHeaderText(),
                );
     }
 

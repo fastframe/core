@@ -72,6 +72,22 @@ class FF_ActionHandlerConfig {
     }
 
     // }}}
+    // {{{ checkPerms()
+
+    /**
+     * Checks module-wide permissions.  If there is a permission proble
+     * it will set the current action id to a safe page and set an error
+     * message.
+     *
+     * @access public
+     * @return bool True if everything is ok, false otherwise.
+     */
+    function checkPerms()
+    {
+        return true;
+    }
+
+    // }}}
     // {{{ hasCheckAuth
 
     /**

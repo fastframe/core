@@ -27,6 +27,12 @@ require_once dirname(__FILE__) . '/Registry.php';
 require_once dirname(__FILE__) . '/Auth.php';
 
 // }}}
+// {{{ constants
+
+define('PERMS_TYPE_OR', 1);
+define('PERMS_TYPE_AND', 2);
+
+// }}}
 // {{{ class FF_Perms
 
 /**
@@ -124,7 +130,12 @@ class FF_Perms {
     /**
      * Check whether a user has a certain permission for a specific app
      *
-     * @param mixed $in_perm Either a string or an array of permissions to check.
+     * @param mixed $in_perm Either a string or an array of permissions
+     *              to check.  If the last permission is '||' then we
+     *              OR the permissions together (only ensuring the user
+     *              has one of the specified perms), otherwise we AND
+     *              them together (ensuring the user has all the
+     *              specified perms). 
      * @param string $in_app The application the permission is associated with
      *               If not passed we use the current application
      *
@@ -171,6 +182,28 @@ class FF_Perms {
     }
 
     // }}}
+    // {{{ _getPermType()
+
+    /**
+     * Determines if the permission list is being ORed or ANDed.
+     * Changes the array as needed.
+     *
+     * @param mixed $in_perm The permission string or array
+     *
+     * @access private
+     * @return const The constant of the type of permission
+     */
+    function _getPermType(&$in_perm)
+    {
+        if (is_array($in_perm) && end($in_perm) == '||') {
+            array_pop($in_perm);
+            return PERMS_TYPE_OR;
+        }
+
+        return PERMS_TYPE_AND;
+    }
+
+    // }}}
     // {{{ _getPermCacheKey()
 
     /**
@@ -179,17 +212,18 @@ class FF_Perms {
      *
      * @param mixed $in_perm Either a string or an array of permissions to check.
      * @param string $in_app The application the permission is associated with
+     * @param const $in_permType The permission type
      *
      * @access private
      * @return string The key for the specified perm/app combo
      */
-    function _getPermCacheKey($in_perm, $in_app)
+    function _getPermCacheKey($in_perm, $in_app, $in_permType)
     {
         if (is_array($in_perm)) {
-            return $in_app . ':' . serialize($in_perm);
+            return $in_app . ':' . serialize($in_perm) . ':' . $in_permType;
         }
         else {
-            return $in_app . ':' . $in_perm;
+            return $in_app . ':' . $in_perm . ':' . $in_permType;
         }
     }
 

@@ -22,7 +22,6 @@
 // }}}
 // {{{ requires
 
-require_once dirname(__FILE__) . '/Perms.php';
 require_once dirname(__FILE__) . '/NextAction.php';
 
 // }}}

@@ -29,6 +29,7 @@ require_once dirname(__FILE__) . '/../FastFrame.php';
 require_once dirname(__FILE__) . '/Registry.php';
 require_once dirname(__FILE__) . '/Output.php';
 require_once dirname(__FILE__) . '/Auth.php';
+require_once dirname(__FILE__) . '/Perms.php';
 
 // }}}
 // {{{ constants
@@ -50,6 +51,7 @@ define('ACTION_LOGIN_SUBMIT',   'login_submit');
 define('ACTION_LOGOUT',         'logout');
 define('ACTION_SELECT',         'select');
 define('ACTION_DISPLAY',        'display');
+define('ACTION_RELOAD',         'reload');
 define('ACTION_TREE',           'tree');
 
 // }}}
@@ -287,6 +289,7 @@ class FF_ActionHandler {
         $this->availableActions = $this->defaultActions;
         $this->moduleConfig =& $a_configObjects[$s_className];
         $this->moduleConfig->loadConfig();
+        $this->moduleConfig->checkPerms();
     }
 
     // }}}

@@ -557,7 +557,10 @@ HTML;
                 $in_var = FastFrame::array_deep_map($in_var, 'stripslashes');
             }
             else {
-                $in_var = stripslashes($in_var);
+                // stripslashes make false turn to empty
+                if (!is_bool($in_var)) {
+                    $in_var = stripslashes($in_var);
+                }
             }
         }
 
