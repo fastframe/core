@@ -172,7 +172,7 @@ class FF_Action_Download extends FF_Action {
                 'zip' => 'application/zip');
 
         // }}}
-        $a_pth = pathinfo($in_filename);
+        $a_pth = pathinfo(strtolower($in_filename));
         return isset($a_mime[$a_pth['extension']]) ? $a_mime[$a_pth['extension']] : $a_mime['xxx'];
     }
 
