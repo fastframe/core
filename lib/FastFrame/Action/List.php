@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.3 2003/02/08 00:10:55 jrust Exp $ */
+/** $Id: List.php,v 1.4 2003/02/10 22:14:17 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -55,10 +55,10 @@ class ActionHandler_List extends ActionHandler_GenericForm {
     var $dataArray = array();
 
     /**
-     * The field map array used by FastFrame for list configuration
-     * @type array
+     * When looping through the list of data this is set to the current data set 
+     * @type array 
      */
-    var $fieldMap = array();
+    var $currentData;
 
     // }}}
     // {{{ constructor
@@ -104,10 +104,13 @@ class ActionHandler_List extends ActionHandler_GenericForm {
      */
     function initList()
     {
-        $this->o_list =& new FastFrame_List();
+        $this->o_list =& new FastFrame_List(
+            $this->getDefaultSortField(), 
+            $this->getDefaultSortOrder(),
+            $this->getDefaultDisplayLimit()
+        );
         $this->o_application->setListObject($this->o_list);
-        $this->fieldMap = $this->o_registry->getConfigParam('app/field_map');
-        $this->processFieldMap($this->fieldMap);
+        $this->processFieldMap($this->getFieldMap());
         $this->o_list->setTotalRecords($this->o_application->getListTotalRecordsCount());
         $this->dataArray = $this->o_application->getListData();
         if (PEAR::isError($this->dataArray)) {
@@ -171,10 +174,12 @@ class ActionHandler_List extends ActionHandler_GenericForm {
     {
         if ($this->o_list->getDisplayedRecords() > 0) {
             foreach ($this->dataArray as $tmp_data) {
+                // set current data so it is available to other methods
+                $this->currentData = $tmp_data;
                 $this->o_output->touchBlock($in_namespace . 'table_row');
                 $this->o_output->cycleBlock($in_namespace . 'table_content_cell');
-                foreach ($this->fieldMap as $tmp_fields) {
-                    $tmp_displayData = $this->o_output->processCellData($this->getCellData($tmp_data, $tmp_fields));
+                foreach ($this->getFieldMap() as $tmp_fields) {
+                    $tmp_displayData = $this->o_output->processCellData($this->getCellData($tmp_fields));
                     $this->o_output->assignBlockData(
                         array(
                             'T_table_content_cell' => $tmp_displayData,
@@ -204,17 +209,16 @@ class ActionHandler_List extends ActionHandler_GenericForm {
      * Process the field map configuration used by FastFrame into the columnData and
      * searchableFields properties of the list object. 
      *
-     * @param array $in_fieldMap The field map used by FastFrame apps.
      * @param bool $in_addAllFields (optional) Add the All Fields param to the beginning of the
      *                              searchable fields list? 
      *
      * @access public
      * @return void 
      */
-    function processFieldMap($in_fieldMap, $in_addAllFields = true)
+    function processFieldMap($in_addAllFields = true)
     {
         $a_colData = array();
-        foreach ($in_fieldMap as $a_val) {
+        foreach ($this->getFieldMap() as $a_val) {
             if (isset($a_val['field'])){
                 $a_colData[] = array('sort' => $a_val['field'], 'name' => $a_val['description']);
             }
@@ -229,34 +233,97 @@ class ActionHandler_List extends ActionHandler_GenericForm {
     }
 
     // }}}
+    // {{{ getDefaultSortField()
+    
+    /**
+     * Returns the default sort field
+     *
+     * @access public
+     * @return string The field name for the default sort
+     */
+    function getDefaultSortField()
+    {
+        // interface
+    }
+
+    // }}}
+    // {{{ getDefaultDisplayLimit()
+    
+    /**
+     * Returns the default display limit for the list page 
+     *
+     * @access public
+     * @return int The display limit 
+     */
+    function getDefaultDisplayLimit()
+    {
+        return 30;
+    }
+
+    // }}}
+    // {{{ getDefaultSortOrder()
+    
+    /**
+     * Returns the default sort order for the list in the form of an integer (0 = DESC, 1 =
+     * ASC)
+     *
+     * @access public
+     * @return int The sort order 
+     */
+    function getDefaultSortOrder()
+    {
+        return 1;
+    }
+
+    // }}}
+    //{{{ getFieldMap()
+
+    /**
+     * Returns the field map array.
+     *
+     * The map of fields to display in the list page, their description, and an optional method 
+     * (that exists in ths object) to run on them if the data needs to be manipulated 
+     * before being displayed.  If no field is supplied then we will assume the cell will not 
+     * contain data from the database, but a method still needs to be supplied which will be used 
+     * to fill in the data for that cell.  An example element in the array would look like:
+     * array('field' => 'username', 'description' => _('User Name'), 'method' => 'makeBold')
+     *
+     * @access public
+     * @return array
+     */
+    function getFieldMap()
+    {
+        // interface
+    }
+
+    // }}}
     // {{{ getCellData()
 
     /**
      * Gets the cell data using the database connection and the field map.
      *
-     * @param object $in_data The data array 
-     * @param array $in_fieldMap The field map for the field we want 
+     * @param array $in_fieldMapElement The field map element for the field we want 
      *
      * @access public
      * @return string The text to put in the cell in the list.
      */
-    function getCellData($in_data, $in_fieldMap)
+    function getCellData($in_fieldMapElement)
     {
-        if (isset($in_fieldMap['method']) && 
-            method_exists($this->o_application, $in_fieldMap['method'])) {
-            if (isset($in_data[$in_fieldMap['field']])) {
-                $s_cellData = $this->o_application->$in_fieldMap['method']($in_data[$in_fieldMap['field']]);
+        if (isset($in_fieldMapElement['method']) && 
+            method_exists($this, $in_fieldMapElement['method'])) {
+            if (isset($in_fieldMapElement['field'])) {
+                $s_cellData = $this->$in_fieldMapElement['method']($this->currentData[$in_fieldMapElement['field']]);
             }
             else {
-                $s_cellData = $this->o_application->$in_fieldMap['method']();
+                $s_cellData = $this->$in_fieldMapElement['method']();
             }
         }
         else {
-            if (!isset($in_data[$in_fieldMap['field']])) {
-                $s_cellData = sprintf(_('Warning: field property for %s is not set!'), $in_fieldMap['description']);
+            if (!isset($this->currentData[$in_fieldMapElement['field']])) {
+                $s_cellData = sprintf(_('Warning: field property for %s is not set!'), $in_fieldMapElement['description']);
             }
             else {
-                $s_cellData = $in_data[$in_fieldMap['field']];
+                $s_cellData = $this->currentData[$in_fieldMapElement['field']];
             }
         }
 
