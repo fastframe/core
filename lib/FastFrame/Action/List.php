@@ -216,7 +216,7 @@ class FF_Action_List extends FF_Action_Form {
                     // Cells with buttons have  special attributes
                     foreach ($a_buttonCells as $s_method ) {
                         if ($tmp_fields['method'] == $s_method ) {
-                            $s_attr = 'id="optionCell' . $i . '" style="white-space: nowrap; width: 5%;"';
+                            $s_attr = 'id="optionCell" style="white-space: nowrap; width: 20px;"';
                             $tmp_fields['object'] =& $this;
                         }
                     }
@@ -277,6 +277,15 @@ class FF_Action_List extends FF_Action_Form {
 
             if (isset($a_val['sort'])) {
                 $a_colData[$s_key]['sort'] = $a_val['sort'];
+            }
+
+            if (isset($a_val['style'])) {
+                $a_colData[$s_key]['style'] = $a_val['style'];
+            }
+
+            if (isset($a_val['img'])) {
+                $a_colData[$s_key]['title'] = $a_colData[$s_key]['name'];
+                $a_colData[$s_key]['name'] = $a_val['img'];
             }
         }
         
@@ -434,6 +443,8 @@ class FF_Action_List extends FF_Action_Form {
      *  sortable.
      *  'attr' => Any attributes to apply to the cell
      * 'description' => Description of the field.
+     * 'img' => Makes the column header the specified image
+     * 'style' => Specifies the style for the column header
      *
      * @access public
      * @return array

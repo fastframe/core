@@ -419,10 +419,11 @@ class FF_List {
     // {{{ generateSortFields()
 
     /**
-     * Generate a set of column headers which are HTML'd to have images and links so they
-     * can be clicked on to sort the page.
+     * Generate a set of column headers which are HTML'd to have images
+     * and links so they can be clicked on to sort the page.
      *
-     * @return array An array of the sort fields with the links and descriptions of the cell
+     * @return array An array of the sort fields with the links and
+     * descriptions of the cell
      */
     function generateSortFields()
     {
@@ -443,7 +444,8 @@ class FF_List {
                 // Modify the two get variables for this sort
                 $a_listVars["sortField[$this->listId]"] = $a_colData['sort'];
                 $a_listVars["sortOrder[$this->listId]"] = $tmp_sort;
-                $tmp_title = sprintf(_('Sort %1$s (%2$s)'), $a_colData['name'], 
+                $tmp_title = sprintf(_('Sort %1$s (%2$s)'), 
+                        (isset($a_colData['title']) ? $a_colData['title'] : $a_colData['name']), 
                         $tmp_sort ? _('Ascending') : _('Descending')); 
                 $tmp_href = $this->o_output->link(FastFrame::selfURL($a_listVars), 
                         $a_colData['name'], array('title' => $tmp_title ));
@@ -458,6 +460,10 @@ class FF_List {
                             $tmp_img, array('title' => $tmp_title)); 
                 }
                 
+                if (isset($a_colData['style'])) {
+                    $tmp_href = '<div style="' . $a_colData['style'] . '">' . $tmp_href . '</div>';
+                }
+
                 $a_fieldCells[] = $tmp_href;
             }
             else {
@@ -917,10 +923,14 @@ class FF_List {
     /**
      * Sets the column data. 
      *
-     * @param array $in_columnData A multidimensional array with the primary keys in the order
-     *              the columns are to be displayed.  
-     *              e.g. $colVars[0] = array('name' => 'Col 1', 'sort' => 'field1');
-     *              Leave out the sort column if the column is not to be sorted.
+     * @param array $in_columnData A multidimensional array with the
+     *              primary keys in the order the columns are to be
+     *              displayed.
+     *              e.g. $colVars[0] = array('name' => 'Col 1', 'sort'
+     *              => 'field1', 'title' => 'Title text', 'style' =>
+     *              'font-weight: bold;');
+     *              Leave out the sort column if the column is not to be
+     *              sorted.
      *
      * @access public
      * @return void

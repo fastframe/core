@@ -582,13 +582,20 @@ class FF_Output {
                 $in_options['height'] = $in_options['width'] = 16;
             }
 
-            $a_events = $this->_prepareTooltip(array(
-                    'caption' => isset($in_options['caption']) ? $in_options['caption'] : '',
-                    'content' => isset($in_options['title']) ? $in_options['title'] : '',
-                    'status'  => isset($in_options['status']) ? $in_options['status'] : '',
-                    'sticky'  => isset($in_options['sticky']) ? $in_options['sticky'] : '',
-                    'greasy'  => isset($in_options['greasy']) ? $in_options['greasy'] : '',
-                    'onclick' => isset($in_options['onclick']) ? $in_options['onclick'] : ''));
+            if (isset($in_options['caption']) && isset($in_options['title'])) {
+                $a_events = $this->_prepareTooltip(array(
+                        'caption' => isset($in_options['caption']) ? $in_options['caption'] : '',
+                        'content' => isset($in_options['title']) ? $in_options['title'] : '',
+                        'status'  => isset($in_options['status']) ? $in_options['status'] : '',
+                        'sticky'  => isset($in_options['sticky']) ? $in_options['sticky'] : '',
+                        'greasy'  => isset($in_options['greasy']) ? $in_options['greasy'] : '',
+                        'onclick' => isset($in_options['onclick']) ? $in_options['onclick'] : ''));
+                unset($in_options['title']);
+            }
+            else {
+                $a_events['onmouseover'] = $a_events['onmousemove'] = $a_events['onclick'] = '';
+            }
+
             $s_tag = '<';
             $s_tag .= isset($in_options['type']) && $in_options['type'] == 'input' ? 
                 'input type="image"' : 'img';
@@ -597,6 +604,7 @@ class FF_Output {
             $s_tag .= $a_events['onmousemove'] != '' ? ' onmousemove="' . $a_events['onmousemove'] . '"' : '';
             $s_tag .= $a_events['onclick'] != '' ? ' onclick="' . $a_events['onclick'] . '"' : '';
             $s_tag .= isset($in_options['id']) ? " id=\"{$in_options['id']}\"" : '';
+            $s_tag .= isset($in_options['title']) ? " title=\"{$in_options['title']}\"" : '';
             $s_tag .= isset($in_options['name']) ? " name=\"{$in_options['name']}\"" : '';
             $s_tag .= isset($in_options['hspace']) ? " hspace=\"{$in_options['hspace']}\"" : '';
             $s_tag .= isset($in_options['vspace']) ? " vspace=\"{$in_options['vspace']}\"" : '';
