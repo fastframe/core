@@ -1,5 +1,5 @@
 <?php
-/** $Id: Registry.php,v 1.1 2003/01/03 22:42:44 jrust Exp $ */
+/** $Id: Registry.php,v 1.2 2003/01/08 00:07:37 jrust Exp $ */
 // {{{ constants/globals
 
 // types of filepaths that can be generated
@@ -88,7 +88,7 @@ class FastFrame_Registry {
     function FastFrame_Registry()
     {
         $this->importConfig();
-        //$this->getDataConnection();
+        $this->getDataConnection();
 
         // Initial FastFrame-wide settings
         // Set the error reporting level in accordance with the config settings.
@@ -544,19 +544,39 @@ class FastFrame_Registry {
 
     /**
      * Initialize a connection to the database
+     *
+     * @param  string $in_credentials (optional) override of current state
+     *
+     * @access public
+     * @return object The database connection
      */
     function &getDataConnection($in_credentials = array())
     {
-        static $dataConnection;
+        static $a_dataConnection;
 
-        $app = isset($in_credentials['app']) ? $in_credentials['app'] : $this->getCurrentApp();
+        $s_app = isset($in_credentials['app']) ? $in_credentials['app'] : $this->getCurrentApp();
 
-        if (!isset($dataConnection[$app])) {
-            $database = $this->getAppParam('app_database');
-            $dataConnection[$app] =& DB::connect($this->getConfigParam('data/dsn', null, array('app' => $app)) . '/' . $database, $this->getConfigParam('data/pconnect'));
+        if (!isset($a_dataConnection[$s_app])) {
+            // see if we should even set up a database connection
+            $s_type = $this->getConfigParam('data/type', null, array('app' => $s_app));
+            if (is_null($s_type)) {
+                return;
+            }
+
+            // construct dsn
+            $s_dsn = $s_type . '://' .
+                     $this->getConfigParam('data/username', null, array('app' => $s_app)) . ':' .
+                     $this->getConfigParam('data/password', null, array('app' => $s_app)) . '@' .
+                     $this->getConfigParam('data/host', null, array('app' => $s_app)) . '/' .
+                     $this->getConfigParam('data/database', null, array('app' => $s_app));
+
+            $a_dataConnection[$s_app] =& MDB::connect($s_dsn, $this->getConfigParam('data/pconnect', false));
+            if (MDB::isError($a_dataConnection[$s_app])) {
+                FastFrame::fatal($a_dataConnection[$s_app], __FILE__, __LINE__);
+            }
         }
         
-        return $dataConnection[$app];
+        return $a_dataConnection[$s_app];
     }
 
     // }}}
@@ -606,7 +626,7 @@ class FastFrame_Registry {
         // if we switched apps then we need to reset the database name
         if ($s_app != $s_lastApp) {
             $s_lastApp = $s_app;
-            $s_database = $this->getConfigParam('database/name');
+            $s_database = $this->getConfigParam('data/database');
         }
 
         return $s_database;
