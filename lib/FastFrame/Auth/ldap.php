@@ -214,6 +214,10 @@ class FF_AuthSource_ldap extends FF_AuthSource {
         $search = @ldap_search($this->ldap, $this->basedn,
                                $this->uid . '=' . $in_username,
                                array($this->uid));
+        if ($search === false) {
+            // Search failed,  fail check
+            return false;
+        }
         $entry = ldap_first_entry($this->ldap, $search);
         if ($entry === false) {
             // Couldn't find username
