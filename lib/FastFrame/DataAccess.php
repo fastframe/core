@@ -1,5 +1,5 @@
 <?php
-/** $Id: DataAccess.php,v 1.8 2003/04/09 16:23:13 jrust Exp $ */
+/** $Id: DataAccess.php,v 1.9 2003/04/10 21:07:17 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -330,7 +330,7 @@ class FF_DataAccess {
             return array();
         }
         else {
-            return $result[0];
+            return @$result[0];
         }
     }
 
