@@ -1,5 +1,5 @@
 <?php
-/** $Id: Action.php,v 1.1 2003/02/12 20:47:58 jrust Exp $ */
+/** $Id: Action.php,v 1.2 2003/02/22 02:07:56 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -22,16 +22,14 @@
 // }}}
 // {{{ requires
 
-require_once dirname(__FILE__) . '/../ActionHandler.php';
-require_once dirname(__FILE__) . '/../Application.php';
-require_once dirname(__FILE__) . '/../Output.php';
+require_once dirname(__FILE__) . '/Output.php';
+require_once dirname(__FILE__) . '/NextAction.php';
 
 // }}}
-// {{{ class ActionHandler_Action
+// {{{ class FF_Action
 
 /**
- * The ActionHandler_Action:: class has methods and properties that are generally
- * useful to all actions. 
+ * The FF_Action:: class is the super class for all actions 
  *
  * @author  Jason Rust <jrust@codejanitor.com>
  * @version Revision: 1.0 
@@ -40,7 +38,7 @@ require_once dirname(__FILE__) . '/../Output.php';
  */
 
 // }}}
-class ActionHandler_Action {
+class FF_Action {
     // {{{ properties
 
     /**
@@ -56,16 +54,22 @@ class ActionHandler_Action {
     var $o_output;
 
     /**
-     * ActionHandler instance
+     * The next action object which is returned from all run() methods
      * @type object
      */
-    var $o_action;
+    var $o_nextAction;
 
     /**
-     * Application instance
+     * The DataAccess object
      * @type object
      */
-    var $o_application;
+    var $o_dataAccess;
+
+    /**
+     * The current actionId
+     * @type string
+     */
+    var $currentActionId;
 
     // }}}
     // {{{ constructor
@@ -76,11 +80,11 @@ class ActionHandler_Action {
      * @access public
      * @return void
      */
-    function ActionHandler_Action()
+    function FF_Action()
     {
         $this->o_registry =& FastFrame_Registry::singleton();
         $this->o_output =& FastFrame_Output::singleton();
-        $this->o_action =& ActionHandler::singleton();
+        $this->o_nextAction =& new FF_NextAction();
     }
 
     // }}}
@@ -90,11 +94,43 @@ class ActionHandler_Action {
      * Interface run class
      *
      * @access public
-     * @returns void
+     * @returns object The next action object
      */
     function run()
     {
-        return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "Run not implemented for this action!", 'FastFrame_Error', true);
+        return $this->o_nextAction; 
+    }
+
+    // }}}
+    // {{{ setCurrentActionId()
+
+    /**
+     * Sets the current action id that this action was called with
+     *
+     * @param string $in_actionId The current action Id
+     *
+     * @access public
+     * @return void
+     */
+    function setCurrentActionId($in_actionId)
+    {
+        $this->currentActionId = $in_actionId;
+    }
+
+    // }}}
+    // {{{ setDataAccessObject()
+
+    /**
+     * Sets the data access object
+     *
+     * @param object $in_dao The data access object
+     *
+     * @access public
+     * @return void
+     */
+    function setDataAccessObject(&$in_dao)
+    {
+        $this->o_dataAccess =& $in_dao;
     }
 
     // }}}
