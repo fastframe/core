@@ -269,8 +269,6 @@ class FF_Output {
     function link($in_url, $in_text, $in_options = array())
     {
         $a_options = array('title' => '', 'caption' => '', 'status' => '',
-                // these can be blank or event (onmouseover, onmousemove or onclick)
-                'greasy' => '', 'sticky' => '',
                 'confirm' => '', 'onclick' => '', 'class' => '',
                 'style' => '', 'target' => '', 'getAccessKey' => false);
 
