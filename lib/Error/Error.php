@@ -454,6 +454,43 @@ class ErrorReporter /*extends LoopManipulator*/
 	}
 
 	// }}}
+    // {{{ getDetails()
+
+    /**
+     * Gets the details of a message, such as the variable context
+     *
+     * @param object $error The error object
+     *
+     * @access public
+     * @return string The html of any details of the error
+     */
+    function getDetails(&$error)
+    {
+        // :NOTE: dallen 2003/02/01 perhaps we can add an addition data option for error
+        // level which includes source and variable context
+        // :BUG: dallen 2003/02/03 this should be a class specification
+        $output = '<div style="margin: 5px 5px 0 5px; font-family: sans-serif; font-size: 10px;">';
+        $output .= '==> Source report from ' . $error['file'] . ' around line ' . $error['line'];
+        $output .= ' (' . $error['context']['start'] . '-' . $error['context']['end'] . ')</div>';
+        $output .= '<div style="margin: 0 5px 5px 5px; background-color: #EEEEEE; border: 1px dashed #000000;">';
+        $output .= str_replace('  ', '&nbsp; ', str_replace('&nbsp;', ' ', @highlight_string(stripslashes($error['context']['source']), true)));
+        $output .= '</div>';
+        $variables = $this->_exportVariables($error['variables'], $error['context']['variables']);
+        if ($variables !== false)
+        {
+            $variables = @highlight_string(stripslashes('<?php' . $variables . '?>'), true);
+            // strip the php tags
+            $variables = preg_replace(':(&lt;\?php(<br />)*|\?&gt;):', '', $variables);
+            // :BUG: dallen 2003/02/03 this should be a class specification
+            $output .= '<div style="margin: 5px 5px 0 5px; font-family: sans-serif; font-size: 10px;">';
+            $output .= '==> Variable scope report</div>';
+            $output .= '<div style="margin: 0px 5px 5px 5px;">' . $variables . '</div>';
+        }
+        
+        return $output;
+    }
+
+    // }}}
 	// {{{ prepare()
 
 	function prepare()
@@ -501,27 +538,13 @@ class ErrorReporter /*extends LoopManipulator*/
 		// browser
 		if ($this->reports['browser']['level'] & $error['level'])
 		{
-			echo $message;
+			echo $message . $this->getDetails($error);
 		}
 
 		// console
 		if ($this->reports['console']['level'] & $error['level'])
 		{
-			// :NOTE: dallen 2003/02/01 perhaps we can add an addition data option for error
-			// level which includes source and variable context
-			// :BUG: dallen 2003/02/03 this should be a class specification
-			$output = $message . '<div style="margin: 5px 5px 0 5px; font-family: sans-serif; font-size: 10px;">==> Source report from ' . $error['file'] . ' around line ' . $error['line'] . ' (' . $error['context']['start'] . '-' . $error['context']['end'] . ')</div><div style="margin: 0 5px 5px 5px; background-color: #EEEEEE; border: 1px dashed #000000;">' . str_replace('  ', '&nbsp; ', str_replace('&nbsp;', ' ', highlight_string($error['context']['source'], true))) . '</div>';
-			$variables = $this->_exportVariables($error['variables'], $error['context']['variables']);
-			if ($variables !== false)
-			{
-				$variables = highlight_string('<?php' . $variables . '?>', true);
-				// strip the php tags
-				$variables = preg_replace(':(&lt;\?php(<br />)*|\?&gt;):', '', $variables);
-				// :BUG: dallen 2003/02/03 this should be a class specification
-				$output .= '<div style="margin: 5px 5px 0 5px; font-family: sans-serif; font-size: 10px;">==> Variable scope report</div><div style="margin: 0px 5px 5px 5px;">' . $variables . '</div>';
-			}
-			
-			$this->errorList[$index + 1] = strtr($output, array("\t" => '\\t', "\n" => '\\n', "\r" => '\\r', '\\' => '&#092;', "'" => '&#39;'));
+			$this->errorList[$index + 1] = $this->_makeStringJSSafe($message . $this->getDetails($error));
 		}
 	}
 
@@ -542,6 +565,22 @@ class ErrorReporter /*extends LoopManipulator*/
 	}
 
 	// }}}
+    // {{{ _makeStringJSSafe()
+
+    /**
+     * Makes a string safe for being in a javascript string
+     *
+     * @param string $in_data The data to clean
+     *
+     * @access private
+     * @return string The cleaned up string
+     */
+    function _makeStringJSSafe($in_data)
+    {
+        return strtr($in_data, array("\t" => '\\t', "\n" => '\\n', "\r" => '\\r', '\\' => '&#092;', "'" => '&#39;'));
+    }
+
+    // }}}
 	// {{{ _exportVariables()
 
 	function _exportVariables(&$variables, $contextVariables)

@@ -215,7 +215,9 @@ class FF_Auth {
         
         // set the anchor for this browser to never expire
         if ($in_setAnchor) {
-            FastFrame::setCookies(array(FF_Auth::_get_session_anchor() => 1));
+            FastFrame::setCookies(array(FF_Auth::_get_session_anchor() => 1), 0,
+                $this->o_registry->getConfigParam('cookie/path'),
+                $this->o_registry->getConfigParam('cookie/domain'));
         }
     }
 
@@ -231,7 +233,9 @@ class FF_Auth {
     function clearAuth()
     {
         // kill the anchor and the __auth__ cookie 
-        FastFrame::unsetCookies(array('__auth__', FF_Auth::_get_session_anchor()));
+        FastFrame::unsetCookies(array('__auth__', FF_Auth::_get_session_anchor()),
+                $this->o_registry->getConfigParam('cookie/path'),
+                $this->o_registry->getConfigParam('cookie/domain'));
 
         $_SESSION['__auth__'] = array();
         $_SESSION['__auth__']['registered'] = false;

@@ -569,7 +569,7 @@ HTML;
      * Since there is no clean way to do this in php, we provide this
      * function to force set the cookie to a zero value and in the past.
      *
-     * @param  mixed  $in_name string name of the cookie or array of string names
+     * @param  mixed  $in_names Name of the cookie or array of string names
      *
      * @access public
      * @return void

@@ -28,6 +28,8 @@ require_once dirname(__FILE__) . '/Registry.php';
 require_once dirname(__FILE__) . '/Output.php';
 require_once dirname(__FILE__) . '/Auth.php';
 require_once dirname(__FILE__) . '/Perms.php';
+define('ECLIPSE_ROOT', dirname(__FILE__) . '/../eclipse/');
+require_once dirname(__FILE__) . '/../Error/Error.php';
 
 // }}}
 // {{{ constants
@@ -157,8 +159,8 @@ class FF_ActionHandler {
      */
     function FF_ActionHandler()
     {
-        $this->_initializeErrorHandler();
         $this->o_registry =& FF_Registry::singleton();
+        $this->_initializeErrorHandler();
         FF_Auth::sessionStart();
         // Always set the locale to a guaranteed language first so that a custom language
         // (i.e. en_BIP) will work
@@ -514,13 +516,20 @@ class FF_ActionHandler {
      */
     function _initializeErrorHandler()
     {
-        define('ECLIPSE_ROOT', dirname(__FILE__) . '/../eclipse/');
-        require_once dirname(__FILE__) . '/../Error/Error.php';
         $o_reporter =& new ErrorReporter();
         $o_reporter->setDateFormat('[Y-m-d H:i:s]');
         $o_reporter->setStrictContext(false);
         $o_reporter->setExcludeObjects(false);
-        $o_reporter->addReporter('console', E_VERY_ALL);
+        foreach ($this->o_registry->getConfigParam('error/reporters') as $s_type => $a_reporter) {
+            // Text-based browsers can't use console method
+            if ($s_type == 'console' && !Net_UserAgent_Detect::hasFeature('javascript')) {
+                $s_type = 'browser';
+            }
+
+            $a_reporter['data'] = isset($a_reporter['data']) ? $a_reporter['data'] : null;
+            $o_reporter->addReporter($s_type, $a_reporter['level'], $a_reporter['data']);
+        }
+
         ErrorList::singleton($o_reporter, 'o_error');
     }
 
