@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.5 2003/02/12 20:50:57 jrust Exp $ */
+/** $Id: List.php,v 1.6 2003/02/22 02:08:24 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -24,13 +24,14 @@
 
 require_once dirname(__FILE__) . '/Form.php';
 require_once dirname(__FILE__) . '/../List.php';
+require_once dirname(__FILE__) . '/../DataAccess/ListData.php';
 require_once dirname(__FILE__) . '/../Output/Table.php';
 
 // }}}
-// {{{ class ActionHandler_List
+// {{{ class FF_Action_List
 
 /**
- * The ActionHandler_List:: class creates a list of items by using the FastFrame_List class
+ * The FF_Action_List:: class creates a list of items by using the FastFrame_List class
  *
  * @author  Jason Rust <jrust@codejanitor.com>
  * @version Revision: 1.0 
@@ -39,7 +40,7 @@ require_once dirname(__FILE__) . '/../Output/Table.php';
  */
 
 // }}}
-class ActionHandler_List extends ActionHandler_Form {
+class FF_Action_List extends FF_Action_Form {
     // {{{ properties
 
     /**
@@ -49,16 +50,10 @@ class ActionHandler_List extends ActionHandler_Form {
     var $o_list;
 
     /**
-     * Array of the data to be filled into the list
+     * The array of models we work with to create the list
      * @type array
      */
-    var $dataArray = array();
-
-    /**
-     * When looping through the list of data this is set to the current data set 
-     * @type array 
-     */
-    var $currentData;
+    var $modelArray;
 
     // }}}
     // {{{ constructor
@@ -69,9 +64,9 @@ class ActionHandler_List extends ActionHandler_Form {
      * @access public
      * @return void
      */
-    function ActionHandler_List()
+    function FF_Action_List()
     {
-        ActionHandler_Form::ActionHandler_Form();
+        FF_Action_Form::FF_Action_Form();
     }
 
     // }}}
@@ -81,7 +76,7 @@ class ActionHandler_List extends ActionHandler_Form {
      * Lists the object from the database 
      *
      * @access public
-     * @return void
+     * @return object The next action object
      */
     function run()
     {
@@ -91,6 +86,7 @@ class ActionHandler_List extends ActionHandler_Form {
         $this->o_list->renderSearchBox($this->getSingularText(), $this->getPluralText());
         $this->createListTable();
         $this->o_output->output();
+        return $this->o_nextAction; 
     }
 
     // }}}
@@ -108,21 +104,14 @@ class ActionHandler_List extends ActionHandler_Form {
             $this->getDefaultSortField(), 
             $this->getDefaultSortOrder(),
             $this->getDefaultDisplayLimit(),
-            array('actionId' => $this->o_action->getActionId())
+            array('actionId' => $this->currentActionId)
         );
-        $this->o_application->setListObject($this->o_list);
-        $this->processFieldMap($this->getFieldMap());
-        $this->o_list->setTotalRecords($this->o_application->getListTotalRecordsCount());
-        $this->dataArray = $this->o_application->getListData();
-        if (PEAR::isError($this->dataArray)) {
-            $this->o_output->setMessage($a_data->getMessage(), FASTFRAME_ERROR_MESSAGE);
-            $this->dataArray = array();
-            $this->o_list->setTotalRecords(0);
-        }
-        else {
-            $this->o_list->setMatchedRecords($this->o_application->getListMatchedRecordsCount());
-            $this->o_list->setDisplayedRecords(count($this->dataArray));
-        }
+        $o_listData = new FF_DataAccess_ListData($this->o_list, $this->o_dataAccess);
+        $this->processFieldMapForList($this->getFieldMap());
+        $this->o_list->setTotalRecords($o_listData->getListTotalRecordsCount());
+        $this->modelArray = $o_listData->getListModels();
+        $this->o_list->setMatchedRecords($o_listData->getListMatchedRecordsCount());
+        $this->o_list->setDisplayedRecords(count($this->modelArray));
     }
 
     // }}}
@@ -174,13 +163,19 @@ class ActionHandler_List extends ActionHandler_Form {
     function renderListData($in_namespace)
     {
         if ($this->o_list->getDisplayedRecords() > 0) {
-            foreach ($this->dataArray as $tmp_data) {
-                // set current data so it is available to other methods
-                $this->currentData = $tmp_data;
+            foreach ($this->modelArray as $tmp_model) {
+                // so any other methods can have access to the current model
+                $this->o_model =& $tmp_model;
                 $this->o_output->touchBlock($in_namespace . 'table_row');
                 $this->o_output->cycleBlock($in_namespace . 'table_content_cell');
                 foreach ($this->getFieldMap() as $tmp_fields) {
-                    $tmp_displayData = $this->o_output->processCellData($this->getCellData($tmp_fields));
+                    if (isset($tmp_fields['field'])) {
+                        $tmp_displayData = $this->o_output->processCellData($this->o_model->$tmp_fields['method']());
+                    }
+                    else {
+                        $tmp_displayData = $this->o_output->processCellData($this->$tmp_fields['method']());
+                    }
+
                     $this->o_output->assignBlockData(
                         array(
                             'T_table_content_cell' => $tmp_displayData,
@@ -204,7 +199,7 @@ class ActionHandler_List extends ActionHandler_Form {
     }
 
     // }}}
-    // {{{ processFieldMap()
+    // {{{ processFieldMapForList()
 
     /**
      * Process the field map configuration used by FastFrame into the columnData and
@@ -216,7 +211,7 @@ class ActionHandler_List extends ActionHandler_Form {
      * @access public
      * @return void 
      */
-    function processFieldMap($in_addAllFields = true)
+    function processFieldMapForList($in_addAllFields = true)
     {
         $a_colData = array();
         foreach ($this->getFieldMap() as $a_val) {
@@ -282,12 +277,13 @@ class ActionHandler_List extends ActionHandler_Form {
     /**
      * Returns the field map array.
      *
-     * The map of fields to display in the list page, their description, and an optional method 
-     * (that exists in ths object) to run on them if the data needs to be manipulated 
-     * before being displayed.  If no field is supplied then we will assume the cell will not 
-     * contain data from the database, but a method still needs to be supplied which will be used 
-     * to fill in the data for that cell.  An example element in the array would look like:
-     * array('field' => 'username', 'description' => _('User Name'), 'method' => 'makeBold')
+     * The map of fields to display in the list page, their description, and the method
+     * (that exists in the model object) to run to get the data for that field from the
+     * model.  If no field is supplied then we will assume the cell will not contain data
+     * from the database, but a method still needs to be supplied (which exists in this
+     * object, since it has nothing to do with the model) and which will be used to fill
+     * in the data for that cell.  An example element in the array would look like:
+     * array('field' => 'username', 'description' => _('User Name'), 'method' => 'getUserName')
      *
      * @access public
      * @return array
@@ -295,40 +291,6 @@ class ActionHandler_List extends ActionHandler_Form {
     function getFieldMap()
     {
         // interface
-    }
-
-    // }}}
-    // {{{ getCellData()
-
-    /**
-     * Gets the cell data using the database connection and the field map.
-     *
-     * @param array $in_fieldMapElement The field map element for the field we want 
-     *
-     * @access public
-     * @return string The text to put in the cell in the list.
-     */
-    function getCellData($in_fieldMapElement)
-    {
-        if (isset($in_fieldMapElement['method']) && 
-            method_exists($this, $in_fieldMapElement['method'])) {
-            if (isset($in_fieldMapElement['field'])) {
-                $s_cellData = $this->$in_fieldMapElement['method']($this->currentData[$in_fieldMapElement['field']]);
-            }
-            else {
-                $s_cellData = $this->$in_fieldMapElement['method']();
-            }
-        }
-        else {
-            if (!isset($this->currentData[$in_fieldMapElement['field']])) {
-                $s_cellData = sprintf(_('Warning: field property for %s is not set!'), $in_fieldMapElement['description']);
-            }
-            else {
-                $s_cellData = $this->currentData[$in_fieldMapElement['field']];
-            }
-        }
-
-        return $s_cellData;
     }
 
     // }}}

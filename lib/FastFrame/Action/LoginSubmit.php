@@ -1,5 +1,5 @@
 <?php
-/** $Id: LoginSubmit.php,v 1.3 2003/02/12 20:51:43 jrust Exp $ */
+/** $Id: LoginSubmit.php,v 1.4 2003/02/22 02:08:25 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -22,13 +22,14 @@
 // }}}
 // {{{ requires
 
-require_once dirname(__FILE__) . '/Action.php';
+require_once dirname(__FILE__) . '/../Auth.php';
+require_once dirname(__FILE__) . '/../Action.php';
 
 // }}}
-// {{{ class ActionHandler_LoginSubmit
+// {{{ class FF_Action_LoginSubmit
 
 /**
- * The ActionHandler_Login:: class handles the processing of the login form 
+ * The FF_Action_Login:: class handles the processing of the login form 
  *
  * @author  Jason Rust <jrust@codejanitor.com>
  * @version Revision: 1.0 
@@ -37,7 +38,7 @@ require_once dirname(__FILE__) . '/Action.php';
  */
 
 // }}}
-class ActionHandler_LoginSubmit extends ActionHandler_Action {
+class FF_Action_LoginSubmit extends FF_Action {
     // {{{ properties
 
     /**
@@ -55,9 +56,9 @@ class ActionHandler_LoginSubmit extends ActionHandler_Action {
      * @access public
      * @return void
      */
-    function ActionHandler_LoginSubmit()
+    function FF_Action_LoginSubmit()
     {
-        ActionHandler_Action::ActionHandler_Action();
+        FF_Action::FF_Action();
         $this->o_auth =& FastFrame_Auth::singleton();
     }
 
@@ -96,7 +97,7 @@ class ActionHandler_LoginSubmit extends ActionHandler_Action {
             $this->setProblemActionId();
         }
 
-        $this->o_action->takeAction();
+        return $this->o_nextAction;
     }
 
     // }}}
@@ -124,7 +125,7 @@ class ActionHandler_LoginSubmit extends ActionHandler_Action {
      */
     function setProblemActionId()
     {
-        $this->o_action->setActionId(ACTION_LOGIN);
+        $this->o_nextAction->setNextActionId(ACTION_LOGIN);
     }
 
     // }}}
@@ -138,7 +139,7 @@ class ActionHandler_LoginSubmit extends ActionHandler_Action {
      */
     function setSuccessActionId()
     {
-        $this->o_action->setActionId(ACTION_DISPLAY);
+        $this->o_nextAction->setNextActionId(ACTION_DISPLAY);
     }
 
     // }}}

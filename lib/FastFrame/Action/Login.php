@@ -1,5 +1,5 @@
 <?php
-/** $Id: Login.php,v 1.6 2003/02/14 23:42:49 jrust Exp $ */
+/** $Id: Login.php,v 1.7 2003/02/22 02:08:24 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -25,10 +25,10 @@
 require_once dirname(__FILE__) . '/Form.php';
 
 // }}}
-// {{{ class ActionHandler_Login
+// {{{ class FF_Action_Login
 
 /**
- * The ActionHandler_Login:: class handles the setting of a login page 
+ * The FF_Action_Login:: class handles the setting of a login page 
  *
  * @author  Jason Rust <jrust@codejanitor.com>
  * @version Revision: 1.0 
@@ -37,7 +37,7 @@ require_once dirname(__FILE__) . '/Form.php';
  */
 
 // }}}
-class ActionHandler_Login extends ActionHandler_Form {
+class FF_Action_Login extends FF_Action_Form {
     // {{{ constructor
 
     /**
@@ -46,9 +46,9 @@ class ActionHandler_Login extends ActionHandler_Form {
      * @access public
      * @return void
      */
-    function ActionHandler_Login()
+    function FF_Action_Login()
     {
-        ActionHandler_Form::ActionHandler_Form();
+        FF_Action_Form::FF_Action_Form();
     }
 
     // }}}
@@ -70,13 +70,14 @@ class ActionHandler_Login extends ActionHandler_Form {
         $this->setSubmitActionId();
         $a_constants = $this->getFormConstants();
         if ($a_constants === false) {
-            return;
+            return $this->o_nextAction;
         }
 
         $this->o_form->setConstants($a_constants);
         $this->createFormElements();
         $this->renderFormTable();
-        $this->o_output->output($this->o_application->getMessages());
+        $this->o_output->output();
+        return $this->o_nextAction;
     }
 
     // }}}
@@ -193,7 +194,7 @@ class ActionHandler_Login extends ActionHandler_Form {
      */
     function setSubmitActionId()
     {
-        $this->o_action->setActionId(ACTION_LOGIN_SUBMIT);
+        $this->formActionId = ACTION_LOGIN_SUBMIT;
     }
 
     // }}}

@@ -1,5 +1,5 @@
 <?php
-/** $Id: FormSubmit.php,v 1.1 2003/02/12 20:49:11 jrust Exp $ */
+/** $Id: FormSubmit.php,v 1.2 2003/02/22 02:08:24 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -22,13 +22,13 @@
 // }}}
 // {{{ requires
 
-require_once dirname(__FILE__) . '/Action.php';
+require_once dirname(__FILE__) . '/../Action.php';
 
 // }}}
-// {{{ class ActionHandler_FormSubmit
+// {{{ class FF_Action_FormSubmit
 
 /**
- * The ActionHandler_FormSubmit:: class handles the processing of the form
+ * The FF_Action_FormSubmit:: class handles the processing of the form
  * information and then redirecting on to the next page (be it a problem or success page.
  *
  * @author  Jason Rust <jrust@codejanitor.com>
@@ -38,7 +38,7 @@ require_once dirname(__FILE__) . '/Action.php';
  */
 
 // }}}
-class ActionHandler_FormSubmit extends ActionHandler_Action {
+class FF_Action_FormSubmit extends FF_Action {
     // {{{ constructor
 
     /**
@@ -47,9 +47,9 @@ class ActionHandler_FormSubmit extends ActionHandler_Action {
      * @access public
      * @return void
      */
-    function ActionHandler_FormSubmit()
+    function FF_Action_FormSubmit()
     {
-        ActionHandler_Action::ActionHandler_Action();
+        FF_Action::FF_Action();
     }
 
     // }}}
@@ -63,19 +63,30 @@ class ActionHandler_FormSubmit extends ActionHandler_Action {
      */
     function run()
     {
-        $result = $this->o_application->saveData($this->getSubmitData(), $this->isUpdate());
-        if ($result === false) {
-            $this->o_output->setMessage($this->getProblemMessage(), FASTFRAME_ERROR_MESSAGE);
+        $this->fillModelWithSubmitData();
+        $o_validate =& $this->getValidateObject();
+        $o_result =& $o_validate->validate();
+        if (!$o_result->isSuccess()) {
+            $o_result->addMessage($this->getProblemMessage());
+            $this->o_output->setMessage($o_result->getMessages(), FASTFRAME_ERROR_MESSAGE);
             $this->setProblemActionId();
+            return $this->o_nextAction;
         }
-        else {
+
+        $o_result =& $this->o_dataAccess->save($this->o_model, $this->isUpdate());
+        if ($o_result->isSuccess()) {
             // this makes sure the objectId is set if this was an add
-            $_GET['objectId'] = $_POST['objectId'] = $result;
+            $_GET['objectId'] = $_POST['objectId'] = $this->o_model->getId();
             $this->o_output->setMessage($this->getSuccessMessage());
             $this->setSuccessActionId();
         }
+        else {
+            $o_result->addMessage($this->getProblemMessage());
+            $this->o_output->setMessage($o_result->getMessages(), FASTFRAME_ERROR_MESSAGE);
+            $this->setProblemActionId();
+        }
 
-        $this->o_action->takeAction();
+        return $this->o_nextAction;
     }
 
     // }}}
@@ -89,7 +100,7 @@ class ActionHandler_FormSubmit extends ActionHandler_Action {
      */
     function isUpdate()
     {
-        if ($this->o_action->getActionId() == ACTION_EDIT_SUBMIT) {
+        if ($this->currentActionId == ACTION_EDIT_SUBMIT) {
             return true;
         }
         else {
@@ -108,7 +119,7 @@ class ActionHandler_FormSubmit extends ActionHandler_Action {
      */
     function getSuccessMessage()
     {
-        if ($this->o_action->getActionId() == ACTION_EDIT_SUBMIT) {
+        if ($this->currentActionId == ACTION_EDIT_SUBMIT) {
             return _('Updated the data successfully.');
         }
         else {
@@ -127,7 +138,7 @@ class ActionHandler_FormSubmit extends ActionHandler_Action {
      */
     function getProblemMessage()
     {
-        if ($this->o_action->getActionId() == ACTION_EDIT_SUBMIT) {
+        if ($this->currentActionId == ACTION_EDIT_SUBMIT) {
             return _('There was an error in updating the data.');
         }
         else {
@@ -136,15 +147,15 @@ class ActionHandler_FormSubmit extends ActionHandler_Action {
     }
 
     // }}}
-    // {{{ getSubmitData()
+    // {{{ fillModelWithSubmitData()
 
     /**
-     * Gets the submit data that should be passed on to the save method
+     * Gets the submit data and fills it into the model object.
      *
      * @access public
-     * @return array An array of 'field' => 'value'
+     * @return void 
      */
-    function getSubmitData()
+    function fillModelWithSubmitData()
     {
         // interface
     }
@@ -160,11 +171,11 @@ class ActionHandler_FormSubmit extends ActionHandler_Action {
      */
     function setProblemActionId()
     {
-        if ($this->o_action->getActionId() == ACTION_EDIT_SUBMIT) {
-            $this->o_action->setActionId(ACTION_EDIT);
+        if ($this->currentActionId == ACTION_EDIT_SUBMIT) {
+            $this->o_nextAction->setNextActionId(ACTION_EDIT);
         }
         else {
-            $this->o_action->setActionId(ACTION_ADD);
+            $this->o_nextAction->setNextActionId(ACTION_ADD);
         }
     }
 
@@ -179,7 +190,21 @@ class ActionHandler_FormSubmit extends ActionHandler_Action {
      */
     function setSuccessActionId()
     {
-        $this->o_action->setActionId(ACTION_EDIT);
+        $this->o_nextAction->setNextActionId(ACTION_EDIT);
+    }
+
+    // }}}
+    // {{{ getValidateObject()
+
+    /**
+     * Gets the validate object that corresponds to this model
+     *
+     * @access public
+     * @return object The validate object
+     */
+    function &getValidateObject()
+    {
+        // interface
     }
 
     // }}}

@@ -1,5 +1,5 @@
 <?php
-/** $Id: Delete.php,v 1.3 2003/02/12 20:50:29 jrust Exp $ */
+/** $Id: Delete.php,v 1.4 2003/02/22 02:08:24 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -22,13 +22,13 @@
 // }}}
 // {{{ requires
 
-require_once dirname(__FILE__) . '/Action.php';
+require_once dirname(__FILE__) . '/../Action.php';
 
 // }}}
-// {{{ class ActionHandler_Delete
+// {{{ class FF_Action_Delete
 
 /**
- * The ActionHandler_Delete:: class deletes the specified object 
+ * The FF_Action_Delete:: class deletes the specified object 
  *
  * @author  Jason Rust <jrust@codejanitor.com>
  * @version Revision: 1.0 
@@ -37,7 +37,7 @@ require_once dirname(__FILE__) . '/Action.php';
  */
 
 // }}}
-class ActionHandler_Delete extends ActionHandler_Action {
+class FF_Action_Delete extends FF_Action {
     // {{{ constructor
 
     /**
@@ -46,9 +46,9 @@ class ActionHandler_Delete extends ActionHandler_Action {
      * @access public
      * @return void
      */
-    function ActionHandler_Delete()
+    function FF_Action_Delete()
     {
-        ActionHandler_Action::ActionHandler_Action();
+        FF_Action::FF_Action();
     }
 
     // }}}
@@ -58,20 +58,22 @@ class ActionHandler_Delete extends ActionHandler_Action {
      * Deletes the object from the database 
      *
      * @access public
-     * @return void
+     * @return object The next action object
      */
     function run()
     {
-        if ($this->o_application->removeData(FastFrame::getCGIParam('objectId', 'gp'))) {
+        $o_result =& $this->o_dataAccess->remove(FastFrame::getCGIParam('objectId', 'gp'));
+        if ($o_result->isSuccess()) {
             $this->o_output->setMessage($this->getSuccessMessage());
             $this->setSuccessActionId();
         }
         else {
-            $this->o_output->setMessage($this->getProblemMessage());
+            $o_result->addMessage($this->getProblemMessage());
+            $this->o_output->setMessage($o_result->getMessages(), FASTFRAME_ERROR_MESSAGE);
             $this->setProblemActionId();
         }
         
-        $this->o_action->takeAction();
+        return $this->o_nextAction;
     }
 
     // }}}
@@ -113,7 +115,7 @@ class ActionHandler_Delete extends ActionHandler_Action {
      */
     function setProblemActionId()
     {
-        $this->o_action->setActionId(ACTION_LIST);
+        $this->o_nextAction->setNextActionId(ACTION_LIST);
     }
 
     // }}}
@@ -127,7 +129,7 @@ class ActionHandler_Delete extends ActionHandler_Action {
      */
     function setSuccessActionId()
     {
-        $this->o_action->setActionId(ACTION_LIST);
+        $this->o_nextAction->setNextActionId(ACTION_LIST);
     }
 
     // }}}

@@ -1,5 +1,5 @@
 <?php
-/** $Id: Form.php,v 1.2 2003/02/14 23:42:49 jrust Exp $ */
+/** $Id: Form.php,v 1.3 2003/02/22 02:08:24 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -22,14 +22,14 @@
 // }}}
 // {{{ requires
 
-require_once dirname(__FILE__) . '/Action.php';
+require_once dirname(__FILE__) . '/../Action.php';
 require_once 'HTML/QuickForm.php';
 
 // }}}
-// {{{ class ActionHandler_Form
+// {{{ class FF_Action_Form
 
 /**
- * The ActionHandler_Form:: class has methods and properties that are needed for
+ * The FF_Action_Form:: class has methods and properties that are needed for
  * actions that use forms. 
  *
  * @author  Jason Rust <jrust@codejanitor.com>
@@ -39,7 +39,7 @@ require_once 'HTML/QuickForm.php';
  */
 
 // }}}
-class ActionHandler_Form extends ActionHandler_Action {
+class FF_Action_Form extends FF_Action {
     // {{{ properties
 
     /**
@@ -47,6 +47,12 @@ class ActionHandler_Form extends ActionHandler_Action {
      * @type object
      */
     var $o_form;
+
+    /**
+     * The model object that holds info about the current model being worked with
+     * @type object
+     */
+    var $o_model;
 
     /**
      * The form method (POST/GET)
@@ -66,6 +72,12 @@ class ActionHandler_Form extends ActionHandler_Action {
      */
     var $formName = 'generic_form';
 
+    /**
+     * The action id for when the form is submitted
+     * @type string
+     */
+    var $formActionId;
+
     // }}}
     // {{{ constructor
 
@@ -75,9 +87,9 @@ class ActionHandler_Form extends ActionHandler_Action {
      * @access public
      * @return void
      */
-    function ActionHandler_Form()
+    function FF_Action_Form()
     {
-        ActionHandler_Action::ActionHandler_Action();
+        FF_Action::FF_Action();
         $this->o_form =& new HTML_QuickForm($this->formName, $this->formMethod, $this->getFormAction(), $this->formTarget);
         $this->o_form->clearAllTemplates();
     }
@@ -89,24 +101,23 @@ class ActionHandler_Form extends ActionHandler_Action {
      * Sets up the edit form.
      *
      * @access public
-     * @return void
+     * @return object The next action object
      */
     function run()
     {
         $this->setSubmitActionId();
-        $a_constants = $this->getFormConstants();
-        $a_defaults = $this->getFormDefaults();
-        // see if we encountered an error (in which case the error producing
-        // method will take care of going to another action)
-        if ($a_constants === false || $a_defaults === false) {
-            return;
+        $b_result = $this->loadModel();
+        // see if we encountered an error.
+        if (!$b_result) {
+            return $this->o_nextAction;
         }
 
-        $this->o_form->setConstants($a_constants);
-        $this->o_form->setDefaults($a_defaults);
+        $this->o_form->setConstants($this->getFormConstants());
+        $this->o_form->setDefaults($this->getFormDefaults());
         $this->createFormElements();
         $this->renderFormTable();
-        $this->o_output->output($this->o_application->getMessages());
+        $this->o_output->output();
+        return $this->o_nextAction;
     }
 
     // }}}
@@ -170,6 +181,54 @@ class ActionHandler_Form extends ActionHandler_Action {
     }
 
     // }}}
+    // {{{ loadModel()
+
+    /**
+     * Loads the model object with data for the field being edited.  If an error occurs in
+     * getting the data we bounce to the problem action id.
+     *
+     * @access public
+     * @return bool True if the model loaded successfully, false otherwsie
+     */
+    function loadModel()
+    {
+        if ($this->currentActionId == ACTION_EDIT) {
+            $s_id = FastFrame::getCGIParam('objectId', 'gp');
+            $this->o_model =& $this->o_dataAccess->getModelByPrimaryKey($s_id);
+            if (!$this->o_model) {
+                $this->o_output->setMessage(
+                    sprintf(_('Could not find the specified %s'), $this->getSingularText()),
+                    FASTFRAME_ERROR_MESSAGE
+                );
+                $this->setProblemActionId();
+                return false;
+            }
+        }
+        else {
+            $this->o_model =& $this->o_dataAccess->getNewModel();
+        }
+
+        return true;
+    }
+
+    // }}}
+    // {{{ modelToFormFields()
+
+    /**
+     * Converts the model to the appropriate form fields.  Returns an array of 'field' =>
+     * 'value'
+     *
+     * @param $in_model The model to convert
+     *
+     * @access public
+     * @return array The array of fields and values
+     */
+    function modelToFormFields(&$in_model)
+    {
+        return array();
+    }
+
+    // }}}
     // {{{ setSubmitActionId()
 
     /**
@@ -180,11 +239,11 @@ class ActionHandler_Form extends ActionHandler_Action {
      */
     function setSubmitActionId()
     {
-        if ($this->o_action->getActionId() == ACTION_EDIT) {
-            $this->o_action->setActionId(ACTION_EDIT_SUBMIT);
+        if ($this->currentActionId == ACTION_EDIT) {
+            $this->formActionId = ACTION_EDIT_SUBMIT;
         }
         else {
-            $this->o_action->setActionId(ACTION_ADD_SUBMIT);
+            $this->formActionId = ACTION_ADD_SUBMIT;
         }
     }
 
@@ -199,7 +258,7 @@ class ActionHandler_Form extends ActionHandler_Action {
      */
     function setProblemActionId()
     {
-        $this->o_action->setActionId(ACTION_LIST);
+        $this->o_nextAction->setNextActionId(ACTION_LIST);
     }
 
     // }}}
@@ -243,7 +302,7 @@ class ActionHandler_Form extends ActionHandler_Action {
     function getFormConstants()
     {
         return array(
-                   'actionId' => $this->o_action->getActionId(),
+                   'actionId' => $this->formActionId,
                    'objectId' => FastFrame::getCGIParam('objectId', 'gp'), 
                    'submit' => $this->getTableHeaderText(),
                );
@@ -254,29 +313,15 @@ class ActionHandler_Form extends ActionHandler_Action {
 
     /**
      * Gets the defaults to be filled into the form by retrieving the data from the
-     * application layer.  If an error occurs in getting the data we bounce to the problem
-     * action id.
+     * model. 
      *
      * @access public
-     * @return mixed An array of the defaults or false if there was a problem 
+     * @return array An array of the defaults
      */
     function getFormDefaults()
     {
-        if ($this->o_action->getActionId() == ACTION_EDIT_SUBMIT) {
-            $s_id = FastFrame::getCGIParam('objectId', 'gp');
-            $result = $this->o_application->getDataByPrimaryKey($s_id);
-            if (!$result) {
-                $this->o_output->setMessage(
-                    sprintf(_('Could not find the specified %s'), $this->getSingularText()),
-                    FASTFRAME_ERROR_MESSAGE
-                );
-                $this->setProblemActionId();
-                $this->o_action->takeAction();
-                return false;
-            }
-            else {
-                return $result; 
-            }
+        if ($this->currentActionId == ACTION_EDIT) {
+            return $this->modelToFormFields($this->o_model); 
         }
         else {
             return array();
@@ -310,7 +355,7 @@ class ActionHandler_Form extends ActionHandler_Action {
      */
     function getTableHeaderText()
     {
-        if ($this->o_action->getActionId() == ACTION_EDIT_SUBMIT) {
+        if ($this->currentActionId == ACTION_EDIT) {
             return sprintf(_('Update %s'), $this->getSingularText());
         }
         else {

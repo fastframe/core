@@ -1,5 +1,5 @@
 <?php
-/** $Id: Problem.php,v 1.4 2003/02/12 20:51:43 jrust Exp $ */
+/** $Id: Problem.php,v 1.5 2003/02/22 02:08:25 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -22,13 +22,13 @@
 // }}}
 // {{{ requires
 
-require_once dirname(__FILE__) . '/GenericProblem.php';
+require_once dirname(__FILE__) . '/../Action.php';
 
 // }}}
-// {{{ class ActionHandler_Problem 
+// {{{ class FF_Action_Problem 
 
 /**
- * The ActionHandler_Problem:: class handles the occurrence of a problem on the
+ * The FF_Action_Problem:: class handles the occurrence of a problem on the
  * page. 
  *
  * @author  Jason Rust <jrust@codejanitor.com>
@@ -38,7 +38,7 @@ require_once dirname(__FILE__) . '/GenericProblem.php';
  */
 
 // }}}
-class ActionHandler_Problem extends ActionHandler_Action {
+class FF_Action_Problem extends FF_Action {
     // {{{ constructor
 
     /**
@@ -47,9 +47,9 @@ class ActionHandler_Problem extends ActionHandler_Action {
      * @access public
      * @return void
      */
-    function ActionHandler_Problem()
+    function FF_Action_Problem()
     {
-        ActionHandler_Action::ActionHandler_Action();
+        FF_Action::FF_Action();
     }
 
     // }}}
@@ -65,6 +65,7 @@ class ActionHandler_Problem extends ActionHandler_Action {
     {
         $this->o_output->setMessage($this->getProblemMessage(), FASTFRAME_ERROR_MESSAGE);
         $this->o_output->output();
+        return $this->o_nextAction;
     }
 
     // }}}
