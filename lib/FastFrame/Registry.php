@@ -363,7 +363,7 @@ class FF_Registry {
      *
      * @access public
      * @return string path for the app file
-     * @example getAppFile('view.inc.php', 'login', 'lib', FASTFRAME_APP_TEMPLATES);
+     * @example getAppFile('view.inc.php', 'login', 'libs', FASTFRAME_APP_TEMPLATES);
      */
     function getAppFile($in_filename, $in_app = null, $in_service = '', $in_type = FASTFRAME_FILEPATH)
     {

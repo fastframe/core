@@ -168,7 +168,13 @@ class FF_ErrorHandler {
         }
 
         if (count($this->mailErrors)) {
-            $msg = implode(str_repeat('-=', 50) . "\n\n", $this->mailErrors);
+            $msg = _('User Information:') . "\n";
+            $msg .= "\t" . _('Username') . ': ' . FF_Auth::getCredential('username') . "\n"; 
+            $msg .= "\tSERVER_NAME: " . $_SERVER['SERVER_NAME'] . "\n";
+            $msg .= "\tREQUEST_URI: " . $_SERVER['REQUEST_URI'] . "\n";
+            $msg .= "\tHTTP_REFERER: " . $_SERVER['HTTP_REFERER'] . "\n";
+            $msg .= "\tHTTP_USER_AGENT: " . $_SERVER['HTTP_USER_AGENT'] . "\n\n";
+            $msg .= implode(str_repeat('-=', 50) . "\n\n", $this->mailErrors);
             @error_log($this->_cleanMessage($msg), MAIL_LOG, $this->reporters['mail']['data']);
         }
     }

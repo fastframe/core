@@ -242,7 +242,8 @@ class FF_Action_List extends FF_Action_Form {
                 }
 
                 $in_tableWidget->append('rows', array(
-                            'S_table_row' => 'class="' . $this->o_output->toggleRow($i++) . '"' . $tmp_extraJs,
+                            'S_table_row' => 'class="' . $this->o_output->toggleRow($i++) . '" ' .
+                                $this->getRowAttributes() . $tmp_extraJs,
                             'cells' => $a_cells));
             }
         }
@@ -300,6 +301,21 @@ class FF_Action_List extends FF_Action_Form {
     function checkPerms()
     {
         return true;
+    }
+
+    // }}}
+    // {{{ getRowAttributes()
+
+    /**
+     * Gets any extra style or javascript attributes for the current
+     * row.
+     *
+     * @access public
+     * @return string The style or javascript attribute.
+     */
+    function getRowAttributes()
+    {
+        // interface
     }
 
     // }}}

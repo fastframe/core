@@ -492,10 +492,10 @@ class FF_Menu {
             $s_url = FastFrame::url('index.php', $in_url);
             // Can't have the current session id in the url
             if ($in_sessionInTags) {
-                $s_url = preg_replace('/(' . session_name() . '=).*?(&|$)/S', '\\1<?php echo session_id(); ?>\\2', $s_url);
+                $s_url = preg_replace('/' . session_name() . '=.*?(&|$)/S', '<?php echo SID; ?>\\1', $s_url);
             }
             else {
-                $s_url = preg_replace('/(' . session_name() . '=).*?(&|$)/S', '\\1\' . session_id() . \'\\2', $s_url);
+                $s_url = preg_replace('/' . session_name() . '=.*?(&|$)/S', '\' . SID . \'\\1', $s_url);
             }
 
             return $s_url;

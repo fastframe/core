@@ -120,13 +120,16 @@ class FF_Menu_StaticList extends FF_Menu {
         }
 
         $tmp_nl = $this->debug ? "\n" : ' '; 
-        $in_data = $this->_formatMenuNodeData($in_data, false);
+        $in_data = $this->_formatMenuNodeData($in_data, true);
         // Create html for this node
         $tmp_style = empty($in_data['urlParams']) ? 'font-weight: bold;' : '';
         $s_node = "<li style=\"$tmp_style\">";
         $s_node .= $in_data['icon'];
         if (!empty($in_data['urlParams'])) {
-            $s_node .= "<?php echo \$o_output->link('{$in_data['urlParams']}', _('{$in_data['contents']}'), array('title' => _('{$in_data['statusText']}'), 'target' => '{$in_data['target']}')); ?>";
+            $tmp_link = $this->o_output->link($in_data['urlParams'], $in_data['contents'], array('title' => $in_data['statusText'], 'target' => $in_data['target']));
+            $tmp_link = preg_replace('/title=".*?"/', 'title="<?php echo _(\'' . $in_data['statusText'] . '\'); ?>"', $tmp_link);
+            $tmp_link = preg_replace('/">.*?<\/a>/', '"><?php echo _(\'' . $in_data['contents'] . '\'); ?></a>', $tmp_link);
+            $s_node .= $tmp_link;
         }
         else {
             $s_node .= "<?php echo _('{$in_data['contents']}'); ?>";
