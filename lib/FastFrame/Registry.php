@@ -1,5 +1,5 @@
 <?php
-/** $Id: Registry.php,v 1.12 2003/02/08 00:10:54 jrust Exp $ */
+/** $Id: Registry.php,v 1.13 2003/02/22 02:05:40 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -24,6 +24,7 @@
 // }}}
 // {{{ includes
 
+require_once 'File.php';
 require_once dirname(__FILE__) . '/Error.php';
 
 // }}}
