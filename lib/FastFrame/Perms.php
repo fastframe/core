@@ -32,6 +32,18 @@ require_once dirname(__FILE__) . '/Auth.php';
 define('PERMS_TYPE_OR', 1);
 define('PERMS_TYPE_AND', 2);
 
+/**
+ * The object permissions constants
+ */
+define('PERMS_READ', 1);
+define('PERMS_DELETE', 2);
+define('PERMS_EDIT', 3);
+define('PERMS_ADD', 4);
+define('PERMS_TYPE_USER', 5);
+define('PERMS_TYPE_GROUP', 6);
+define('PERMS_TYPE_PUBLIC', 7);
+define('PERMS_TYPE_CREATOR', 8);
+
 // }}}
 // {{{ class FF_Perms
 

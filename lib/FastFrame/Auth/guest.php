@@ -93,6 +93,7 @@ class FF_AuthSource_guest extends FF_AuthSource {
         $o_registry =& FF_Registry::singleton();
         if (in_array('*', $this->allowedApps) || in_array($o_registry->getCurrentApp(), $this->allowedApps)) {
             FF_Auth::setAuth($this->username, array('transparent' => 1, 'apps' => $this->allowedApps));
+            FF_Auth::setCredential('userId', 0);
             return true;
         }
         else {
