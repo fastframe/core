@@ -50,7 +50,7 @@ require_once dirname(__FILE__) . '/Output.php';
  *    // Optional status text.  Defaults to the text in 'contents' 
  *    'statusText' => _('Status Text'),
  *    // Optional path to an icon. 
- *    'icon' => 'actions/logout.gif',
+ *    'icon' => 'actions/logout.png',
  *    // Optional permissions to apply to this node.  If a string then
  *    // it is a single perm for this app.  If an array then it is treated
  *    // as a list of perm(s) to check.  If an element has 'app' as the key

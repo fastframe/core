@@ -51,13 +51,13 @@ class FF_Menu_DOM extends FF_Menu {
             $s_domMenu = '
             <script type="text/javascript">
             domMenu_settings.set("domMenu_main", new Hash(
-                "expandMenuArrowUrl", "' . $this->o_output->imgTag('right-black.gif', 'arrows', array('onlyUrl' => true)) . '",
                 "subMenuWidthCorrection", -1,
                 "verticalSubMenuOffsetX", -1,
                 "verticalSubMenuOffsetY", -1,
                 "openMouseoverMenuDelay", -1,
                 "openMousedownMenuDelay", 0,
                 "closeClickMenuDelay", 0,
+                "axis", "vertical",
                 "closeMouseoutMenuDelay", -1
             ));
             ' . $this->_generateMenuVars() . '
@@ -65,12 +65,16 @@ class FF_Menu_DOM extends FF_Menu {
             $this->o_fileCache->save($s_domMenu, $this->cacheFile);
         }
 
-        // Turn on menu
-        $this->o_output->o_tpl->assign('has_domMenu', true);
         $s_domMenu = $this->_getCachedMenu();
+        if (preg_match('/domMenu_main", new Hash\(\s+\)/', $s_domMenu)) {
+            return;
+        }
+
         // Because we don't know which node will be the last because of perms
         // We have to take off the last comma from the last node of each set
         $s_domMenu = preg_replace('/,(\s+)\)/', '\\1)', $s_domMenu);
+        // Turn on menu
+        $this->o_output->o_tpl->assign('has_domMenu', true);
         // Load menu js
         $this->o_output->addScriptFile($this->o_registry->getRootFile('domLib_strip.js', 'javascript', FASTFRAME_WEBPATH));
         $this->o_output->addScriptFile($this->o_registry->getRootFile('domMenu_strip.js', 'javascript', FASTFRAME_WEBPATH));

@@ -35,10 +35,10 @@ require_once 'Net/UserAgent/Detect.php';
  * Message constants.  These images need to be in the graphics/alerts directory.
  * The theme can mimic the grapics/alerts directory to override the default image.
  */
-define('FASTFRAME_NORMAL_MESSAGE', 'message.gif', true);
-define('FASTFRAME_ERROR_MESSAGE', 'error.gif', true);
-define('FASTFRAME_WARNING_MESSAGE', 'warning.gif', true);
-define('FASTFRAME_SUCCESS_MESSAGE', 'success.gif', true);
+define('FASTFRAME_NORMAL_MESSAGE', 'message.png', true);
+define('FASTFRAME_ERROR_MESSAGE', 'error.png', true);
+define('FASTFRAME_WARNING_MESSAGE', 'warning.png', true);
+define('FASTFRAME_SUCCESS_MESSAGE', 'success.png', true);
 
 // }}}
 // {{{ class FF_Output
@@ -171,8 +171,16 @@ class FF_Output {
         $this->_renderMessages();
         // The main style sheet
         $this->renderCSS('widgets', $this->o_registry->getRootFile('widgets', 'themes'));
-        // The theme-specific style sheet
-        $this->renderCSS($this->theme, $this->themeDir);
+        if (FF_Request::getParam('printerFriendly', 'gp', false)) {
+            $this->renderCSS('widgets', $this->o_registry->getRootFile('widgets', 'themes'), 'print.tpl', 'screen');
+        }
+        else {
+            // The theme-specific style sheet
+            $this->renderCSS($this->theme, $this->themeDir);
+            // The print style sheet
+            $this->renderCSS('widgets', $this->o_registry->getRootFile('widgets', 'themes'), 'print.tpl', 'print');
+        }
+
         $this->o_tpl->assign(array(
                     'COPYWRITE' => 'Copywrite &#169; 2002-2003 The CodeJanitor Group',
                     'CONTENT_ENCODING' => $this->o_registry->getConfigParam('general/charset', 'ISO-8559-1'),
@@ -191,15 +199,17 @@ class FF_Output {
      *
      * @param string $in_theme The theme to make the CSS for
      * @param string $in_themeDir The theme directory 
+     * @param string $in_styleFile (optional) The style file
+     * @param string $in_media (optional) The media type
      *
      * @access public
      * @return void 
      */
-    function renderCSS($in_theme, $in_themeDir)
+    function renderCSS($in_theme, $in_themeDir, $in_styleFile = 'style.tpl', $in_media = 'screen')
     {
         require_once dirname(__FILE__) . '/FileCache.php';
         $o_fileCache =& FF_FileCache::singleton();
-        $s_cssTemplateFile = $in_themeDir . '/style.tpl';
+        $s_cssTemplateFile = $in_themeDir . '/' . $in_styleFile;
         $s_browser = Net_UserAgent_Detect::getBrowser(array('ie', 'gecko'));
         // All other browsers get treated as gecko
         if (is_null($s_browser)) {
@@ -207,7 +217,7 @@ class FF_Output {
         }
 
         // Determine the css file based on the browser
-        $s_cssFileName = 'style-' . $s_browser . '.css';
+        $s_cssFileName = str_replace('.tpl', '', $in_styleFile) . '-' . $s_browser . '.css';
         $s_cssCacheFile = 'css/' . $in_theme . '/' . $s_cssFileName;
 
         // Make the CSS file if needed
@@ -234,9 +244,9 @@ class FF_Output {
 
         $s_cssURL = $o_fileCache->getPath($s_cssCacheFile, false, FASTFRAME_WEBPATH);
         // register the CSS file 
-        $this->o_tpl->append('css',
+        $this->o_tpl->append('headers',
                 // put the filemtime on so that they only grab the new file when it is recreated
-                '<link rel="stylesheet" type="text/css" href="' . $s_cssURL . '?fresh=' . filemtime($s_cssTemplateFile) . '" />');
+                '<link rel="stylesheet" type="text/css" media="' . $in_media . '" href="' . $s_cssURL . '?fresh=' . filemtime($s_cssTemplateFile) . '" />');
     }
 
     // }}}
@@ -368,9 +378,9 @@ class FF_Output {
     {
         if ($this->o_registry->getConfigParam('user/use_help', false)) {
             $in_title = is_null($in_title) ? _('Help') : $in_title;
-            return $this->imgTag('help.gif', 'actions', array('align' => 'top', 'title' => $in_text, 
+            return $this->imgTag('help.png', 'actions', array('align' => 'middle', 'title' => $in_text, 
                         'caption' => $in_title, 'status' => $in_title, 'sticky' => 'onclick', 
-                        'greasy' => false, 'style' => 'cursor: pointer;'));
+                        'greasy' => false, 'style' => 'cursor: pointer;', 'height' => 16, 'width' => 16));
         }
         else {
             return '';
@@ -564,6 +574,14 @@ class FF_Output {
             return $s_imgWebPath;
         }
         else {
+            // The height/width needs to be specified for transparent PNGs to show up in IE
+            if ($in_type == 'actions' && !isset($in_options['height'])) {
+                $in_options['height'] = $in_options['width'] = 18;
+            }
+            elseif ($in_type == 'alerts' && !isset($in_options['height'])) {
+                $in_options['height'] = $in_options['width'] = 16;
+            }
+
             $a_events = $this->_prepareTooltip(array(
                     'caption' => isset($in_options['caption']) ? $in_options['caption'] : '',
                     'content' => isset($in_options['title']) ? $in_options['title'] : '',
@@ -648,29 +666,15 @@ class FF_Output {
      */
     function setDefaults()
     {
-        // If it's printer friendly we have no menu
-        if (FF_Request::getParam('printerFriendly', 'gp', false)) {
-            $this->setMenuType('none');
-        }
-        // Initialize menu to default type
-        else {
-            $this->setMenuType($this->o_registry->getConfigParam('display/menu_type'));
-        }
-
+        $this->setMenuType($this->o_registry->getConfigParam('display/menu_type'));
         // Set popup type 
         if (FF_Request::getParam('isPopup', 'gp', false)) {
             $this->setPageType('popup');
         }
 
-        // Set the theme
-        if (FF_Request::getParam('printerFriendly', 'gp', false)) {
-            $this->setTheme($this->o_registry->getConfigParam('display/print_theme'));
-        }
-        else {
-            $s_theme = FF_Auth::getCredential('theme');
-            $s_theme = empty($s_theme) ? $this->o_registry->getConfigParam('display/default_theme') : $s_theme;
-            $this->setTheme($s_theme);
-        }
+        $s_theme = FF_Auth::getCredential('theme');
+        $s_theme = empty($s_theme) ? $this->o_registry->getConfigParam('display/default_theme') : $s_theme;
+        $this->setTheme($s_theme);
     }
 
     // }}}
@@ -848,7 +852,7 @@ class FF_Output {
             $this->o_tpl->append('status_messages', array(
                         'T_status_message' => $a_message[0],
                         'I_status_message' => $this->imgTag($a_message[1], 'alerts'),
-                        'I_status_message_close' => $this->imgTag('close.gif', 'actions', array('onclick' => 'document.getElementById(\'message_' . $s_key . '\').style.display = \'none\';', 'style' => 'cursor: pointer;'))));
+                        'I_status_message_close' => $this->imgTag('close.png', 'actions', array('onclick' => 'document.getElementById(\'message_' . $s_key . '\').style.display = \'none\';', 'style' => 'cursor: pointer;'))));
         }
     }
 

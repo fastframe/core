@@ -31,6 +31,7 @@ require_once 'HTML/QuickForm/Renderer/QuickHtml.php';
 
 define('SEARCH_BOX_SIMPLE', 1);
 define('SEARCH_BOX_ADVANCED', 3);
+define('SEARCH_BOX_ONLYSEARCH', 4);
 
 // }}}
 // {{{ class FF_List
@@ -172,7 +173,7 @@ class FF_List {
      * @access public
      * @return void
      */
-    function FF_List($in_listId, $in_sortField, $in_sortOrder, $in_displayLimit)
+    function FF_List($in_listId, $in_sortField = null, $in_sortOrder = null, $in_displayLimit = null)
     {
         $this->o_output =& FF_Output::singleton();
         $this->listId = $in_listId;
@@ -202,16 +203,16 @@ class FF_List {
     // {{{ renderSearchBox()
 
     /**
-     * Create a search/navigation box that can be used to search a list or navigate it by
-     * page.  Then render the generated form using the twoColumnTable widget. 
+     * Create a search/navigation box that can be used to search a list
+     * or navigate it by page.  Then render the generated form using the
+     * searchTable widget.
      *
-     * @param string $in_singularLang Singular description of the data 
-     * @param string $in_pluralLang Plural description of the data 
+     * @param string $in_pluralText The plural form of what is being searched
      *
      * @access public
      * @return string The html for the search table 
      */
-    function renderSearchBox($in_singularLang, $in_pluralLang)
+    function renderSearchBox($in_pluralText)
     {
         // {{{ quickform preparation
 
@@ -230,9 +231,7 @@ class FF_List {
         // Add form elements which go only on advanced list
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
             $o_form->addElement('text', "displayLimit[$this->listId]", null, 
-                    array('style' => 'vertical-align: middle;', 'size' => 3, 'maxlength' => 3));
-            $o_form->addElement('submit', 'displayLimit_submit', _('Update'), 
-                    array('style' => 'vertical-align: middle;'));
+                    array('style' => 'vertical-align: middle;', 'size' => 2, 'maxlength' => 3));
             $o_form->addRule("displayLimit[$this->listId]", _('Limit must be a positive integer'), 
                     'nonzero', null, 'client', true); 
 
@@ -275,10 +274,10 @@ class FF_List {
         $o_form->addElement('text', "searchString[$this->listId]", null, 
                 array('size' => 15, 'style' => 'vertical-align: middle;', 'onfocus' => 'this.value = ""',
                     'accesskey' => $this->o_output->getAccessKey(_('Search for'))));
-        $o_form->addElement('submit', 'query_submit', _('Search'), 
+        $o_form->addElement('submit', 'query_submit', _('» Search'), 
                 array('style' => 'vertical-align: bottom;'));
         if ($this->listAll) {
-            $o_form->addElement('submit', 'listall_submit', _('List All'), 
+            $o_form->addElement('submit', 'listall_submit', _('» List All'), 
                 array('onclick' => "document.search_box['searchString[$this->listId]'].value = '';", 
                     'style' => 'vertical-align: bottom;'));
         }
@@ -303,68 +302,50 @@ class FF_List {
         // }}}
         // {{{ template preparation
 
-        if ($a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
-            $o_searchWidget =& new FF_Smarty('searchTableSimple');
-            $o_searchWidget->assign(array(
-                        'T_search_header' => sprintf(_('Search Results (%s)'), $s_pagination),
-                        'is_type_locked' => $this->typeLocked,
-                        'T_switch_type' => $this->o_output->link(
-                            FastFrame::selfURL(array_merge($this->persistentData, $a_listVars, 
-                                    array('searchBoxType' => SEARCH_BOX_ADVANCED))), _('More Search Options'))));
-        }
-        else {
-            $o_searchWidget =& new FF_Smarty('searchTable'); 
-            $s_printLink = $this->o_output->link(
-                    FastFrame::selfURL(array_merge($this->persistentData, $a_listVars, 
-                        array('printerFriendly' => 1))), 
-                    _('Printer Friendly'));
-
-            $s_foundText = sprintf(_('%1$d Found (%2$d%%), %3$d Listed out of %4$d Total %5$s'), 
-                    $this->getMatchedRecords(), 
-                    $this->getMatchedRecordsPercentage(),
-                    $s_numListed,
-                    $this->totalRecords, 
-                    $this->totalRecords == 1 ? $in_singularLang : $in_pluralLang);
-
-            $o_searchWidget->assign(array('T_search_header' => _('Search Options'), 
-                        'is_type_locked' => $this->typeLocked,
-                        'T_switch_type' => $this->o_output->link(
-                            FastFrame::selfURL(array_merge($this->persistentData, $a_listVars, 
-                                    array('searchBoxType' => SEARCH_BOX_SIMPLE))), _('Fewer Search Options')),
-                        'T_search_viewing' => sprintf(_('Viewing Page %s'), $s_pagination),
-                        'T_print_link' => $s_printLink,
-                        'T_search_found' => $s_foundText));
-        }
-
-        if (isset($a_searchFields[$this->allFieldsKey])) {
-            array_shift($a_searchFields);
-        }
-
-        $tmp_help = sprintf(_('Search for items in the list by entering a search term in the box to the right.  The following fields can be searched: %s.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy'), implode(', ', $a_searchFields));
-        $s_searchField = $a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED ?
-            sprintf(_('in %s'), $o_renderer->elementToHtml("searchField[$this->listId]")) : '';
+        $tmp_help = _('Search for items in the list by entering a search term in the box below.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy');
         $s_findText = $this->o_output->getHelpLink($tmp_help, _('Search Help')) . ' ' . 
-            $this->o_output->highlightAccessKey(_('Search for')) . ' ' . 
-            $o_renderer->elementToHtml("searchString[$this->listId]") . ' ' . 
-            $s_searchField . ' ' . $o_renderer->elementToHtml('query_submit');  
+            $this->o_output->highlightAccessKey(_('Search terms'));
+        $s_searchSubmit = $o_renderer->elementToHtml('query_submit');  
         if ($this->listAll) {
-            $s_findText .= ' ' . $o_renderer->elementToHtml('listall_submit');
+            $s_searchSubmit .= ' ' . $o_renderer->elementToHtml('listall_submit');
+        }
+
+        $o_searchWidget =& new FF_Smarty('searchTable');
+        $o_searchWidget->assign(array('T_search_header' => sprintf(_('Search %s'), $in_pluralText), 
+                    'is_type_locked' => $this->typeLocked,
+                    'T_search_find' => $s_findText,
+                    'T_search_terms' => $o_renderer->elementToHtml("searchString[$this->listId]"),
+                    'T_search_submit' => $s_searchSubmit));
+
+        if ($a_listVars['searchBoxType'] != SEARCH_BOX_ONLYSEARCH) {
+            $s_foundText = sprintf(_('Results %1$d - %2$d of %3$d results.'), 
+                    ($s_numListed == 0 ? 0 : $this->getRecordOffset() + 1),
+                    $this->getRecordOffset() + $s_numListed,
+                    $this->getMatchedRecords());
+            $o_searchWidget->assign(array('T_search_found' => $s_foundText));
         }
 
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
-            $o_searchWidget->assign('T_search_find', $s_findText);
+            $o_searchWidget->assign(array('T_switch_type' => $this->o_output->link(
+                            FastFrame::selfURL(array_merge($this->persistentData, $a_listVars, 
+                                    array('searchBoxType' => SEARCH_BOX_ADVANCED))), _('» More Search Options'))));
         }
-        else {
-            $s_limitText = sprintf(_('%1$s rows per page %2$s'), 
-                    $o_renderer->elementToHtml("displayLimit[$this->listId]"), 
-                    $o_renderer->elementToHtml('displayLimit_submit'));
+        elseif ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
+            $s_limitText = sprintf(_('Display %s results per page'), 
+                    $o_renderer->elementToHtml("displayLimit[$this->listId]"));
 
-            $o_searchWidget->assign(array('T_search_limit' => $s_limitText, 
-                        'T_search_find' => $s_findText));
+            $o_searchWidget->assign(array('T_switch_type' => $this->o_output->link(
+                            FastFrame::selfURL(array_merge($this->persistentData, $a_listVars, 
+                                    array('searchBoxType' => SEARCH_BOX_SIMPLE))), _('» Fewer Search Options')),
+                        'T_search_limit' => $s_limitText,
+                        'T_search_fields' => _('Search fields'),
+                        'T_search_fieldSelect' => $o_renderer->elementToHtml("searchField[$this->listId]"),
+                        'T_search_viewing' => sprintf(_('Viewing Page %s'), $s_pagination)));
         }
+
 
         if (count($this->extraSearchElements) > 0) {
-            $o_searchWidget->assign(array('has_extra_elements' => true, 'T_search_filter' => _('Filter Options')));
+            $o_searchWidget->assign('has_extra_elements', true);
             foreach ($this->extraSearchElements as $a_element) {
                 $o_searchWidget->append('extraElements', 
                         array('T_desc' => $a_element[0], 'T_element' => $o_renderer->elementToHtml($a_element[1])));
@@ -449,8 +430,7 @@ class FF_List {
         foreach ($this->getColumnData() as $a_colData) {
             // Check to see if it is searchable and we're not in print mode.
             // If so build a link to sort on the column
-            if (!empty($a_colData['sort']) && 
-                !FF_Request::getParam('printerFriendly', 'gp', false)) {
+            if (!empty($a_colData['sort'])) {
                 // if we previously sorted on this field, reverse the sort direction
                 if ($this->getSortField() == $a_colData['sort']) {
                     $tmp_sort = $this->getSortOrder() ? 0 : 1;
@@ -472,8 +452,8 @@ class FF_List {
                 if ($this->getSortField() == $a_colData['sort']) {
                     // Determine which image to display
                     $tmp_img = $this->getSortOrder() ? 
-                        $this->o_output->imgTag('up.gif', 'arrows', array('align' => 'middle')) : 
-                        $this->o_output->imgTag('down.gif', 'arrows', array('align' => 'middle'));
+                        $this->o_output->imgTag('up.png', 'arrows', array('align' => 'middle', 'height' => 8, 'width' => 8)) : 
+                        $this->o_output->imgTag('down.png', 'arrows', array('align' => 'middle', 'height' => 8, 'width' => 8));
                     $tmp_href .= ' ' . $this->o_output->link(FastFrame::selfURL($a_listVars), 
                             $tmp_img, array('title' => $tmp_title)); 
                 }
@@ -611,10 +591,9 @@ class FF_List {
             $this->searchBoxType = $in_value;
         }
 
-        // Make sure it is valid type
-        $a_types = $this->getSearchBoxOptions();
-        if (!isset($a_types[$this->searchBoxType])) {
-            $this->searchBoxType = SEARCH_BOX_SIMPLE;
+        if ($this->searchBoxType == SEARCH_BOX_ONLYSEARCH) {
+            $this->toggleListAll(false);
+            $this->toggleTypeLocked(true);
         }
 
         if ($in_updateSession) {
@@ -651,6 +630,11 @@ class FF_List {
     function setDisplayLimit($in_limit)
     {
         $this->displayLimit = (int) abs(FF_Request::getParam("displayLimit[$this->listId]", 'gps', $in_limit));
+        // If it's somehow set to 0 (i.e. not passed into the constructor) then make it a default number
+        if (!$this->displayLimit) {
+            $this->displayLimit = 20;
+        }
+
         FF_Request::setParam('displayLimit[\'' . $this->listId . '\']', $this->displayLimit, 's');
     }
 
@@ -996,8 +980,8 @@ class FF_List {
     // {{{ setPersistentData()
 
     /**
-     * Sets any persistent data that should be passed from page to page of the list, such as
-     * actionId.
+     * Sets any persistent data that should be passed from page to page
+     * of the list, such as actionId.
      *
      * @param array $in_persistentData (optional) Data in the form of 'name' => 'value'
      *
@@ -1031,25 +1015,6 @@ class FF_List {
         $a_vars["displayLimit[$this->listId]"] = $this->getDisplayLimit();
         $a_vars['searchBoxType'] = $this->getSearchBoxType();
         return $a_vars;
-    }
-
-    // }}}
-    // {{{ getMatchedRecordsPercentage()
-
-    /**
-     * Calculates the percentage of records matched. 
-     *
-     * @access public
-     * @return float The percentage of matched records 
-     */
-    function getMatchedRecordsPercentage()
-    {
-        if ($this->totalRecords > 0) {
-            return round(($this->getMatchedRecords() / $this->totalRecords) * 100, 2);
-        }
-        else {
-            return 0;
-        }
     }
 
     // }}}

@@ -79,7 +79,7 @@ class FF_Output_Table {
     var $tableHeaders = array(
         0 => array(
             'title' => 'Example Element',
-            'data' => 'exmaple data', 
+            'data' => 'example data', 
             'titleStyle' => 'style="text-align: right;"',
             'dataStyle' => '',
         )
@@ -155,15 +155,6 @@ class FF_Output_Table {
      */
     function _renderTwoColumnTable()
     {
-        $tmp_css = '
-        <style type="text/css">
-        td.fieldCell {
-          width: 50%;
-          text-align: right;
-        }
-        </style>';
-        // make the cells even in width
-        $this->o_output->o_tpl->append('css', $tmp_css);
         $i = 0;
         foreach ($this->tableHeaders as $tmp_header) {
             $tmp_class = $this->alternateRowColors ? $this->o_output->toggleRow($i++) : 'primaryRow';

@@ -196,6 +196,15 @@ class FF_ListModeler {
 
         if (!DB::isError($result)) {
             $this->o_resultSet =& $result;
+            // When the user somehow manages (i.e. page reload) to set
+            // the page offset to a number greater than what we find,
+            // then reset the start row
+            if ($this->currentRow > $this->getMatchedModelsCount()) {
+                $this->o_list->setPageOffset(1);
+                $this->currentRow = 0;
+                $this->endRow = $this->o_list->getDisplayLimit();
+            }
+
             return true;
         }
         else {

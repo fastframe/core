@@ -39,6 +39,15 @@ require_once dirname(__FILE__) . '/../Action.php';
 
 // }}}
 class FF_Action_Display extends FF_Action {
+    // {{{ properties
+
+    /**
+     * Any persistent data that should be passed on to the search box
+     * @var array 
+     */
+    var $persistentData = array('actionId' => ACTION_LIST);
+
+    // }}}
     // {{{ run()
     
     /**
@@ -58,6 +67,7 @@ class FF_Action_Display extends FF_Action {
             return $this->o_nextAction;
         }
 
+        $this->renderSearchBox();
         $this->o_output->setPageName($this->getPageName());
         $this->renderDisplay();
         return $this->o_nextAction;
@@ -75,6 +85,30 @@ class FF_Action_Display extends FF_Action {
     function renderDisplay()
     {
         // interface
+    }
+
+    // }}}
+    // {{{ renderSearchBox()
+
+    /**
+     * Renders the search box for this module.
+     *
+     * @access public
+     * @return void
+     */
+    function renderSearchBox()
+    {
+        if (FF_Request::getParam('isPopup', 'gp', false)) {
+            return;
+        }
+
+        require_once dirname(__FILE__) . '/../List.php';
+        $o_actionHandler =& FF_ActionHandler::singleton();
+        $o_list =& new FF_List($o_actionHandler->getAppId() . $o_actionHandler->getModuleId() . $this->persistentData['actionId']);
+        $o_list->setSearchBoxType(SEARCH_BOX_ONLYSEARCH, false);
+        $o_list->setPersistentData($this->persistentData);
+        $this->o_output->o_tpl->assign(array('has_search_box' => true, 
+                    'W_search_box' => $o_list->renderSearchBox($this->getPluralText())));
     }
 
     // }}}
@@ -128,6 +162,20 @@ class FF_Action_Display extends FF_Action {
     function getSingularText()
     {
         return _('Item');
+    }
+
+    // }}}
+    // {{{ getPluralText()
+
+    /**
+     * Gets the text that describes a plural version of the items displayed
+     *
+     * @access public
+     * @return string The plural text
+     */
+    function getPluralText()
+    {
+        return _('Items');
     }
 
     // }}}

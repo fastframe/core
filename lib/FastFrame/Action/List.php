@@ -76,17 +76,9 @@ class FF_Action_List extends FF_Action_Form {
             return $this->o_nextAction;
         }
 
-        if (!FF_Request::getParam('printerFriendly', 'gp', false)) {
-            $this->renderAdditionalLinks();
-            $this->o_output->o_tpl->assign(array('has_search_box' => true, 
-                        'W_search_box' => $this->o_list->renderSearchBox(
-                            $this->getSingularText(), $this->getPluralText())));
-        }
-        else {
-            $this->o_output->o_tpl->append('page_links', $this->o_output->link(
-                        FastFrame::selfURL($this->o_list->getAllListVariables()), 
-                        _('Return To List')));
-        }
+        $this->renderAdditionalLinks();
+        $this->o_output->o_tpl->assign(array('has_search_box' => true, 
+                    'W_search_box' => $this->o_list->renderSearchBox($this->getPluralText())));
 
         $this->o_output->setPageName($this->getPageName());
         $this->createListTable();
@@ -162,20 +154,15 @@ class FF_Action_List extends FF_Action_Form {
                     'T_table_header' => $this->getTableHeaderText(),
                     'S_table_columns' => $s_numCols)); 
         foreach ($this->o_list->generateSortFields() as $s_cell) {
-            $o_tableWidget->append('fieldCells', array('T_table_field_cell' => $s_cell, 
-                        'S_table_field_cell' => 'style="white-space: nowrap;"'));
+            $o_tableWidget->append('fieldCells', array('T_table_field_cell' => $s_cell));
         }
 
-        if (!FF_Request::getParam('printerFriendly', 'gp', false)) {
-            $a_data = $this->o_list->generateNavigationLinks();
-            $o_navWidget =& new FF_Smarty('navigationRow');
-            $o_navWidget->assign(array('S_table_columns' => $s_numCols, 
-                        'I_navigation_first' => $a_data['first'],
-                        'I_navigation_previous' => $a_data['previous'],
-                        'I_navigation_next' => $a_data['next'],
-                        'I_navigation_last' => $a_data['last']));
-            $o_tableWidget->assign(array('T_end_data' => $o_navWidget->fetch()));
-        }
+        $a_data = $this->o_list->generateNavigationLinks();
+        $o_tableWidget->assign(array('S_table_columns' => $s_numCols, 
+                    'I_navigation_first' => $a_data['first'],
+                    'I_navigation_previous' => $a_data['previous'],
+                    'I_navigation_next' => $a_data['next'],
+                    'I_navigation_last' => $a_data['last']));
 
         $this->renderListData($o_tableWidget, $s_numCols);
         $this->o_output->o_tpl->append('content_middle', $o_tableWidget->fetch());
@@ -228,7 +215,7 @@ class FF_Action_List extends FF_Action_Form {
                     // Cells with buttons have  special attributes
                     foreach ($a_buttonCells as $s_method ) {
                         if ($tmp_fields['method'] == $s_method ) {
-                            $s_attr = 'id="optionCell' . $i . '" style="width: 5%; white-space: nowrap;"';
+                            $s_attr = 'id="optionCell' . $i . '" style="white-space: nowrap;"';
                             $tmp_fields['object'] =& $this;
                         }
                     }
