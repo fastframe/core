@@ -181,7 +181,14 @@ class FF_DataAccess {
      */
     function update($in_data)
     {
-        // interface
+        $s_where = $this->primaryKey . '=' . $this->o_data->quoteSmart($in_data[$this->primaryKey]);
+        $o_result =& new FF_Result();
+        if (PEAR::isError($result = $this->o_data->autoExecute($this->table, $in_data, DB_AUTOQUERY_UPDATE, $s_where))) {
+            $o_result->addMessage($result->getMessage());
+            $o_result->setSuccess(false);
+        }
+
+        return $o_result;
     }
 
     // }}}
@@ -195,9 +202,15 @@ class FF_DataAccess {
      * @access public
      * @return object The result object 
      */
-    function add($in_data)
+    function &add($in_data)
     {
-        // interface
+        $o_result =& new FF_Result();
+        if (PEAR::isError($result = $this->o_data->autoExecute($this->table, $in_data))) {
+            $o_result->addMessage($result->getMessage());
+            $o_result->setSuccess(false);
+        }
+
+        return $o_result;
     }
 
     // }}}
@@ -217,11 +230,8 @@ class FF_DataAccess {
     {
         $o_result =& new FF_Result();
         $s_field = is_null($in_field) ? $this->primaryKey : $in_field;
-        $s_query = sprintf('DELETE FROM %s WHERE %s=%s',
-                              $this->table,
-                              $s_field,
-                              $this->o_data->quoteSmart($in_value));
-        if (DB::isError($result = $this->o_data->query($s_query))) {
+        $s_stmt = $this->o_data->prepare("DELETE FROM $this->table WHERE $s_field = ?");
+        if (DB::isError($result = $this->o_data->execute($s_stmt, $in_value))) {
             $o_result->addMessage($result->getMessage());
             $o_result->setSuccess(false);
         }
@@ -248,14 +258,9 @@ class FF_DataAccess {
      */
     function isDataUnique($in_dataField, $in_data, $in_id, $in_isUpdate, $in_where = null)
     {
-        $s_query = sprintf('SELECT COUNT(*) FROM %s WHERE %s=%s',
-                              $this->table,
-                              $in_dataField,
-                              $this->o_data->quoteSmart($in_data));
+        $s_query = "SELECT COUNT(*) FROM $this->table WHERE $in_dataField = " . $this->o_data->quoteSmart($in_data);
         if ($in_isUpdate) {
-            $s_query .= sprintf(' AND %s!=%s',
-                                   $this->primaryKey,
-                                   $this->o_data->quoteSmart($in_id));
+            $s_query .= " AND $this->primaryKey != " . $this->o_data->quoteSmart($in_id);
         }
 
         if (!is_null($in_where)) {
@@ -296,23 +301,6 @@ class FF_DataAccess {
     }
 
     // }}}
-    // {{{ boolToScalar()
-
-    /**
-     * Converts a boolean to the scalar of T and F which are the values stored for boolean
-     * fields.
-     *
-     * @param bool $in_bool The boolean value
-     *
-     * @access public
-     * @return string T if it is true, F otherwise
-     */
-    function boolToScalar($in_bool)
-    {
-        return $in_bool ? 'T' : 'F';
-    }
-
-    // }}}
     // {{{ getListData()
 
     /**
@@ -328,12 +316,8 @@ class FF_DataAccess {
      */
     function &getListData($in_where, $in_orderByField, $in_orderByDir, $in_fields = '*')
     {
-        $s_query = sprintf('SELECT %s FROM %s WHERE %s ORDER BY %s %s',
-                              $in_fields,
-                              $this->table,
-                              $in_where,
-                              $in_orderByField,
-                              $this->_getOrderByDirection($in_orderByDir));
+        $s_query = "SELECT $in_fields FROM $this->table WHERE $in_where ORDER BY $in_orderByField " .
+                    $this->_getOrderByDirection($in_orderByDir);
         return $this->o_data->query($s_query);
     }
 
@@ -422,13 +406,8 @@ class FF_DataAccess {
             return array();
         }
 
-        $s_query = sprintf('SELECT %s FROM %s WHERE %s=%s', 
-                $in_fields,
-                $this->table,
-                $this->primaryKey,
-                $this->o_data->quoteSmart($in_id));
-
-        if (DB::isError($result = $this->o_data->getAll($s_query))) {
+        $s_query = "SELECT $in_fields FROM $this->table WHERE $this->primaryKey = ?";
+        if (DB::isError($result = $this->o_data->getAll($s_query, array($in_id)))) {
             return array();
         }
         else {
@@ -455,11 +434,8 @@ class FF_DataAccess {
             return null;
         }
 
-        $s_query = sprintf('SELECT %s FROM %s WHERE %s=%s', 
-                $in_field, $this->table,
-                $this->primaryKey, $this->o_data->quoteSmart($in_id));
-
-        if (DB::isError($result = $this->o_data->getOne($s_query))) {
+        $s_query = "SELECT $in_field FROM $this->table WHERE $this->primaryKey = ?";
+        if (DB::isError($result = $this->o_data->getOne($s_query, $in_id))) {
             return null; 
         }
         else {
@@ -535,7 +511,7 @@ class FF_DataAccess {
             return $in_order;
         }
         else {
-            return (bool) $in_order ? 'ASC' : 'DESC';
+            return $in_order ? 'ASC' : 'DESC';
         }
     }
 
