@@ -1,5 +1,5 @@
 <?php
-/** $Id: Registry.php,v 1.4 2003/01/15 01:01:22 jrust Exp $ */
+/** $Id: Registry.php,v 1.5 2003/01/21 01:19:57 jrust Exp $ */
 // {{{ constants/globals
 
 // types of filepaths that can be generated
@@ -27,6 +27,7 @@ $GLOBALS['_FASTFRAME_PATH'] = array(
     'app_pages'       => '%app%/pages',
     'app_data'        => '%app%/data',
     'app_libs'        => '%app%/lib',
+    'app_dataobjects' => '%app%/lib/DataObjects',
     'app_graphics'    => '%app%/graphics',
     'app_language'    => '%app%/locale',
     'app_config'      => '%app%/config',
@@ -89,7 +90,6 @@ class FastFrame_Registry {
     function FastFrame_Registry()
     {
         $this->importConfig();
-        $this->getDataConnection();
 
         // Initial FastFrame-wide settings
         // Set the error reporting level in accordance with the config settings.
@@ -543,43 +543,90 @@ class FastFrame_Registry {
     }
 
     // }}}
+    // {{{ initDataObject()
+
+    /**
+     * Initializes the data object
+     *
+     * @param array $in_options (optional) The options to initialize the DataObject class.
+     *              If an empty array we use the getDataObjectOptions() method.  If it is
+     *              set then we assume you have the necessary variables set that
+     *              getDataObjectOptions() sets.  This allows you to use an ini file if you
+     *              wish.
+     *
+     * @access public
+     * @return void 
+     */
+    function initDataObject($in_options = array())
+    {
+        $options =& PEAR::getStaticProperty('DB_DataObject','options');
+        if (empty($in_options)) {
+            $a_config = $this->getDataObjectOptions();
+        }
+        else {
+            $a_config = $in_options;
+        }
+
+        $options = $a_config;
+    }
+
+    // }}}
+    // {{{ getDataObjectOptions()
+
+    /**
+     * Gets the variables needed for initializing the DataObject 
+     *
+     * @param array $in_options (optional) Additional options that will be added to the conf array.
+     * @param array $in_credentials (optional) override of current state, such as the app
+     *
+     * @see The example.ini in the DB_DataObject package
+     * @access public
+     * @return array The options needed for setting up the DataObjects class 
+     */
+    function getDataObjectOptions($in_options = array(), $in_credentials = array())
+    {
+        $s_app = isset($in_credentials['app']) ? $in_credentials['app'] : $this->getCurrentApp();
+
+        $a_config = array();
+        // see if we should even set up a database setup 
+        $s_type = $this->getConfigParam('data/type', null, array('app' => $s_app));
+        if (is_null($s_type)) {
+            return $a_config; 
+        }
+
+        // construct dsn
+        $a_config['database'] = $s_type . '://' .
+                                $this->getConfigParam('data/username', null, array('app' => $s_app)) . ':' .
+                                $this->getConfigParam('data/password', null, array('app' => $s_app)) . '@' .
+                                $this->getConfigParam('data/host', null, array('app' => $s_app)) . '/' .
+                                $this->getConfigParam('data/database', null, array('app' => $s_app));
+        $a_config['schema_location'] = $this->getAppFile('', $s_app, 'config');
+        $a_config['class_location'] = $this->getAppFile('', $s_app, 'dataobjects');
+        $a_config['require_prefix'] = 'DataObjects/'; 
+        $a_config['class_prefix'] = 'DataObjects_'; 
+        $a_config['debug'] = $this->getConfigParam('data/debug_level', null, array('app' => $s_app));
+        $a_config['production'] = $this->getConfigParam('data/production', null, array('app' => $s_app));
+        $a_config = array_merge($a_config, $in_options);
+        
+        return $a_config;
+    }
+
+    // }}}
     // {{{ getDataConnection()
 
     /**
-     * Initialize a connection to the database
+     * Gets the data connection which has been set up by DataObject. 
      *
-     * @param  string $in_credentials (optional) override of current state
+     * @param object $in_obj_data The data object
      *
      * @access public
      * @return object The database connection
      */
-    function &getDataConnection($in_credentials = array())
+    function &getDataConnection(&$in_obj_data)
     {
-        static $a_dataConnection;
-
-        $s_app = isset($in_credentials['app']) ? $in_credentials['app'] : $this->getCurrentApp();
-
-        if (!isset($a_dataConnection[$s_app])) {
-            // see if we should even set up a database connection
-            $s_type = $this->getConfigParam('data/type', null, array('app' => $s_app));
-            if (is_null($s_type)) {
-                return;
-            }
-
-            // construct dsn
-            $s_dsn = $s_type . '://' .
-                     $this->getConfigParam('data/username', null, array('app' => $s_app)) . ':' .
-                     $this->getConfigParam('data/password', null, array('app' => $s_app)) . '@' .
-                     $this->getConfigParam('data/host', null, array('app' => $s_app)) . '/' .
-                     $this->getConfigParam('data/database', null, array('app' => $s_app));
-
-            $a_dataConnection[$s_app] =& MDB::connect($s_dsn, $this->getConfigParam('data/pconnect', false));
-            if (MDB::isError($a_dataConnection[$s_app])) {
-                FastFrame::fatal($a_dataConnection[$s_app], __FILE__, __LINE__);
-            }
-        }
-        
-        return $a_dataConnection[$s_app];
+        $connections = &PEAR::getStaticProperty('DB_DataObject','connections');
+        $in_obj_data->_connect();
+        return $connections[$in_obj_data->_database_dsn_md5];
     }
 
     // }}}
