@@ -1,5 +1,5 @@
 <?php
-/** $Id: Registry.php,v 1.5 2003/01/21 01:19:57 jrust Exp $ */
+/** $Id: Registry.php,v 1.6 2003/01/21 19:37:45 jrust Exp $ */
 // {{{ constants/globals
 
 // types of filepaths that can be generated
@@ -600,8 +600,8 @@ class FastFrame_Registry {
                                 $this->getConfigParam('data/password', null, array('app' => $s_app)) . '@' .
                                 $this->getConfigParam('data/host', null, array('app' => $s_app)) . '/' .
                                 $this->getConfigParam('data/database', null, array('app' => $s_app));
-        $a_config['schema_location'] = $this->getAppFile('', $s_app, 'config');
-        $a_config['class_location'] = $this->getAppFile('', $s_app, 'dataobjects');
+        $a_config['schema_location'] = $this->getConfigParam('data/schema_location', null, array('app' => $s_app)); 
+        $a_config['class_location'] = $this->getConfigParam('data/class_location', null, array('app' => $s_app)); 
         $a_config['require_prefix'] = 'DataObjects/'; 
         $a_config['class_prefix'] = 'DataObjects_'; 
         $a_config['debug'] = $this->getConfigParam('data/debug_level', null, array('app' => $s_app));
