@@ -1,5 +1,5 @@
 <?php
-/** $Id: Auth.php,v 1.1 2003/01/03 22:42:44 jrust Exp $ */
+/** $Id: Auth.php,v 1.2 2003/01/15 18:25:02 jrust Exp $ */
 // {{{ constants
 
 define('FASTFRAME_AUTH_OK',         0);
@@ -522,13 +522,14 @@ class FastFrame_Auth {
      * Log the user out and unset their authenticated status.
      *
      * @param string $in_logoutURL (optional) The logout url.  Otherwise we determine it
+     * @param bool $in_return (optional) Just return instead of redirecting to logout page?
      *
      * @access public
      * @return mixed Redirect on success, false on failure.
      */
-    function logout($in_logoutURL = null) 
+    function logout($in_logoutURL = null, $in_return = false) 
     {
-        if (is_null($in_logoutURL)) {
+        if (is_null($in_logoutURL) && !$in_return) {
             $o_registry = FastFrame_Registry::singleton();
             $s_logoutApp = $o_registry->getConfigParam('general/logout_app', $o_registry->getConfigParam('general/login_app'));
             $s_logoutURL = FastFrame::url($o_registry->getAppFile('index.php', $s_logoutApp, '', FASTFRAME_WEBPATH), true);
@@ -541,7 +542,12 @@ class FastFrame_Auth {
         FastFrame_Auth::_set_status(FASTFRAME_AUTH_LOGOUT);
         FastFrame_Auth::_session_end();
 
-        FastFrame::redirect($s_logoutURL);
+        if ($in_return) {
+            return true;
+        }
+        else {
+            FastFrame::redirect($s_logoutURL);
+        }
     }
 
     // }}}
