@@ -1,5 +1,5 @@
 <?php
-/** $Id: DataAccess.php,v 1.2 2003/03/13 18:40:33 jrust Exp $ */
+/** $Id: DataAccess.php,v 1.3 2003/03/15 01:24:06 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -186,7 +186,7 @@ class FF_DataAccess {
                               $this->o_data->quote($in_data)
                           );
         if ($in_isUpdate) {
-            $s_query .= sprintf(' AND %s=%s',
+            $s_query .= sprintf(' AND %s!=%s',
                                    $this->primaryKey,
                                    $this->o_data->quote($in_id)
                                );
