@@ -1,5 +1,23 @@
 <?php
-/** $Id: init.inc.php,v 1.8 2003/02/06 18:59:31 jrust Exp $ */
+/** $Id: init.inc.php,v 1.9 2003/02/08 00:01:25 jrust Exp $ */
+// {{{ license
+
+// +----------------------------------------------------------------------+
+// | FastFrame Application Framework                                      |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 2002-2003 The Codejanitor Group                        |
+// +----------------------------------------------------------------------+
+// | This source file is subject to the GNU Lesser Public License (LGPL), |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.fsf.org/copyleft/lesser.html                              |
+// | If you did not receive a copy of the LGPL and are unable to          |
+// | obtain it through the world-wide-web, you can get it by writing the  |
+// | Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, |
+// | MA 02111-1307, USA.                                                  |
+// +----------------------------------------------------------------------+
+
+// }}}
 /**
  * If you want to use the FastFrame application framework in your application,
  * you have to specify the path, either full or relative to get to the
@@ -15,8 +33,14 @@ if (!defined('IN_FASTFRAME')) {
 // }}}
 // {{{ initialize error handler
 
-require_once dirname(__FILE__) . '/Error/Handler.php';
-$o_error =& new Error_Handler(realpath(FASTFRAME_ROOT . 'config/Error_Handler.ini'));
+define('ECLIPSE_ROOT', dirname(__FILE__) . '/eclipse/');
+require_once dirname(__FILE__) . '/Error/Error.php';
+$o_reporter =& new ErrorReporter();
+$o_reporter->setDateFormat('[Y-m-d H:i:s]');
+$o_reporter->setStrictContext(false);
+$o_reporter->setExcludeObjects(false);
+$o_reporter->addReporter('console', E_VERY_ALL);
+ErrorList::singleton($o_reporter, 'o_error');
 
 // }}}
 // {{{ require libraries
