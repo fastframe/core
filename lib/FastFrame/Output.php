@@ -628,7 +628,7 @@ class FF_Output extends FF_Template {
             $in_options['fullPath'] &&
             !preg_match(';^(http://|ftp://);', $s_imgWebPath)) {
             $s_imgWebPath = ($this->o_registry->getConfigParam('server/use_ssl') ? 'https' : 'http') . 
-                            '://' . $this->o_registry->getConfigParam('server/hostname') . $s_imgWebPath;
+                            '://' . $this->o_registry->getConfigParam('webserver/hostname') . $s_imgWebPath;
         }
 
         $in_options['border'] = isset($in_options['border']) ? $in_options['border'] : '0';

@@ -162,10 +162,10 @@ class FF_Menu_DOM extends FF_Menu {
         // the hash number has to be dynamic so perms will work
         $s_jsNode = "
         $tmp_pad<?php echo ++\$a_count[$in_level]; ?>, new domMenu_Hash(
-        $tmp_pad    'contents', '$tmp_contents',
+        $tmp_pad    'contents', '<?php echo addcslashes(_('$tmp_contents'), '\''); ?>',
         $tmp_pad    'uri', '$tmp_uri',
         $tmp_pad    'target', '$tmp_target',
-        $tmp_pad    'statusText', '$tmp_status'";
+        $tmp_pad    'statusText', '<?php echo addcslashes(_('$tmp_status'), '\''); ?>'";
 
         // recurse sub-elements
         $s_nextLevel = $in_level + 1;
