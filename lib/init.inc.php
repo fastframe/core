@@ -1,5 +1,5 @@
 <?php
-/** $Id: init.inc.php,v 1.4 2003/01/15 00:59:11 jrust Exp $ */
+/** $Id: init.inc.php,v 1.5 2003/01/16 01:02:39 jrust Exp $ */
 /**
  * If you want to use the FastFrame application framework in your application,
  * you have to specify the path, either full or relative to get to the
@@ -60,7 +60,7 @@ $a_lang =& $o_registry->getRootLocale();
 
 $s_pageType = 'normal';
 $o_html =& FastFrame_HTML::singleton();
-$a_persistent['actionID'] = FastFrame::getCGIParam('actionID', 'gp', NOOP);
+FastFrame::setPersistentData('actionID', FastFrame::getCGIParam('actionID', 'gp', NOOP));
 
 // }}}
 ?>
