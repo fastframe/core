@@ -1,5 +1,5 @@
 <?php
-/** $Id: FastFrame.php,v 1.12 2003/04/09 20:06:25 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -489,7 +489,7 @@ HTML;
 
         // make a key reference for the variable array out of the variable
         if ($tmp_pos = strpos($tmp_str_varname, '[')) {
-            $tmp_str_varname = '[\'' . substr($tmp_str_varname, 0, $pos) . '\']' . str_replace(array('[', ']'), array('[\'', '\']'), substr($tmp_str_varname, $pos));
+            $tmp_str_varname = '[\'' . substr($tmp_str_varname, 0, $tmp_pos) . '\']' . str_replace(array('[', ']'), array('[\'', '\']'), substr($tmp_str_varname, $tmp_pos));
         }
         else {
             $tmp_str_varname = '[\'' . $tmp_str_varname . '\']';
