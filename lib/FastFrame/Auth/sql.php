@@ -1,12 +1,12 @@
 <?php
-// {{{ includes
-require_once("DB.php");
-// }}}
+/** $Id: sql.php,v 1.3 2003/01/22 02:03:28 jrust Exp $ */
 // {{{ class  AuthSource_sql
 
 /**
  * An authentication source for sql servers
  *
+ * See the enclosed file COPYING for license information (LGPL). If you
+ * did not receive this file, see http://www.fsf.org/copyleft/lesser.html.
  *
  * @version Revision: 1.0 
  * @author  Greg Gilbert <ggilbert@brooks.edu
@@ -17,62 +17,31 @@ require_once("DB.php");
 // }}}
 class AuthSource_sql extends AuthSource {
     // {{{ properties
-    /**
-     * The hostname of the server to connect to
-     * @var string $databaseHost
-     */
-    var $databaseHost;
 
     /**
-     * The type of database we will connect to
-     * @var string $databaseType
+     * The basename of the DataObject class
+     * @type string
      */
-    var $databaseType;
-
-
-    /**
-     * The name of database we will connect to
-     * @var string $databaseName
-     */
-    var $databaseName;
-
-    /**
-     * Username to connect to the database
-     * @var string $databaseUser
-     */
-    var $databaseUser;
-
-    /**
-     * Password to connect to the database
-     * @var string $databasePassword
-     */
-    var $databasePassword;
-
-    /**
-     * The table we are storing usernames and passwords in
-     * @var string $databaseTable
-     */
-    var $databaseTable;
-
-    /**
-     * The field usernames are stored in
-     * @var string $fieldUser
-     */
-    var $fieldUser;
-
-    /**
-     * The field passwords are stored in
-     * @var string $fieldPassword
-     */
-    var $fieldPassword;
+    var $dataBasename;
 
     /**
      * The type of encoding used for the password. It can be either
      * md5 or plain
-     * @var string $passwordType
+     * @type string
      */
     var $passwordType;
 
+    /**
+     * The field for the username 
+     * @type string
+     */
+    var $userField;
+
+    /**
+     * The field for the password 
+     * @type string
+     */
+    var $passField;
 
     // }}}
     // {{{ constructor
@@ -82,22 +51,20 @@ class AuthSource_sql extends AuthSource {
      *
      * Create an instance of the AuthSource class.  
      *
+     * @param string $in_name The name of this auth source
+     * @param array $in_params Parameters needed for authenticating against the SQL server.
+     *              These can include hostname, table
+     *
      * @access public
-     * @return AuthSource_imap object
+     * @return object AuthSource_sql object
      */
-    function AuthSource_sql($name, $params)
+    function AuthSource_sql($in_name, $in_params)
     {
-        $this->sourceName=$name;
-        $this->databaseHost=$params['hostname'];
-        $this->databaseType=$params['serverType'];
-        $this->databaseName=$params['database'];
-        $this->databaseUser=$params['username'];
-        $this->databasePassword=$params['password'];
-        $this->databaseTable=$params['table'];
-        $this->fieldUser=$params['userField'];
-        $this->fieldPassword=$params['passField'];
-        $this->passwordType=$params['passType'];
-
+        $this->sourceName = $in_name;
+        $this->dataBasename = $in_params['basename'];
+        $this->encryptionType = $in_params['encryption'];
+        $this->userField = $in_params['userField'];
+        $this->passField = $in_params['passField'];
     }
 
     // }}}
@@ -108,37 +75,47 @@ class AuthSource_sql extends AuthSource {
      *
      * Authenticates the user name and password against an sql server
      *
+     * @param string $in_username The username to be authenticated.
+     * @param string $in_password The corresponding password.
+     *
      * @access public
-     * @return boolean determines if login was successfull
+     * @return boolean True if login was successfull
      */
-    function authenticate($username, $password)
+    function authenticate($in_username, $in_password)
     {
-        // Connect to the db
-        $dsn = "{$this->databaseType}://{$this->databaseUser}:{$this->databasePassword}@{$this->databaseHost}/{$this->databaseName}";
-        $db = DB::connect($dsn);
-
-        // hash/encrypt the password if needed
-        switch ($this->passwordType) {
-            case "md5":
-                $authPass=md5($password);
-            break;
-            case "plain":
-            default:
-                $authPass=$password;
-                break;
+        // set up database
+        $o_registry =& FastFrame_Registry::singleton();
+        require_once $o_registry->getConfigParam('data/class_location', null, array('app' => FASTFRAME_DEFAULT_APP)) . '/' . $this->dataBasename . '.php';
+        $o_registry->initDataObject($o_registry->getDataObjectOptions(array(), array('app' => FASTFRAME_DEFAULT_APP)));
+        $s_className = DB_DataObject::staticAutoloadTable($this->dataBasename);
+        if (!$s_className) {
+            return FastFrame::fatal("No $this->dataBasename table exists.", __FILE__, __LINE__);
         }
 
-        // Lookup the user
-        $sql="SELECT COUNT(*) from " . $db->quote($this->databaseTable) . " WHERE " . $this->fieldUser . "=" . $db->quote($username) . " AND " .
-            $this->fieldPassword . "=" . $db->quote($authPassword);
-        $count=$db->getOne($sql);
+        $o_data = new $s_className;
+        $o_db =& $o_registry->getDataConnection($o_data);
 
-        $db->disconnect();
+        // hash/encrypt the password if needed
+        switch ($this->encryptionType) {
+            case 'md5':
+                $s_encryptPass = md5($in_password);
+            break;
+            case 'plain':
+            default:
+                $s_encryptPass = $in_password;
+            break;
+        }
 
-        if ($count)
+        $o_data->whereAdd($this->userField . '=' . $o_db->quote($in_username));
+        $o_data->whereAdd($this->passField . '=' . $o_db->quote($s_encryptPass));
+        $s_result = $o_data->count();
+
+        if ($s_result) {
             return true;
-        else
+        }
+        else {
             return false;
+        }
     }
 
     // }}}
