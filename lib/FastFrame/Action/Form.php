@@ -229,7 +229,7 @@ class FF_Action_Form extends FF_Action {
      */
     function fillModelWithData()
     {
-        if ($this->currentActionId == $this->editActionId) {
+        if ($this->isUpdate()) {
             $s_id = FastFrame::getCGIParam('objectId', 'gp');
             $b_result = $this->o_model->fillById($s_id);
             if (!$b_result) {
@@ -260,6 +260,20 @@ class FF_Action_Form extends FF_Action {
     }
 
     // }}}
+    // {{{ isUpdate()
+
+    /**
+     * Is this an update (return true) or add (return false)?
+     *
+     * @access public
+     * @return bool True if is an update, false if it is an add 
+     */
+    function isUpdate()
+    {
+        return ($this->currentActionId == $this->editActionId) ? true : false; 
+    }
+
+    // }}}
     // {{{ setSubmitActionId()
 
     /**
@@ -270,7 +284,7 @@ class FF_Action_Form extends FF_Action {
      */
     function setSubmitActionId()
     {
-        if ($this->currentActionId == $this->editActionId) {
+        if ($this->isUpdate()) {
             $this->formActionId = ACTION_EDIT_SUBMIT;
         }
         else {
@@ -381,7 +395,7 @@ class FF_Action_Form extends FF_Action {
      */
     function getTableHeaderText()
     {
-        if ($this->currentActionId == $this->editActionId) {
+        if ($this->isUpdate()) {
             return sprintf(_('Update %s'), $this->getSingularText());
         }
         else {

@@ -114,19 +114,14 @@ class FF_Action_FormSubmit extends FF_Action {
     // {{{ isUpdate()
 
     /**
-     * Is this an update (return true) or add (return false)
+     * Is this an update (return true) or add (return false)?
      *
      * @access public
-     * @return bool True if we should update, false if we should add 
+     * @return bool True if is an update, false if it is an add 
      */
     function isUpdate()
     {
-        if ($this->currentActionId == $this->editActionId) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return ($this->currentActionId == $this->editActionId) ? true : false; 
     }
 
     // }}}
@@ -140,7 +135,7 @@ class FF_Action_FormSubmit extends FF_Action {
      */
     function getSuccessMessage()
     {
-        if ($this->currentActionId == $this->editActionId) {
+        if ($this->isUpdate()) {
             return sprintf(_('Updated the %s successfully.'), $this->getSingularText());
         }
         else {
@@ -159,7 +154,7 @@ class FF_Action_FormSubmit extends FF_Action {
      */
     function getProblemMessage()
     {
-        if ($this->currentActionId == $this->editActionId) {
+        if ($this->isUpdate()) {
             return sprintf(_('There was an error in updating the %s.'), $this->getSingularText());
         }
         else {
@@ -235,7 +230,7 @@ class FF_Action_FormSubmit extends FF_Action {
      */
     function setProblemActionId()
     {
-        if ($this->currentActionId == $this->editActionId) {
+        if ($this->isUpdate()) {
             $this->o_nextAction->setNextActionId(ACTION_EDIT);
         }
         else {
