@@ -1,5 +1,10 @@
 <?php
-/** $Id: sql.php,v 1.5 2003/01/22 21:00:29 jrust Exp $ */
+/** $Id: sql.php,v 1.6 2003/02/06 18:53:50 jrust Exp $ */
+// {{{ requires
+
+require_once 'DB/QueryTool.php';
+
+// }}}
 // {{{ class  AuthSource_sql
 
 /**
@@ -30,6 +35,12 @@ class AuthSource_sql extends AuthSource {
      * @type string
      */
     var $passwordType;
+
+    /**
+     * The table for the auth class
+     * @type string
+     */
+    var $table;
 
     /**
      * The field for the username 
@@ -63,6 +74,7 @@ class AuthSource_sql extends AuthSource {
         $this->sourceName = $in_name;
         $this->dataBasename = $in_params['basename'];
         $this->encryptionType = $in_params['encryption'];
+        $this->table = $in_params['table'];
         $this->userField = $in_params['userField'];
         $this->passField = $in_params['passField'];
     }
@@ -83,17 +95,10 @@ class AuthSource_sql extends AuthSource {
      */
     function authenticate($in_username, $in_password)
     {
-        // set up database
         $o_registry =& FastFrame_Registry::singleton();
-        require_once File::buildPath(array($o_registry->getConfigParam('data/class_location', null, array('app' => FASTFRAME_DEFAULT_APP)), $this->dataBasename . '.php'));
-        $o_registry->initDataObject($o_registry->getDataObjectOptions(array(), array('app' => FASTFRAME_DEFAULT_APP)));
-        $s_className = DB_DataObject::staticAutoloadTable($this->dataBasename);
-        if (!$s_className) {
-            return FastFrame::fatal("No $this->dataBasename table exists.", __FILE__, __LINE__);
-        }
-
-        $o_data = new $s_className;
-        $o_db =& $o_data->getDatabaseConnection();
+        // set up database
+        $o_data =& new DB_QueryTool($o_registry->getDataDsn());
+        $o_data->setTable($this->table);
 
         // hash/encrypt the password if needed
         switch ($this->encryptionType) {
@@ -106,9 +111,10 @@ class AuthSource_sql extends AuthSource {
             break;
         }
 
-        $o_data->whereAdd($this->userField . '=' . $o_db->quote($in_username));
-        $o_data->whereAdd($this->passField . '=' . $o_db->quote($s_encryptPass));
-        $s_result = $o_data->count();
+        $o_data->reset();
+        $o_data->addWhere($this->userField . '=' . $o_data->_db->quote($in_username));
+        $o_data->addWhere($this->passField . '=' . $o_data->_db->quote($s_encryptPass));
+        $s_result = $o_data->getCount();
 
         if ($s_result) {
             return true;
