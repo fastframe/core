@@ -202,6 +202,11 @@ class FF_SystemTest {
                 'name' => 'PEAR HTML_BBCodeParser',
                 'errorMsg' => _('You do not have the PEAR HTML_BBCodeParser module installed.  It is required for the portal and alum_website application.'),
                 'successMsg' => _('You have the PEAR HTML_BBCodeParser module.')),
+            'pear_http_request' => array(
+                'method' => '_checkPEARHTTPRequest',
+                'name' => 'PEAR HTTP_Request',
+                'errorMsg' => _('You do not have the PEAR HTTP_Request module installed.  It is required for using the website auth mechanism.'),
+                'successMsg' => _('You have the PEAR HTTP_Request module.')),
             'cachedir' => array(
                 'method' => '_checkCacheDir',
                 'name' => 'Writable Cache Dir',
@@ -383,6 +388,21 @@ class FF_SystemTest {
     {
         @include_once 'HTML/BBCodeParser.php';
         return class_exists('HTML_BBCodeParser');
+    }
+
+    // }}}
+    // {{{ _checkPEARHTTPRequest()
+
+    /**
+     * Tests to see if the PEAR HTTP_Request module is loaded.
+     *
+     * @access private
+     * @return bool True if it succeeds, false otherwise
+     */
+    function _checkPEARHTTPRequest()
+    {
+        @include_once 'HTTP/Request.php';
+        return class_exists('HTTP_Request');
     }
 
     // }}}
