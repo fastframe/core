@@ -39,13 +39,13 @@ class FF_Result {
 
     /**
      * If it was a success or not 
-     * @type bool
+     * @var bool
      */
     var $success = true;
 
     /**
      * An array of messages, errors, and warnings that occur during execution
-     * @type array 
+     * @var array 
      */
     var $messages = array();
 

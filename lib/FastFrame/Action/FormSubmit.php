@@ -43,7 +43,7 @@ class FF_Action_FormSubmit extends FF_Action {
 
     /**
      * The action id used in edit mode
-     * @type string
+     * @var string
      */
     var $editActionId = ACTION_EDIT_SUBMIT;
 

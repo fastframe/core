@@ -45,49 +45,49 @@ class FF_Action_Form extends FF_Action {
 
     /**
      * QuickForm instance 
-     * @type object
+     * @var object
      */
     var $o_form;
 
     /**
      * The form renderer instance
-     * @type object
+     * @var object
      */
     var $o_renderer;
 
     /**
      * The model object that holds info about the current model being worked with
-     * @type object
+     * @var object
      */
     var $o_model;
 
     /**
      * The form method (POST/GET)
-     * @type string
+     * @var string
      */
     var $formMethod = 'POST';
 
     /**
      * The form target
-     * @type string
+     * @var string
      */
     var $formTarget = '_self';
 
     /**
      * The form name
-     * @type string
+     * @var string
      */
     var $formName = 'generic_form';
 
     /**
      * The action id for when the form is submitted
-     * @type string
+     * @var string
      */
     var $formActionId;
 
     /**
      * The action id used in edit mode
-     * @type string
+     * @var string
      */
     var $editActionId = ACTION_EDIT;
 

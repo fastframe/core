@@ -39,25 +39,25 @@ class FF_NextAction{
 
     /**
      * Next action Id 
-     * @type string 
+     * @var string 
      */
     var $nextActionId;
 
     /**
      * Next app Id 
-     * @type string 
+     * @var string 
      */
     var $nextAppId;
 
     /**
      * Next module Id 
-     * @type string 
+     * @var string 
      */
     var $nextModuleId;
 
     /**
      * Is this the last action
-     * @type boolean
+     * @var boolean
      */
     var $lastAction = true;
 

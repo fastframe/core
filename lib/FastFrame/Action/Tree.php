@@ -44,31 +44,31 @@ class FF_Action_Tree extends FF_Action {
 
     /**
      * Array of opened tree folders that are opened
-     * @type array
+     * @var array
      */
     var $openFolders = array();
 
     /**
      * The field in the data array that has the primary id
-     * @type string
+     * @var string
      */
     var $idField;
 
     /**
      * The field in the data array that has the left_id
-     * @type string
+     * @var string
      */
     var $leftField;
 
     /**
      * The field in the data array that has the right_id 
-     * @type string
+     * @var string
      */
     var $rightField;
 
     /**
      * The number of root nodes
-     * @type int
+     * @var int
      */
     var $numRootNodes;
 

@@ -1,5 +1,5 @@
 <?php
-/** $Id: Validate.php,v 1.2 2003/03/18 23:58:18 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -44,26 +44,26 @@ class FF_Validate {
 
     /**
      * The model object we are working with
-     * @type object 
+     * @var object 
      */
     var $o_model;
 
     /**
      * The result object that we return from the validate method
-     * @type object
+     * @var object
      */
     var $o_result;
 
     /**
      * Whether or not this is an update or a new model we are verifying
-     * @type bool
+     * @var bool
      */
     var $isUpdate;
 
     /**
      * Additional data that was inputted by the user and needs to be validated
      * but is not part of the model
-     * @type array
+     * @var array
      */
     var $additionalData = array();
 

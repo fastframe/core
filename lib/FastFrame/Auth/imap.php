@@ -1,5 +1,5 @@
 <?php
-/** $Id: imap.php,v 1.4 2003/04/02 00:01:23 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -37,7 +37,7 @@ class FF_AuthSource_imap extends FF_AuthSource {
 
     /**
      * The port on server to connect to
-     * @type string
+     * @var string
      */
     var $serverPort;
 

@@ -1,5 +1,5 @@
 <?php
-/** $Id: profile.php,v 1.1 2003/04/01 23:59:55 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -38,7 +38,7 @@ class FF_AuthSource_profile extends FF_AuthSource {
     
     /**
      * The profile model object
-     * @type object
+     * @var object
      */
     var $o_model;
     

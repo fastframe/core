@@ -39,7 +39,7 @@ class FF_ActionHandlerConfig {
 
     /**
      * The action handler we are working with
-     * @type string 
+     * @var string 
      */
     var $actionHandler;
 

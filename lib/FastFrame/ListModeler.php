@@ -41,31 +41,31 @@ class FF_ListModeler {
 
     /**
      * The List object 
-     * @type object 
+     * @var object 
      */
     var $o_list;
 
     /**
      * The model object
-     * @type object
+     * @var object
      */
     var $o_model;
 
     /**
      * The data access object 
-     * @type object 
+     * @var object 
      */
     var $o_dataAccess;
 
     /**
      * The result set object
-     * @type object
+     * @var object
      */
     var $o_resultSet = null;
 
     /**
      * The filter to apply to the data
-     * @type string
+     * @var string
      */
     var $filterName = null;
 

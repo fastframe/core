@@ -45,19 +45,19 @@ class FF_Perms {
 
     /**
      * User Id of the user associated with this permissions object
-     * @type int 
+     * @var int 
      */
     var $userId;
 
     /**
      * Caches user permissions
-     * @type array
+     * @var array
      */
     var $permsCache = array();
 
     /**
      * The array of super users defined in the config file
-     * @type array 
+     * @var array 
      */
     var $superUsers;
 

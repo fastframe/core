@@ -44,25 +44,25 @@ class FF_DataAccess {
 
     /**
      * The registry object
-     * @type object
+     * @var object
      */
     var $o_registry;
 
     /**
      * The data object.  Used for accessing persistent data 
-     * @type object
+     * @var object
      */
     var $o_data;
 
     /**
      * The primary key for the table
-     * @type string
+     * @var string
      */
     var $primaryKey = 'id';
 
     /**
      * The table we are working with
-     * @type string
+     * @var string
      */
     var $table;
 

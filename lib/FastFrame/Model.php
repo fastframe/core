@@ -1,5 +1,5 @@
 <?php
-/** $Id: Model.php,v 1.4 2003/03/18 23:59:33 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -46,13 +46,13 @@ class FF_Model {
 
     /**
      * The data access object. 
-     * @type object
+     * @var object
      */
     var $o_dataAccess;
 
     /**
      * The primary id field
-     * @type int
+     * @var int
      */
     var $id;
 

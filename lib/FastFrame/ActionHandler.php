@@ -74,62 +74,62 @@ class FF_ActionHandler {
 
     /**
      * The actionId.  One of the above-defined constants
-     * @type string 
+     * @var string 
      */
     var $actionId;
 
     /**
      * The app currently being run
-     * @type string 
+     * @var string 
      */
     var $appId;
 
     /**
      * The module within the application where the action exists
-     * @type string 
+     * @var string 
      */
     var $moduleId;
 
     /**
      * The module configuration object for the currently executing module
-     * @type string 
+     * @var string 
      */
     var $moduleConfig;
 
     /**
      * The default actionId for when an invalid actionId is passed in
-     * @type string 
+     * @var string 
      */
     var $defaultActionId;
 
     /**
      * This application's name
-     * @type string
+     * @var string
      */
     var $appName;
 
     /**
      * The registry object
-     * @type object
+     * @var object
      */
     var $o_registry;
 
     /**
      * The primary model object 
-     * @type object
+     * @var object
      */
     var $o_model;
 
     /**
      * The array of default available actions, the path to the action class file and the
      * name of the class
-     * @type array
+     * @var array
      */
     var $availableActions;
 
     /**
      * The array of the default available actions
-     * @type array
+     * @var array
      */
     var $defaultActions = array(
         ACTION_PROBLEM    => array('Action/Problem.php', 'FF_Action_Problem'),

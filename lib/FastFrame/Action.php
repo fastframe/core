@@ -43,37 +43,37 @@ class FF_Action {
 
     /**
      * The registry object
-     * @type object
+     * @var object
      */
     var $o_registry;
 
     /**
      * Output instance
-     * @type object 
+     * @var object 
      */
     var $o_output;
 
     /**
      * The next action object which is returned from all run() methods
-     * @type object
+     * @var object
      */
     var $o_nextAction;
 
     /**
      * The primary model object 
-     * @type object
+     * @var object
      */
     var $o_model;
 
     /**
      * The permissions object
-     * @type object
+     * @var object
      */
     var $o_perms;
 
     /**
      * The current actionId
-     * @type string
+     * @var string
      */
     var $currentActionId;
 

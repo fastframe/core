@@ -1,5 +1,5 @@
 <?php
-/** $Id: AuthSource.php,v 1.5 2003/04/02 00:02:51 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -37,27 +37,27 @@ class FF_AuthSource {
 
     /**
      * A unique name to identify this source
-     * @type string
+     * @var string
      */
     var $name;
 
     /**
      * The server name this source authenticates against
-     * @type string
+     * @var string
      */
     var $serverName;
 
     /**
      * Whether the password value is writable.  If so the source must implement the
      * updatePassword() method
-     * @type bool
+     * @var bool
      */
     var $passwordWritable = false;
 
     /**
      * Whether the username value is writable.  If so the source must implement the
      * updateUserName() method
-     * @type bool
+     * @var bool
      */
     var $usernameWritable = false;
 

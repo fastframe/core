@@ -64,37 +64,37 @@ class FF_Output extends FF_Template {
 
     /**
      * o_registry instance
-     * @type object
+     * @var object
      */
     var $o_registry;
 
     /**
      * The page name used to make the title more descriptive
-     * @type string
+     * @var string
      */
     var $pageName;
 
     /**
      * The menu type used. 
-     * @type string
+     * @var string
      */
     var $menuType;
 
     /**
      * The page type.  Allows for easy creation of different types of pages
-     * @type string
+     * @var string
      */
     var $pageType = 'normal';
 
     /**
      * The theme setting
-     * @type string
+     * @var string
      */
     var $theme;
 
     /**
      * The array of messages
-     * @type array
+     * @var array
      */
     var $messages = array();
 

@@ -45,91 +45,91 @@ class FF_List {
 
     /**
      * Output instance
-     * @type object
+     * @var object
      */
     var $o_output;
 
     /**
      * The column data. 
-     * @type array
+     * @var array
      */
     var $columnData = array();
 
     /**
      * The searchable fields. 
-     * @type array
+     * @var array
      */
     var $searchableFields = array();
 
     /**
      * The key for searching all fields
-     * @type string
+     * @var string
      */
     var $allFieldsKey = '**all**'; 
 
     /**
      * The total number of records in the data set 
-     * @type int
+     * @var int
      */
     var $totalRecords = 0;
 
     /**
      * The total number of matched records in the data set 
-     * @type int
+     * @var int
      */
     var $matchedRecords = 0;
 
     /**
      * The total number of records displayed on the page
-     * @type int
+     * @var int
      */
     var $displayedRecords = 0;
 
     /**
      * The current sort field 
-     * @type string
+     * @var string
      */
     var $sortField;
 
     /**
      * The current sort order (1 = ASC, 0 = DESC)
-     * @type int
+     * @var int
      */
     var $sortOrder;
 
     /**
      * The current search string 
-     * @type int
+     * @var int
      */
     var $searchString;
 
     /**
      * The current field being searched 
-     * @type int
+     * @var int
      */
     var $searchField;
 
     /**
      * Whether or not we are in the advanced list page 
-     * @type bool
+     * @var bool
      */
     var $advancedList;
 
     /**
      * The current page offset 
-     * @type int
+     * @var int
      */
     var $pageOffset;
 
     /**
      * The current limit of items per page
-     * @type int
+     * @var int
      */
     var $displayLimit;
 
     /**
      * Any persistent data which should be passed as hidden fields (i.e. actionId) 
-     * @type array
+     * @var array
      */
     var $persistentData = array();
 

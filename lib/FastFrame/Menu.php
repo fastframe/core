@@ -80,31 +80,31 @@ class FF_Menu {
 
     /**
      * Registry instance
-     * @type object
+     * @var object
      */
     var $o_registry;
 
     /**
      * The Output object
-     * @type object
+     * @var object
      */
     var $o_output;
 
     /**
      * The array of menu variables
-     * @type array
+     * @var array
      */
     var $menuVariables; 
 
     /**
      * The menu type
-     * @type string
+     * @var string
      */
     var $menuType;
 
     /**
      * The placeholder used to specify the current app in the menu.
-     * @type string
+     * @var string
      */
     var $currentAppPlaceholder = '%currentApp%';
 

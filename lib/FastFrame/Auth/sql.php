@@ -1,5 +1,5 @@
 <?php
-/** $Id: sql.php,v 1.11 2003/04/02 00:01:23 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -44,25 +44,25 @@ class FF_AuthSource_sql extends FF_AuthSource {
     /**
      * The type of encoding used for the password. It can be either
      * md5 or plain
-     * @type string
+     * @var string
      */
     var $passwordType;
 
     /**
      * The table for the auth class
-     * @type string
+     * @var string
      */
     var $table;
 
     /**
      * The field for the username 
-     * @type string
+     * @var string
      */
     var $userField;
 
     /**
      * The field for the password 
-     * @type string
+     * @var string
      */
     var $passField;
 

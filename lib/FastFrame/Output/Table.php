@@ -43,31 +43,31 @@ class FF_Output_Table {
 
     /**
      * The output object
-     * @type object
+     * @var object
      */
     var $o_output;
 
     /**
      * The widget object
-     * @type object
+     * @var object
      */
     var $o_widget;
 
     /**
      * The total number of columns of table
-     * @type int
+     * @var int
      */
     var $numColumns = 2;
 
     /**
      * Table header text
-     * @type string
+     * @var string
      */
     var $tableHeaderText = 'Information';
 
     /**
      * The table headers.
-     * @type array
+     * @var array
      */
     var $tableHeaders = array(
         0 => array(

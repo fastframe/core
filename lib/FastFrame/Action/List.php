@@ -45,13 +45,13 @@ class FF_Action_List extends FF_Action_Form {
 
     /**
      * The list object 
-     * @type object 
+     * @var object 
      */
     var $o_list;
 
     /**
      * The list helper object
-     * @type object
+     * @var object
      */
     var $o_listModeler;
 
