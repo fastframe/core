@@ -1,5 +1,5 @@
 <?php
-/** $Id: Registry.php,v 1.14 2003/03/19 00:36:01 jrust Exp $ */
+/** $Id: Registry.php,v 1.15 2003/04/02 00:10:27 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -523,43 +523,66 @@ class FF_Registry {
      */
     function getConfigParam($in_paramPath, $in_default = null, $in_credentials = array()) 
     {
+        $b_popApp = false;
         $s_app = isset($in_credentials['app']) ? $in_credentials['app'] : $this->getCurrentApp();
+        // push the app if it's not loaded
+        if ($s_app != $this->getCurrentApp()) {
+            $b_popApp = true;
+            $this->pushApp($s_app);
+        }
 
-        list($s_category, $s_parameter) = explode('/', $in_paramPath);
-
-        if (isset($this->config[$s_app][$s_category][$s_parameter])) {
-            return $this->config[$s_app][$s_category][$s_parameter];
+        $a_parts = explode('/', $in_paramPath);
+        $s_path = implode('\'][\'', $a_parts);
+        $s_varName = '$this->config[\'' . $s_app . '\'][\'' . $s_path . '\']';
+        if (eval('return isset(' . $s_varName . ');')) {
+            $result = eval('return ' . $s_varName . ';'); 
         } 
         else {
             // first check the default app for the setting before returning default val
-            return isset($this->config[FASTFRAME_DEFAULT_APP][$s_category][$s_parameter]) ?
-            $this->config[FASTFRAME_DEFAULT_APP][$s_category][$s_parameter] : $in_default;
+            $s_varName = '$this->config[\'' . FASTFRAME_DEFAULT_APP . '\'][\'' . $s_path . '\']';
+            $result = eval('return isset(' . $s_varName . ');') ? eval('return ' . $s_varName . ';') : $in_default;
         }
+
+        if ($b_popApp) {
+            $this->popCurrentApp();
+        }
+
+        return $result;
     }
 
     // }}}
-    // {{{ getInitialPage()
+    // {{{ getActionHandlerObject()
 
     /**
-     * Return the initial page hit when starting up this application
+     * Returns the appropriate ActionHandler object for the specified app and module
      *
-     * Especially when switching applications, we need to know where to land.
-     * This will tell us where.
-     *
-     * @param  string $in_app (optional) force the application to check
+     * @param  string $in_app The application we are going to 
+     * @param  string $in_module (optional) The module within the application to proceed to
      *
      * @access public
-     * @return string web-path for used to redirect
+     * @return object The FF_ActionHandler object 
      */
-    function getInitialPage($in_credentials = array())
+    function &getActionHandlerObject($in_app, $in_module = null)
     {
-        $app = isset($in_credentials['app']) ? $in_credentials['app'] : $this->getCurrentApp();
-
-        if (!isset($this->apps[$app])) {
-            return FastFrame::fatal('"' . $app . '" is not configured in the FastFrame Registry.', __FILE__, __LINE__);
+        if (empty($in_module) && !empty($in_app)) {
+            $this->pushApp($in_app);
+            $in_module = $this->getConfigParam('general/initial_module');
         }
-        
-        return FastFrame::url(File::buildPath(array($this->getConfigParam('webserver/web_root'), $this->getAppParam('initial_page', null, array('app' => $app), false)))); 
+
+        if (!empty($in_app)) {
+            $pth_actionHandler = $this->getAppFile('lib/ActionHandler/' . ucfirst($in_module) . '.php', $in_app);
+        }
+
+        if (empty($in_app) || !file_exists($pth_actionHandler)) {
+            $in_app = $this->getConfigParam('general/initial_app', 'login');
+            $this->pushApp($in_app);
+            $in_module = $this->getConfigParam('general/initial_module');
+            $pth_actionHandler = $this->getAppFile('lib/ActionHandler/' . $in_module . '.php', $in_app);
+        }
+
+        require_once $pth_actionHandler; 
+        $s_className = 'FF_ActionHandler_' . $in_module;
+        return new $s_className();
     }
 
     // }}}
@@ -608,36 +631,6 @@ class FF_Registry {
     }
 
     // }}}
-    // {{{ getAppDatabase()
-
-    /**
-     * Retrieve the database for the current application
-     *
-     * Provided that there are not credential overrides, this function returns
-     * the database of the current application.  Overrides can be passed in through
-     * the credential array
-     *
-     * @param  array $in_credentials (optional) overrides for the current state
-     *
-     * @access public
-     * @return string application database name
-     */
-    function getAppDatabase($in_credentials = array()) 
-    {
-        static $s_lastApp, $s_database;
-
-        $s_app = !isset($in_credentials['app']) ? $this->getCurrentApp() : $in_credentials['app'];
-
-        // if we switched apps then we need to reset the database name
-        if ($s_app != $s_lastApp) {
-            $s_lastApp = $s_app;
-            $s_database = $this->getConfigParam('data/database');
-        }
-
-        return $s_database;
-    }
-
-    // }}}
     // {{{ getRootLocale()
    
     /**
@@ -671,24 +664,6 @@ class FF_Registry {
     }
 
     // }}}
-    // {{{ getStartPage()
-
-    /**
-     * Gets the start page for the system
-     *
-     * @param array $in_queryVars (optional) Additional query vars
-     *
-     * @access public
-     * @return string
-     */
-    function getStartPage($in_queryVars = array())
-    {
-        $url = FastFrame::url($this->getAppParam('initial_page', null, array('app' => 'fastframeold'), false), array($this->getConfigParam('session/name') => false), $in_queryVars, true); 
-
-        return $url;
-    }
-
-    // }}}
     // {{{ getApps()
 
     /**
@@ -700,12 +675,40 @@ class FF_Registry {
 
     function getApps()
     {
+        static $a_apps;
+        if (isset($a_apps)) {
+            return $a_apps;
+        }
+
         $a_apps = array();
         foreach ($this->apps as $s_app => $a_vals) {
             $a_apps[] = $s_app;
         }
 
         return $a_apps;
+    }
+
+    // }}}
+    // {{{ hasApp()
+
+    /**
+     * Determine if the current installation has a certain app
+     *
+     * @param string $in_app The app name to check
+     *
+     * @access public
+     * @return bool True if the app is installed, false otherwise
+     */
+    function hasApp($in_app)
+    {
+        if (isset($this->apps[$in_app]) &&
+            isset($this->apps[$in_app]['status']) &&
+            $this->apps[$in_app]['status'] != 'disabled') {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     // }}}
