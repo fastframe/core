@@ -1,5 +1,5 @@
 <?php
-/** $Id: Perms.php,v 1.3 2003/01/22 02:01:30 jrust Exp $ */
+/** $Id: Perms.php,v 1.4 2003/01/23 23:00:07 jrust Exp $ */
 // {{{ includes
 
 require_once dirname(__FILE__) . '/Perms/PermSource.php';
@@ -15,7 +15,7 @@ require_once dirname(__FILE__) . '/Perms/PermSource.php';
  *
  * @author		Greg Gilbert <greg@treke.net>
  * @copyright   LGPL
- * @version		$Id: Perms.php,v 1.3 2003/01/22 02:01:30 jrust Exp $
+ * @version		$Id: Perms.php,v 1.4 2003/01/23 23:00:07 jrust Exp $
  * @package		FastFrame
  * @see			User Auth
  */
@@ -50,20 +50,25 @@ class FastFrame_Perms {
     // {{{ constructor
 
     /**
-     *
      * Initializes the FastFrame_Perms class
      *
      * This function initializes the permissions class for the
      * for the specified user.
      *
-     * @param string $in_userID The user ID to get perms for.
+     * @param string $in_userID (optional) The user ID to get perms for. If not passed in we
+     *               grab the info from Auth.
      *
      * @access public
      * @return void
      */
-    function FastFrame_Perms($in_userID)
+    function FastFrame_Perms($in_userID = null)
     {
-        $this->_userID = $in_userID;
+        if (is_null($in_userID)) {
+            $this->_userID = FastFrame_Auth::getCredential('userID');
+        }
+        else {
+            $this->_userID = $in_userID;
+        }
 
         $o_registry =& FastFrame_Registry::singleton();
 
@@ -166,6 +171,42 @@ class FastFrame_Perms {
         }
 
         return $b_hasPerms;
+    }
+
+    // }}}
+    // {{{ getUserClasses()
+
+    /**
+     * Returns an array of the available user classes
+     *
+     * @access public
+     * @return array The array of 'user class description' => 'user class value'
+     */
+    function getUserClasses()
+    {
+        return array(
+            'UC_GUEST' => UC_GUEST,
+            'UC_USER' => UC_USER,
+            'UC_ADMIN_VIEWER' => UC_ADMIN_VIEWER,
+            'UC_ADMIN_EDITOR' => UC_ADMIN_EDITOR,
+            'UC_ADMIN' => UC_ADMIN,
+            'UC_ROOT' => UC_ROOT,
+        );
+    }
+
+    // }}}
+    // {{{ getUserClass()
+
+    /**
+     * Returns the user class that the user is a member of
+     *
+     * @access public
+     * @return int The user class
+     */
+    function getUserClass()
+    {
+        // [!] not done yet [!]
+        return UC_ROOT;
     }
 
     // }}}
