@@ -1,5 +1,5 @@
 <?php
-/** $Id: ActionHandler.php,v 1.11 2003/04/09 16:22:52 jrust Exp $ */
+/** $Id: ActionHandler.php,v 1.12 2003/04/09 19:55:08 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -354,7 +354,7 @@ class FF_ActionHandler {
             require_once $this->o_registry->getAppFile('ActionHandler/actions.php', 'profile', 'libs');
             // don't redirect if already on the profile page or submitting it
             if ($this->getActionId() != ACTION_MYPROFILE && $this->getActionId() != ACTION_EDIT_SUBMIT) {
-                FastFrame::redirect(FastFrame::selfURL(array('app' => 'profile', 'actionId' => ACTION_MYPROFILE)));
+                FastFrame::redirect(FastFrame::selfURL(array('app' => 'profile', 'module' => '', 'actionId' => ACTION_MYPROFILE)));
             }
         }
     }
