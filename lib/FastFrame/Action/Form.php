@@ -1,5 +1,5 @@
 <?php
-/** $Id: Form.php,v 1.4 2003/03/13 18:37:35 jrust Exp $ */
+/** $Id: Form.php,v 1.5 2003/03/15 01:26:17 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -84,12 +84,14 @@ class FF_Action_Form extends FF_Action {
     /**
      * Set variables on class initialization.
      *
+     * @param object $in_model The model object
+     *
      * @access public
      * @return void
      */
-    function FF_Action_Form()
+    function FF_Action_Form(&$in_model)
     {
-        FF_Action::FF_Action();
+        FF_Action::FF_Action($in_model);
         $this->o_form =& new HTML_QuickForm($this->formName, $this->formMethod, $this->getFormAction(), $this->formTarget);
         $this->o_form->clearAllTemplates();
     }
@@ -106,7 +108,7 @@ class FF_Action_Form extends FF_Action {
     function run()
     {
         $this->setSubmitActionId();
-        $b_result = $this->loadModel();
+        $b_result = $this->fillModelWithData();
         // see if we encountered an error.
         if (!$b_result) {
             return $this->o_nextAction;
@@ -181,16 +183,16 @@ class FF_Action_Form extends FF_Action {
     }
 
     // }}}
-    // {{{ loadModel()
+    // {{{ fillModelWithData()
 
     /**
-     * Loads the model object with data for the field being edited.  If an error occurs in
+     * Fills the model object with data for the field being edited.  If an error occurs in
      * getting the data we bounce to the problem action id.
      *
      * @access public
      * @return bool True if the model loaded successfully, false otherwsie
      */
-    function loadModel()
+    function fillModelWithData()
     {
         if ($this->currentActionId == ACTION_EDIT) {
             $s_id = FastFrame::getCGIParam('objectId', 'gp');
@@ -209,18 +211,16 @@ class FF_Action_Form extends FF_Action {
     }
 
     // }}}
-    // {{{ modelToFormFields()
+    // {{{ getFormFieldsFromModel()
 
     /**
      * Converts the model to the appropriate form fields.  Returns an array of 'field' =>
      * 'value'
      *
-     * @param $in_model The model to convert
-     *
      * @access public
      * @return array The array of fields and values
      */
-    function modelToFormFields(&$in_model)
+    function getFormFieldsFromModel()
     {
         return array();
     }
@@ -318,7 +318,7 @@ class FF_Action_Form extends FF_Action {
     function getFormDefaults()
     {
         if ($this->currentActionId == ACTION_EDIT) {
-            return $this->modelToFormFields($this->o_model); 
+            return $this->getFormFieldsFromModel(); 
         }
         else {
             return array();
