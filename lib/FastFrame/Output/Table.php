@@ -148,7 +148,7 @@ class FF_Output_Table {
             $tmp_style = isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : '';
             $this->o_widget->assignBlockData(
                 array(
-                    'T_table_field_cell' => $tmp_header['title'],
+                    'T_table_field_cell' => $this->o_output->processCellData($tmp_header['title']),
                     'S_table_field_cell' => $tmp_style,
                 ),
                 'table_field_cell'
@@ -156,7 +156,7 @@ class FF_Output_Table {
             $tmp_style = isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : '';
             $this->o_widget->assignBlockData(
                 array(
-                    'T_table_content_cell' => $tmp_header['data'], 
+                    'T_table_content_cell' => $this->o_output->processCellData($tmp_header['data']), 
                     'S_table_content_cell' => $tmp_style,
                 ),
                 'table_content_cell'
@@ -199,7 +199,7 @@ class FF_Output_Table {
                 $tmp_style = isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : '';
                 $this->o_widget->assignBlockData(
                     array(
-                        'T_table_field_cell' => $tmp_header['title'],
+                        'T_table_field_cell' => $this->o_output->processCellData($tmp_header['title']),
                         'S_table_field_cell' => $tmp_style,
                     ),
                     'table_field_cell'
@@ -215,7 +215,7 @@ class FF_Output_Table {
                 $tmp_style = isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : '';
                 $this->o_widget->assignBlockData(
                     array(
-                        'T_table_content_cell' => $tmp_header['data'], 
+                        'T_table_content_cell' => $this->o_output->processCellData($tmp_header['data']), 
                         'S_table_content_cell' => $tmp_style,
                     ),
                     'table_content_cell'

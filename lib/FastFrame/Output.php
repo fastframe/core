@@ -645,6 +645,24 @@ class FF_Output extends FF_Template {
     }
 
     // }}}
+    // {{{ processCellData()
+
+    /**
+     * Takes cell data, and if it is empty returns &nbsp;, otherwise just returns the cell
+     * data.  Fixes bug where some browsers (such as IE) will not render borders in cells
+     * with no data.
+     *
+     * @param string $in_data The cell data
+     *
+     * @access public
+     * @return string Either &nbsp; if it is empty, otherwise the data
+     */
+    function processCellData($in_data)
+    {
+        return ($in_data == '' || $in_data === false) ? '&nbsp;' : $in_data;
+    }
+
+    // }}}
     // {{{ setPageType()
 
     /**
@@ -659,28 +677,6 @@ class FF_Output extends FF_Template {
     function setPageType($in_type)
     {
         $this->pageType = $in_type;
-    }
-
-    // }}}
-    // {{{ processCellData()
-
-    /**
-     * Takes cell data, and if it is empty returns &nbsp;, otherwise
-     * just returns the cell data
-     *
-     * @param string $in_data The cell data
-     *
-     * @access public
-     * @return string Either &nbsp; if it is empty, otherwise the data
-     */
-    function processCellData($in_data)
-    {
-        if ($in_data == '' || $in_data === false) {
-            return '&nbsp;';
-        }
-        else {
-            return $in_data;
-        }
     }
 
     // }}}
