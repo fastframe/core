@@ -577,7 +577,7 @@ HTML;
     function unsetCookies($in_names, $in_path = '/', $in_domain = '') 
     {
         foreach ((array) $in_names as $name) {
-            setcookie($name, 'null', time(), $in_path, $in_domain); 
+            setcookie($name, '', time() - 3600, $in_path, $in_domain); 
             unset($_COOKIE[$name]);
         }
     }
