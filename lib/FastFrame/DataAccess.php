@@ -1,5 +1,5 @@
 <?php
-/** $Id: DataAccess.php,v 1.5 2003/04/04 23:10:17 jrust Exp $ */
+/** $Id: DataAccess.php,v 1.6 2003/04/08 21:15:33 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -245,7 +245,8 @@ class FF_DataAccess {
                               $this->table,
                               $in_where
                           );
-        return $this->o_data->getOne($s_query);
+        $result = $this->o_data->getOne($s_query);
+        return $result;
     }
 
     // }}}
@@ -300,6 +301,14 @@ class FF_DataAccess {
     function getNextId()
     {
         return $this->o_data->nextId($this->table);
+    }
+
+    // }}}
+    // {{{ getTable()
+
+    function getTable()
+    {
+        return $this->table;
     }
 
     // }}}
