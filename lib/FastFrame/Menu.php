@@ -43,17 +43,20 @@ require_once dirname(__FILE__) . '/Output.php';
  *    // If you don't want the element to be a link, leave this element out.  If you want to
  *    // make a straight link to somewhere else make the argument a string instead of an array.
  *    'urlParams' => array('app' => '%currentApp%', 'actionId' => LOGOUT_SUBMIT),
- *    // optional window target.  Defaults to _self
+ *    // Optional window target.  Defaults to _self
  *    'target' => '_self',
- *    // optional status text.  Defaults to the text in 'contents' 
+ *    // Optional status text.  Defaults to the text in 'contents' 
  *    'statusText' => _('Status Text'),
- *    // optional path to an icon. 
+ *    // Optional path to an icon. 
  *    'icon' => 'actions/logout.gif',
- *    // optional permissions to apply to this node.  If a string then it is a single perm 
+ *    // Optional permissions to apply to this node.  If a string then it is a single perm 
  *    // for this app.  If an array then it is treated as a list of perm(s) to check.  If an
  *    // element has 'app' as the key then that app name is passed to the hasPerm() method
  *    // instead of the current app name.
  *    'perms' => 'has_groups_app',
+ *    // If you only want a link to show up when the user in the application the link refers
+ *    // to, then you can set:
+ *    'app_private' => true,
  *    0 => array(
  *         // first element in menu, same structure as above.
  *         0 => array(
