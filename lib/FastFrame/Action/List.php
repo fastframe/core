@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.12 2003/04/08 21:16:48 jrust Exp $ */
+/** $Id: List.php,v 1.13 2003/04/10 21:08:25 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -182,11 +182,11 @@ class FF_Action_List extends FF_Action_Form {
                 $this->o_output->touchBlock($in_namespace . 'table_row');
                 $this->o_output->cycleBlock($in_namespace . 'table_content_cell');
                 foreach ($this->getFieldMap() as $tmp_fields) {
-                    // see if the method refers to a field in the model
+                    // see if the method is in the model 
                     if (isset($tmp_fields['field'])) {
                         $tmp_displayData = $this->o_output->processCellData($this->o_model->$tmp_fields['method']());
                     }
-                    // otherwise it's a model in this class
+                    // otherwise it's a method in this class
                     else {
                         $tmp_displayData = $this->o_output->processCellData($this->$tmp_fields['method']());
                     }
@@ -230,7 +230,7 @@ class FF_Action_List extends FF_Action_Form {
     {
         $a_colData = array();
         foreach ($this->getFieldMap() as $a_val) {
-            if (isset($a_val['field'])){
+            if (isset($a_val['field']) && $a_val['field'] !== false) {
                 $a_colData[] = array('sort' => $a_val['field'], 'name' => $a_val['description']);
             }
             // not a sortable column
@@ -308,10 +308,9 @@ class FF_Action_List extends FF_Action_Form {
      *
      * The map of fields to display in the list page, their description, and the method
      * (that exists in the model object) to run to get the data for that field from the
-     * model.  If no field is supplied then we will assume the cell will not contain data
-     * from the database, but a method still needs to be supplied (which exists in this
-     * object, since it has nothing to do with the model) and which will be used to fill
-     * in the data for that cell.  An example element in the array would look like:
+     * model.  If field is false then that means the row should not be sortable but the
+     * method exists as part of the model class.  If no field is supplied then it means the
+     * method is part of this object. An example element in the array would look like:
      * array('field' => 'username', 'description' => _('User Name'), 'method' => 'getUserName')
      *
      * @access public
