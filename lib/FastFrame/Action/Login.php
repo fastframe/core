@@ -1,5 +1,5 @@
 <?php
-/** $Id: Login.php,v 1.12 2003/04/09 20:05:58 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -263,13 +263,13 @@ class FF_Action_Login extends FF_Action_Form {
         $a_headers = array();
         $a_headers[] = array(
             'title' => _('Username:'),
-            'data' => $this->o_form->renderElement('username', true), 
+            'data' => $this->o_renderer->elementToHtml('username'), 
             'titleStyle' => '',
             'dataStyle' => '',
         );
         $a_headers[] = array(
             'title'    => _('Password'),
-            'data' => $this->o_form->renderElement('password', true), 
+            'data' => $this->o_renderer->elementToHtml('password'), 
             'titleStyle' => '',
             'dataStyle' => '',
         );

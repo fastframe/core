@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.14 2003/04/10 21:51:40 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -24,6 +24,7 @@
 
 require_once dirname(__FILE__) . '/Output.php';
 require_once 'HTML/QuickForm.php';
+require_once 'HTML/QuickForm/Renderer/QuickHtml.php';
 
 // }}}
 // {{{ class FF_List
@@ -212,7 +213,7 @@ class FF_List {
 
         $a_listVars = $this->getAllListVariables();
         $o_form =& new HTML_QuickForm('search_box', 'POST', FastFrame::selfURL(), '_self');
-        $o_form->clearAllTemplates();
+        $o_renderer =& new HTML_QuickForm_Renderer_QuickHtml($o_form);
         $o_form->setConstants($a_listVars);
         
         // make sure our display displayLimit is not to big so the page will render
@@ -267,11 +268,11 @@ class FF_List {
             // you can't change anything when changing pages...doesn't make sense, so
             // reset the form before going on to the next page
             $o_form->addElement('select', 'pageOffset', null, $a_pageOptions, array('style' => 'vertical-align: middle;', 'onchange' => 'var tmp = this.selectedIndex; this.form.reset(); this.options[tmp].selected = true; if (validate_search_box()) { this.form.submit(); } else { return false; }'));
-            $s_pagination = $o_form->renderElement('pageOffset', true);
+            $s_pagination = $o_renderer->elementToHtml('pageOffset');
         }
         else {
             $o_form->addElement('hidden', 'pageOffset');
-            $s_pagination = sprintf(_('%1$d of %2$d'), 1, 1) . $o_form->renderElement('pageOffset');
+            $s_pagination = sprintf(_('%1$d of %2$d'), 1, 1) . $o_renderer->elementToHtml('pageOffset');
         }
 
         // }}}
@@ -279,7 +280,6 @@ class FF_List {
 
         $this->o_output->touchBlock('switch_search_box');
         $s_namespace = $this->o_output->branchBlockNS('SEARCH_BOX', 'search_box', 'genericTable.tpl', 'file');
-        $this->o_output->assignBlockCallback(array(&$o_form, 'toHtml'), array(), 'search_box');
 
         $this->o_output->assignBlockData(
             array(
@@ -328,7 +328,7 @@ class FF_List {
 
         $this->o_output->assignBlockData(
             array(
-                'T_table_field_cell' => $o_form->renderElement('advancedList', true),
+                'T_table_field_cell' => $o_renderer->elementToHtml('advancedList'),
                 'S_table_field_cell' => 'style="white-space: nowrap"',
             ),
             $s_namespace . 'table_field_cell'
@@ -348,8 +348,8 @@ class FF_List {
             
             $tmp_text = sprintf(
                             _('%1$s rows per page %2$s'), 
-                            $o_form->renderElement('displayLimit', true), 
-                            $o_form->renderElement('displayLimit_submit', true)
+                            $o_renderer->elementToHtml('displayLimit'), 
+                            $o_renderer->elementToHtml('displayLimit_submit')
                         );
 
             $this->o_output->assignBlockData(
@@ -367,10 +367,10 @@ class FF_List {
                                 _('Find'),
                                 array('title' => $tmp_help, 'caption' => _('Search Help'), 'status' => _('Search Help'))
                             ),
-                            $o_form->renderElement('searchString', true), 
-                            $o_form->renderElement('searchField', true) . ' ' .
-                            $o_form->renderElement('query_submit', true) . ' ' .
-                            $o_form->renderElement('listall_submit', true)
+                            $o_renderer->elementToHtml('searchString'), 
+                            $o_renderer->elementToHtml('searchField') . ' ' .
+                            $o_renderer->elementToHtml('query_submit') . ' ' .
+                            $o_renderer->elementToHtml('listall_submit')
                         );
 
             $this->o_output->assignBlockData(
@@ -382,13 +382,16 @@ class FF_List {
 
             $this->o_output->assignBlockData(
                 array(
-                    'T_table_content_cell' => $o_form->renderElement('sortOrder', true) . ' ' .
-                                              $o_form->renderElement('sortField', true) . ' ' .
-                                              $o_form->renderElement('sort_submit', true),
+                    'T_table_content_cell' => $o_renderer->elementToHtml('sortOrder') . ' ' .
+                                              $o_renderer->elementToHtml('sortField') . ' ' .
+                                              $o_renderer->elementToHtml('sort_submit'),
                 ),
                 $s_namespace . 'table_content_cell'
             );
         }
+
+        $o_form->accept($o_renderer);
+        $this->o_output->assignBlockCallback(array(&$o_renderer, 'toHtml'), array(), 'search_box');
 
         // }}}
     }

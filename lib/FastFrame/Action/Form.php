@@ -1,5 +1,5 @@
 <?php
-/** $Id: Form.php,v 1.8 2003/04/04 23:11:55 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -24,6 +24,7 @@
 
 require_once dirname(__FILE__) . '/../Action.php';
 require_once 'HTML/QuickForm.php';
+require_once 'HTML/QuickForm/Renderer/QuickHtml.php';
 
 // }}}
 // {{{ class FF_Action_Form
@@ -47,6 +48,12 @@ class FF_Action_Form extends FF_Action {
      * @type object
      */
     var $o_form;
+
+    /**
+     * The form renderer instance
+     * @type object
+     */
+    var $o_renderer;
 
     /**
      * The model object that holds info about the current model being worked with
@@ -93,7 +100,7 @@ class FF_Action_Form extends FF_Action {
     {
         FF_Action::FF_Action($in_model);
         $this->o_form =& new HTML_QuickForm($this->formName, $this->formMethod, $this->getFormAction(), $this->formTarget);
-        $this->o_form->clearAllTemplates();
+        $this->o_renderer =& new HTML_QuickForm_Renderer_QuickHtml($this->o_form);
     }
 
     // }}}
@@ -183,8 +190,9 @@ class FF_Action_Form extends FF_Action {
         $o_table->setTableHeaderText($this->getTableHeaderText());
         $o_table->setTableHeaders($this->getTableData());
         $o_table->renderTwoColumnTable();
-        $this->o_output->assignBlockCallback(array(&$this->o_form, 'toHtml'), array(), $o_table->getTableName());
         $this->renderSubmitRow($o_table);
+        $this->o_form->accept($this->o_renderer);
+        $this->o_output->assignBlockCallback(array(&$this->o_renderer, 'toHtml'), array(), $o_table->getTableName());
         return $o_table;
     }
 
@@ -304,7 +312,7 @@ class FF_Action_Form extends FF_Action {
      */
     function getSubmitButtons()
     {
-        return $this->o_form->renderElement('submit', true);
+        return $this->o_renderer->elementToHtml('submit');
     }
 
     // }}}
