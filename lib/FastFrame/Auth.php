@@ -129,19 +129,19 @@ class FF_Auth {
             if (isset($_SESSION['__auth__']['timestamp']) &&
                 ($expire = $o_registry->getConfigParam('session/expire')) > 0 && 
                 ($_SESSION['__auth__']['timestamp'] + $expire) < time()) {
-                FF_Auth::_set_status(FASTFRAME_AUTH_EXPIRED);
-                FF_Auth::_update_idle();
+                FF_Auth::_setStatus(FASTFRAME_AUTH_EXPIRED);
+                FF_Auth::_updateIdle();
                 return false;
             }
             elseif (isset($_SESSION['__auth__']['idle']) &&
                     ($idle = $o_registry->getConfigParam('session/idle')) > 0 && 
                     ($_SESSION['__auth__']['idle'] + $idle) < time()) {
-                FF_Auth::_set_status(FASTFRAME_AUTH_IDLED);
+                FF_Auth::_setStatus(FASTFRAME_AUTH_IDLED);
                 return false;
             }
             elseif (!empty($_SESSION['__auth__']['registered'])) {
-                FF_Auth::_set_status(FASTFRAME_AUTH_OK);
-                FF_Auth::_update_idle();
+                FF_Auth::_setStatus(FASTFRAME_AUTH_OK);
+                FF_Auth::_updateIdle();
             }
             else {
                 return false;
@@ -157,8 +157,8 @@ class FF_Auth {
          * logout page, but not clear the session, since that would end the session for the
          * real user.
          */
-        if ($in_checkAnchor && !FastFrame::getCGIParam(FF_Auth::_get_session_anchor(), 'c')) {
-            FF_Auth::_safe_logout();
+        if ($in_checkAnchor && !FastFrame::getCGIParam(FF_Auth::_getSessionAnchor(), 'c')) {
+            FF_Auth::logout(null, false, true);
             return false;
         }
 
@@ -215,7 +215,7 @@ class FF_Auth {
         
         // set the anchor for this browser to never expire
         if ($in_setAnchor) {
-            FastFrame::setCookies(array(FF_Auth::_get_session_anchor() => 1), 0,
+            FastFrame::setCookies(array(FF_Auth::_getSessionAnchor() => 1), 0,
                 $this->o_registry->getConfigParam('cookie/path'),
                 $this->o_registry->getConfigParam('cookie/domain'));
         }
@@ -233,7 +233,7 @@ class FF_Auth {
     function clearAuth()
     {
         // kill the anchor and the __auth__ cookie 
-        FastFrame::unsetCookies(array('__auth__', FF_Auth::_get_session_anchor()),
+        FastFrame::unsetCookies(array('__auth__', FF_Auth::_getSessionAnchor()),
                 $this->o_registry->getConfigParam('cookie/path'),
                 $this->o_registry->getConfigParam('cookie/domain'));
 
@@ -307,31 +307,40 @@ class FF_Auth {
     // {{{ logout()
 
     /**
-     * Log the user out and unset their authenticated status.
+     * Log the user out.
      *
      * @param string $in_logoutURL (optional) The logout url.  Otherwise we determine it
      * @param bool $in_return (optional) Just return instead of redirecting to logout page?
+     * @param bool $in_safe (optional) Do a safe logout, where the session is not cleared?
+     *             Sends the user to the logout page, but doesn't clear the session and
+     *             authentication variables.  This is used in the case that the url was
+     *             given to someone else...if we perform a true logout we destroy the
+     *             session of the user who is already logged in.
      *
      * @access public
-     * @return mixed Redirect on success, false on failure.
+     * @return mixed Redirect on success, true if $in_return is set
      */
-    function logout($in_logoutURL = null, $in_return = false) 
+    function logout($in_logoutURL = null, $in_return = false, $in_safe = false) 
     {
         if (is_null($in_logoutURL) && !$in_return) {
             $o_registry =& FF_Registry::singleton();
             $s_logoutApp = $o_registry->getConfigParam('general/logout_app');
-            $s_redirectURL = FastFrame::selfURL(array(session_name() => false), true);
+            // Get the request url without the session.  Not using selfURL() because it calls
+            // action handler which can make an infinite loop.
+            $s_redirectURL = preg_replace('/(\?|&)' . session_name() . '=.*?(&|$)/', '', $_SERVER['REQUEST_URI']);
             $s_logoutURL = FastFrame::url(
                     $o_registry->getRootFile('index.php', null, FASTFRAME_WEBPATH), 
-                    array('app' => $s_logoutApp, 'loginRedirect' => $s_redirectURL), true);
+                    array('app' => $s_logoutApp, 'loginRedirect' => $s_redirectURL, session_name() => false), true);
         }
         else {
             $s_logoutURL = $in_logoutURL;
         }
 
-        FF_Auth::clearAuth();
-        FF_Auth::_set_status(FASTFRAME_AUTH_LOGOUT);
-        FF_Auth::_session_end();
+        if (!$in_safe) {
+            FF_Auth::clearAuth();
+            FF_Auth::_setStatus(FASTFRAME_AUTH_LOGOUT);
+            FF_Auth::_sessionEnd();
+        }
 
         if ($in_return) {
             return true;
@@ -406,16 +415,13 @@ class FF_Auth {
             ini_set('session.use_trans_sid', 0);
             // set the cacheing 
             session_cache_limiter($o_registry->getConfigParam('session/cache', 'nocache'));
-
-            // get the session name from the configuration or just use a default
-            session_name($o_registry->getConfigParam('session/name', 'FF_SESSID'));
             session_start();
             $isStarted = true;
         }
     }
 
     // }}}
-    // {{{ _session_end()
+    // {{{ _sessionEnd()
 
     /**
      * End a session.
@@ -423,13 +429,13 @@ class FF_Auth {
      * @access private
      * @return bool
      */
-    function _session_end() 
+    function _sessionEnd() 
     {
         @session_destroy();
     }
 
     // }}}
-    // {{{ _get_session_anchor()
+    // {{{ _getSessionAnchor()
 
     /**
      * Generate a unique key that will link the session to the browser.
@@ -443,13 +449,13 @@ class FF_Auth {
      * @access private
      * @return string unique cookie name to be set for this browser
      */
-    function _get_session_anchor()
+    function _getSessionAnchor()
     {
         return @md5($_SESSION['__auth__']['username']);
     }
 
     // }}}
-    // {{{ _set_status()
+    // {{{ _setStatus()
 
     /**
      * Set the status on the authentication.
@@ -457,39 +463,18 @@ class FF_Auth {
      * @access private
      * @return void
      */
-    function _set_status($in_status)
+    function _setStatus($in_status)
     {
         $_SESSION['__auth__']['status'] = $in_status;
     }
 
     // }}}
-    // {{{ _update_idle()
+    // {{{ _updateIdle()
 
-    function _update_idle() 
+    function _updateIdle() 
     {
         // update the timestamp for the idle time
         $_SESSION['__auth__']['idle'] = time();
-    }
-
-    // }}}
-    // {{{ _safe_logout()
-
-    /**
-     * Safetly deny access to a user without the anchor variable set
-     *
-     * Send the user to the logout page, but don't clear the
-     * session and authentication variables.  This is used in
-     * the case that the url was given to someone else...if we 
-     * perform a true logout we destroy the session of the user
-     * who is already logged in.
-     *
-     * @access private
-     * @return void 
-     */
-    function _safe_logout() 
-    {
-        $registry =& FF_Registry::singleton();
-        FastFrame::redirect($registry->getConfigParam('session/safelogout'));
     }
 
     // }}}
