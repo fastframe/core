@@ -188,7 +188,7 @@ class FF_Action_FormSubmit extends FF_Action {
      */
     function &validateInput()
     {
-        // interface
+        return new FF_Result();
     }
 
     // }}}

@@ -169,8 +169,8 @@ class FF_Output_Table {
             $tmp_class = $this->alternateRowColors ? $this->o_output->toggleRow($i++) : 'primaryRow';
             $this->o_widget->append('rows', array(
                         'S_table_row' => 'class="' . $tmp_class . '"',
-                        'has_field_cell' => true, 'has_content_cell' => true,
-                        'T_table_field_cell' => $this->o_output->processCellData($tmp_header['title']),
+                        'has_field_cell' => isset($tmp_header['title']), true, 'has_content_cell' => true,
+                        'T_table_field_cell' => isset($tmp_header['title']) ? $this->o_output->processCellData($tmp_header['title']) : '',
                         'S_table_field_cell' => isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : '',
                         'T_table_content_cell' => $this->o_output->processCellData($tmp_header['data']), 
                         'S_table_content_cell' => isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : ''));

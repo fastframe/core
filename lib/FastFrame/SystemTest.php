@@ -182,6 +182,11 @@ class FF_SystemTest {
                 'name' => 'PEAR Mail',
                 'errorMsg' => _('You do not have the PEAR Mail module installed.  It is required for the checkout and alum_website applications.'),
                 'successMsg' => _('You have the PEAR Mail module.')),
+            'pear_mail_mime' => array(
+                'method' => '_checkPEARMailMime',
+                'name' => 'PEAR Mail_mime',
+                'errorMsg' => _('You do not have the PEAR Mail_mime module installed.  It is required for the massmail application.'),
+                'successMsg' => _('You have the PEAR Mail_mime module.')),
             'pear_html_bbcodeparser' => array(
                 'method' => '_checkPEARHTMLBBCodeParser',
                 'name' => 'PEAR HTML_BBCodeParser',
@@ -307,6 +312,21 @@ class FF_SystemTest {
     {
         @include_once 'Mail.php';
         return class_exists('Mail');
+    }
+
+    // }}}
+    // {{{ _checkPEARMailMime()
+
+    /**
+     * Tests to see if the PEAR Mail_mime module is loaded.
+     *
+     * @access private
+     * @return bool True if it succeeds, false otherwise
+     */
+    function _checkPEARMailMime()
+    {
+        @include_once 'Mail/mime.php';
+        return class_exists('Mail_mime');
     }
 
     // }}}

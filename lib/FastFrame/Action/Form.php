@@ -225,9 +225,8 @@ class FF_Action_Form extends FF_Action {
     function fillModelWithData()
     {
         if ($this->isUpdate()) {
-            $s_id = FF_Request::getParam('objectId', 'pg');
             $this->o_model->reset();
-            if (!$this->o_model->fillById($s_id)) {
+            if (!$this->o_model->fillById(FF_Request::getParam('objectId', 'pg'))) {
                 $this->o_output->setMessage(
                     sprintf(_('Could not find the specified %s'), $this->getSingularText()),
                     FASTFRAME_ERROR_MESSAGE
