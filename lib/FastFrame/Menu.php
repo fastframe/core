@@ -307,7 +307,6 @@ class FF_Menu {
      */
     function _importMenuVars()
     {
-        $this->menuVariables = array();
         // First just loop and include all actions so all apps can link to other apps
         foreach ($this->o_registry->getApps() as $s_app) {
             // Include any additional action IDs this app has
@@ -317,13 +316,24 @@ class FF_Menu {
             }
         }
 
+        if ($this->o_registry->getConfigParam('display/home_link')) {
+            // Add the home link which takes the user to their default page
+            $a_appMenu = array();
+            $a_appMenu[] = array(
+                'contents' => _('Home'),
+                'urlParams' => array('actionId' => '', 'module' => ''));
+            $this->menuVariables = array(array('app' => '', 'vars' => $a_appMenu));
+        }
+        else {
+            $this->menuVariables = array();
+        }
+
         // Now loop through enabled apps and get the menu variables
         foreach ($this->o_registry->getApps() as $s_app) {
             // Make sure this app is enabled 
             if ($this->o_registry->getAppParam('status', 'disabled', $s_app) != 'enabled') {
                 continue;
             }
-                
 
             $pth_menu = $this->o_registry->getAppFile($this->_getMenuFilename($s_app), $s_app, 'config');
             if (file_exists($pth_menu)) {

@@ -164,9 +164,20 @@ class FF_ActionHandler {
         // Always set the locale to a guaranteed language first so that a custom language
         // (i.e. en_BIP) will work
         FF_Locale::setLang('en_US');
-        $this->setActionId(FF_Request::getParam('actionId', 'pg'));
-        $this->setModuleId(FF_Request::getParam('module', 'pg'));
-        $this->setAppId(FF_Request::getParam('app', 'pg'));
+        if (FF_Request::getParam('actionId', 'pg') == '' &&
+            FF_Request::getParam('module', 'pg') == '' &&
+            FF_Request::getParam('app', 'pg') == '' &&
+            is_array($a_init = FF_Auth::getCredential('initPage'))) {
+            $this->setActionId(@$a_init['actionId']);
+            $this->setModuleId(@$a_init['module']);
+            $this->setAppId($a_init['app']);
+        }
+        else {
+            $this->setActionId(FF_Request::getParam('actionId', 'pg'));
+            $this->setModuleId(FF_Request::getParam('module', 'pg'));
+            $this->setAppId(FF_Request::getParam('app', 'pg'));
+        }
+
         $this->_makeDefaultPathsAbsolute();
         $this->_checkProfile();
     }
