@@ -328,6 +328,54 @@ class FF_DataAccess {
     }
 
     // }}}
+    // {{{ getListFilter()
+
+    /**
+     * Creates a filter that can be added as a SQL WHERE clause.  This uses the search
+     * fields and strings and is suitable for grabbing the fields that should be present in
+     * this list.
+     *
+     * @param string $in_searchString The string to search for
+     * @param array $in_searchFields The array of fields to search.
+     * @param string $in_filter The name of any additional filters to apply in case the list
+     *               needs to be further limited. 
+     *
+     * @access private 
+     * @return string A WHERE condition for the list data
+     */
+    function getListFilter($in_searchString, $in_searchFields, $in_filter)
+    {
+        // handle dates (formats of mm/dd/yyyy and mm-dd-yyyy).
+        // to search between two days: date1 - date2
+        if (preg_match(':^(\d{1,2})[-/](\d{1,2})[-/](\d{4})( ?- ?(\d{1,2})[-/](\d{1,2})[-/](\d{4}))?:', 
+                        $in_searchString, 
+                        $a_parts)) {
+            $s_startDate = $a_parts[3] . sprintf('%02d', $a_parts[1]) . sprintf('%02d', $a_parts[2]) . '000000';
+            // they specified an end date
+            if (isset($a_parts[4])) {
+                $s_endDate = $a_parts[7] . sprintf('%02d', $a_parts[5]) . sprintf('%02d', $a_parts[6]) . '235959';
+            }
+            // if they did not specify an end date, then it is the end of the day
+            else {
+                $s_endDate = substr($s_startDate, 0, 8) . '235959';
+            }
+
+            $s_searchCondition = '`%field%` BETWEEN ' . $s_startDate . ' AND ' . $s_endDate; 
+        }
+        else {
+            $s_searchCondition = '`%field%` LIKE ' . $this->o_data->quote('%' . $in_searchString . '%');
+        }
+
+        $tmp_fields = array();
+        foreach ($in_searchFields as $s_field) {
+            $tmp_fields[] = str_replace('%field%', $s_field, $s_searchCondition);
+        }
+
+        $s_where = implode(" OR \n", $tmp_fields);
+        return $s_where;
+    }
+
+    // }}}
     // {{{ getTotal()
 
     /**

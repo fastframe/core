@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.13 2003/04/10 21:08:25 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -116,7 +116,7 @@ class FF_Action_List extends FF_Action_Form {
             array('actionId' => $this->currentActionId)
         );
         $this->processFieldMapForList($this->getFieldMap());
-        $this->o_listModeler =& new FF_Model_ListModeler($this->o_list, $this->o_model);
+        $this->o_listModeler =& new FF_Model_ListModeler($this->o_list, $this->o_model, $this->getFilter());
         if (!$this->o_listModeler->performSearch()) {
             $this->o_output->setMessage(_('Unable to query data'), FASTFRAME_ERROR_MESSAGE);
             $this->o_nextAction->setNextActionId(ACTION_PROBLEM);
@@ -255,6 +255,20 @@ class FF_Action_List extends FF_Action_Form {
     function checkPerms()
     {
         return true;
+    }
+
+    // }}}
+    // {{{ getFilter()
+
+    /**
+     * Gets the filter for the list.  Default is to have no filter on the list.
+     *
+     * @access public
+     * @return string The name of the filter to apply to the list
+     */
+    function getFilter()
+    {
+        // interface
     }
 
     // }}}

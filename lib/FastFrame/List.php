@@ -834,7 +834,7 @@ class FF_List {
     function setSearchField($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->searchField = FastFrame::getCGIParam('searchField', 'gp', '');
+            $this->searchField = FastFrame::getCGIParam('searchField', 'gp', $this->getAllFieldsKey());
         }
         else {
             $this->searchField = $in_value;

@@ -1,5 +1,5 @@
 <?php
-/** $Id: ListModeler.php,v 1.3 2003/04/08 21:17:40 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -63,6 +63,12 @@ class FF_Model_ListModeler {
      */
     var $o_resultSet = null;
 
+    /**
+     * The filter to apply to the data
+     * @type string
+     */
+    var $filterName = null;
+
     // }}}
     // {{{ constructor
 
@@ -71,15 +77,17 @@ class FF_Model_ListModeler {
      *
      * @param object $in_listObject The list object
      * @param object $in_modelObject The model object
+     * @param string $in_filter The name of the filter to apply to the list
      *
      * @access public
      * @return void
      */
-    function FF_Model_ListModeler(&$in_listObject, &$in_modelObject)
+    function FF_Model_ListModeler(&$in_listObject, &$in_modelObject, $in_filter)
     {
         $this->o_list =& $in_listObject;
         $this->o_model =& $in_modelObject;
         $this->o_dataAccess =& $this->o_model->getDataAccessObject();
+        $this->filterName = $in_filter;
     }
 
     // }}}
@@ -107,7 +115,7 @@ class FF_Model_ListModeler {
      */
     function getMatchedModelsCount()
     {
-        return $this->o_dataAccess->getTotal($this->_getWhereCondition());
+        return $this->o_dataAccess->getTotal($this->_getListFilter());
     }
 
     // }}}
@@ -170,7 +178,7 @@ class FF_Model_ListModeler {
     function performSearch()
     {
         $result =& $this->o_dataAccess->getListData(
-            $this->_getWhereCondition(), 
+            $this->_getListFilter(),
             $this->o_list->getSortField(),
             $this->_getOrderByDirection($this->o_list->getSortOrder()),
             $this->o_list->getRecordOffset(),
@@ -184,62 +192,6 @@ class FF_Model_ListModeler {
         else {
             return false;
         }
-    }
-
-    // }}}
-    // {{{ _getWhereCondition()
-
-    /**
-     * Creates a condition that can be added to a SQL WHERE clause.  This is uses the search
-     * fields and strings and is suitable for grabbing the fields that should be present in
-     * this list.
-     *
-     * @access private 
-     * @return string A WHERE condition 
-     */
-    function _getWhereCondition()
-    {
-        $s_searchField = $this->o_list->getSearchField();
-        $s_searchString = $this->o_list->getSearchString();
-        // handle dates (formats of mm/dd/yyyy and mm-dd-yyyy).
-        // to search between two days: date1 - date2
-        if (preg_match(':^(\d{1,2})[-/](\d{1,2})[-/](\d{4})( ?- ?(\d{1,2})[-/](\d{1,2})[-/](\d{4}))?:', 
-                        $s_searchString, 
-                        $a_parts)) {
-            $s_startDate = $a_parts[3] . sprintf('%02d', $a_parts[1]) . sprintf('%02d', $a_parts[2]) . '000000';
-            // they specified an end date
-            if (isset($a_parts[4])) {
-                $s_endDate = $a_parts[7] . sprintf('%02d', $a_parts[5]) . sprintf('%02d', $a_parts[6]) . '235959';
-            }
-            // if they did not specify an end date, then it is the end of the day
-            else {
-                $s_endDate = substr($s_startDate, 0, 8) . '235959';
-            }
-
-            $s_searchCondition = '`%field%` BETWEEN ' . $s_startDate . ' AND ' . $s_endDate; 
-        }
-        else {
-            $s_searchCondition = '`%field%` LIKE ' . $this->o_dataAccess->o_data->quote('%' . $this->o_list->getSearchString() . '%');
-        }
-
-        if (!empty($s_searchField)) {
-            $tmp_fields = array();
-            if ($s_searchField == $this->o_list->getAllFieldsKey()) {
-                foreach ($this->o_list->getSearchableFields(true) as $a_val) {
-                    $tmp_fields[] = str_replace('%field%', $a_val['search'], $s_searchCondition);
-                }
-            }
-            else {
-                $tmp_fields[] = str_replace('%field%', $s_searchField, $s_searchCondition);
-            }
-
-            $s_where = implode(" OR \n", $tmp_fields);
-        }
-        else {
-            $s_where = '1=1';
-        }
-
-        return $s_where;
     }
 
     // }}}
@@ -266,5 +218,36 @@ class FF_Model_ListModeler {
     }
 
     // }}}
+    // {{{ _getListFilter()
+
+    /**
+     * Gets the filter for the list.
+     *
+     * @access private
+     * @return string The SQL filter clause
+     */
+    function _getListFilter()
+    {
+        static $s_filter;
+        if (!isset($s_filter)) {
+            $s_searchField = $this->o_list->getSearchField();
+            if ($s_searchField == $this->o_list->getAllFieldsKey()) {
+                $a_searchFields = array(); 
+                foreach ($this->o_list->getSearchableFields(true) as $a_val) {
+                    $a_searchFields[] = $a_val['search'];
+                }
+            }
+            else {
+                $a_searchFields = array($s_searchField);
+            }
+
+            $s_filter = $this->o_dataAccess->getListFilter(
+                    $this->o_list->getSearchString(), 
+                    $a_searchFields, 
+                    $this->filterName);
+        }
+
+        return $s_filter;
+    }
 }
 ?>
