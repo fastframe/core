@@ -1,6 +1,7 @@
 <?php
+/** $Id: Perms.php,v 1.3 2003/01/22 02:01:30 jrust Exp $ */
 // {{{ includes
-require_once dirname(__FILE__) . '/Registry.php';
+
 require_once dirname(__FILE__) . '/Perms/PermSource.php';
 
 // }}}
@@ -9,21 +10,23 @@ require_once dirname(__FILE__) . '/Perms/PermSource.php';
  *
  * A class for managing user permissions
  *
- * This class provides access to modify and view the permissions that
- * a FastFrame user has within the system.
+ * See the enclosed file COPYING for license information (LGPL). If you
+ * did not receive this file, see http://www.fsf.org/copyleft/lesser.html.
  *
  * @author		Greg Gilbert <greg@treke.net>
- * @copyright	(c) 2003 by Brooks Institute of Photography
- * @version		$Id: Perms.php,v 1.2 2003/01/21 20:21:08 ggilbert Exp $
+ * @copyright   LGPL
+ * @version		$Id: Perms.php,v 1.3 2003/01/22 02:01:30 jrust Exp $
  * @package		FastFrame
  * @see			User Auth
  */
- // }}}
+
+// }}}
 class FastFrame_Perms {
     // {{{ properties
+
     /**
      * User ID of the user associated with this permissions object
-     * @var		string
+     * @type    string
      * @access	private
      */
     var $_userid;
@@ -31,19 +34,21 @@ class FastFrame_Perms {
     /**
      * Caches user permissions so we do not need to look them up
      * for each request
-     * @var		array
+     * @type    array
      * @access	private
      */
     var $_permCache;
 
     /**
      * Provides an actual interface to the data source for permissions
-     * @var		object
+     * @type    object
      * @access	private
      */
     var $_permSource;
+
     // //}}}
     // {{{ constructor
+
     /**
      *
      * Initializes the FastFrame_Perms class
@@ -51,112 +56,117 @@ class FastFrame_Perms {
      * This function initializes the permissions class for the
      * for the specified user.
      *
+     * @param string $in_userID The user ID to get perms for.
+     *
+     * @access public
+     * @return void
      */
-    function FastFrame_Perms(  $in_userID )
+    function FastFrame_Perms($in_userID)
     {
-        $this->_userID=$in_userID;
+        $this->_userID = $in_userID;
 
-        $registry =& FastFrame_Registry::singleton();
+        $o_registry =& FastFrame_Registry::singleton();
 
-        $a_source=$registry->getConfigParam('perms/source', null, 'FastFrameSESSID');
-        $this->permSource=&PermSource::create($a_source['type'], $s_name, $a_source['params']);
-
-
+        $a_source = $o_registry->getConfigParam('perms/source');
+        $this->permSource =& PermSource::create($a_source['type'], $s_name, $a_source['params']);
     }
+
     // }}}
     // {{{ getAppList()
+
     /**
-     *
      * Returns a list of apps the user has access to
      *
      * This function returns a list of FastFrame Apps that are 
      * installed in this framework that the user as LOGIN 
      * permissions for. 
      *
+     * @access public
+     * @return array The list of apps that the user has Login perms for
      */
-    function getAppList ()
+    function getAppList()
     {
-        
-        $registry =& FastFrame_Registry::singleton();
+        $o_registry =& FastFrame_Registry::singleton();
 
         if ($this->isSuperUser()) {
-            return $registry->getApps();
+            return $o_registry->getApps();
         }
         else {
-            return  $this->permSource->getAppList();
+            return $this->permSource->getAppList();
         }
     }
+
     // }}}
     // {{{ getGroupList()
+
     /**
-     *
      * Returns a list of groups that the user belongs to in the current app
      *
      * This function returns an array containting all groups that the current 
      * user has any permissions in
      *
+     * @access public
+     * @return array List of all groups that the user is in
      */
-    functION getGroupList ()
+    function getGroupList()
     {
-        return  $this->permSource->getGroupList();
+        return $this->permSource->getGroupList();
     }
     // }}}
     // {{{ hasPerm()
+
     /**
-     *
      * Check whether a user has the needed permission
      *
      * This function looks up whether a user is in a group
      * with the requested permissions in the current app.
      *
+     * @param $in_perms mixed Either a string or array of permissions to check.
+     *
+     * @access public
+     * @return bool Whether the user has the specified perms or not.
      */
     function hasPerms($in_perms)
     {
-
-        $b_hasPerms=false;
-        $s_app=FastFrame::getCurrentApp();
+        $b_hasPerms = false;
+        $s_app = FastFrame::getCurrentApp();
 
         if ($this->isSuperUser()) {
             return true;
         }
 
-        if (!is_array($this->_permCache[$s_app]) 
-            && (count($this->_permCache[$s_app]) == 0 )) {
+        if (!is_array($this->_permCache[$s_app]) && 
+            (count($this->_permCache[$s_app]) == 0)) {
 
             // We dont have permissions cached, so we need to get them
-            $this->_permCache[$s_app]=$this->_permSource->getPerms($s_app);
-
+            $this->_permCache[$s_app] = $this->_permSource->getPerms($s_app);
         }
 
 
         // $in_perms may be an array of permissions, or a single string
         if (is_array($in_perms)) {
-
-            $i_foundCount=0;
+            $i_foundCount = 0;
 
             // Look for each of the requested permissions
-            foreach ( $in_perms as $s_perm ) {
+            foreach ($in_perms as $s_perm) {
                 if (in_array($this->_permCache[$s_app], $s_perm)) {
                     $i_foundCount++;
                 }
 
-                if ($i_foundCount==count($in_perms)) {
-                    $b_hasPerms=true;
+                if ($i_foundCount == count($in_perms)) {
+                    $b_hasPerms = true;
                 }
-
             }
         }
         else {
-
             // Look up the one requested permission
             if (in_array($this->permCache[$s_app], $in_perms)) {
-                $b_hasPerms=true;
+                $b_hasPerms = true;
             }
-
         }
 
         return $b_hasPerms;
-
     }
+
     // }}}
 }
