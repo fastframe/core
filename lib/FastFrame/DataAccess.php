@@ -71,6 +71,12 @@ class FF_DataAccess {
      */
     var $connectParams;
 
+    /**
+     * The application we are in
+     * @var string
+     */
+    var $app;
+
     // }}}
     // {{{ constructor
 
@@ -83,7 +89,6 @@ class FF_DataAccess {
     function FF_DataAccess()
     {
         $this->o_registry =& FF_Registry::singleton(); 
-        $this->connect();
     }
 
     // }}}
@@ -107,11 +112,12 @@ class FF_DataAccess {
             $a_instances = array();
         }
 
-        list($pth_dao, $s_class) = FF_DataAccess::getDaoInfo($in_module, $in_app);
+        list($pth_dao, $s_class, $s_app) = FF_DataAccess::getDaoInfo($in_module, $in_app);
         if (!isset($a_instances[$s_class])) {
             if (file_exists($pth_dao)) { 
                 require_once $pth_dao;
                 $a_instances[$s_class] = new $s_class();
+                $a_instances[$s_class]->connect($s_app);
             }
             else {
                 trigger_error("Unable to instantiate DataAccess object for module: $in_module", E_USER_ERROR);
@@ -133,7 +139,7 @@ class FF_DataAccess {
      * @param string $in_app (optional) The application.  Uses current app if not specified
      *
      * @access public
-     * @return array The path and the class name 
+     * @return array The path, class name, and app
      */
     function getDaoInfo($in_module, $in_app = null)
     {
@@ -142,22 +148,24 @@ class FF_DataAccess {
         $s_driver = strtolower($o_registry->getConfigParam('data/type', 'mysql', $s_app));
         $pth_dao = $o_registry->getAppFile("DataAccess/$s_driver/$in_module.php", $s_app, 'libs');
         $s_class = 'FF_DataAccess_' . $in_module . '_' . $s_driver;
-        return array($pth_dao, $s_class);
+        return array($pth_dao, $s_class, $s_app);
     }
 
     // }}}
     // {{{ connect()
 
     /**
-     * Connects to the persistent layer, initializes $this->o_data, and sets the default
-     * fetchmode to DB_FETCHMODE_ASSOC
+     * Connects to the persistent layer, initializes $this->o_data, and
+     * sets the default fetchmode to DB_FETCHMODE_ASSOC
+     *
+     * @param string $in_app The app in which we are running
      *
      * @access public
      * @return void
      */
-    function connect()
+    function connect($in_app)
     {
-        $this->connectParams= $this->getConnectParams();
+        $this->connectParams = $this->getConnectParams($in_app);
         $this->o_data =& DB::connect($this->connectParams);
         if (DB::isError($this->o_data)) {
             trigger_error($this->o_data->getMessage(), E_USER_ERROR);
@@ -402,25 +410,6 @@ class FF_DataAccess {
     }
 
     // }}}
-    // {{{ getTotal()
-
-    /**
-     * Gets the total number of records in the table based on the WHERE condition.
-     *
-     * @param string $in_where The where condition.
-     *
-     * @access public
-     * @return int The number of records in the main table
-     */
-    function getTotal($in_where)
-    {
-        $s_query = sprintf('SELECT COUNT(*) FROM %s WHERE %s',
-                              $this->table,
-                              $in_where);
-        return $this->o_data->getOne($s_query);
-    }
-
-    // }}}
     // {{{ getDataByPrimaryKey()
 
     /**
@@ -473,10 +462,8 @@ class FF_DataAccess {
         }
 
         $s_query = sprintf('SELECT %s FROM %s WHERE %s=%s', 
-                $in_field,
-                $this->table,
-                $this->primaryKey,
-                $this->o_data->quoteSmart($in_id));
+                $in_field, $this->table,
+                $this->primaryKey, $this->o_data->quoteSmart($in_id));
 
         if (DB::isError($result = $this->o_data->getOne($s_query))) {
             return null; 
@@ -521,17 +508,19 @@ class FF_DataAccess {
      * Returns an array of the necessary parameters for connecting to
      * the database.
      *
+     * @param string $in_app The app in which we are running
+     *
      * @access public
      * @return array An array of DB connection options
      */
-    function getConnectParams()
+    function getConnectParams($in_app)
     {
         return array(
-                'phptype' => $this->o_registry->getConfigParam('data/type'),
-                'username' => $this->o_registry->getConfigParam('data/username'),
-                'password' => $this->o_registry->getConfigParam('data/password'),
-                'hostspec' => $this->o_registry->getConfigParam('data/host'),
-                'database' => $this->o_registry->getConfigParam('data/database'));
+                'phptype' => $this->o_registry->getConfigParam('data/type', null, $in_app),
+                'username' => $this->o_registry->getConfigParam('data/username', null, $in_app),
+                'password' => $this->o_registry->getConfigParam('data/password', null, $in_app),
+                'hostspec' => $this->o_registry->getConfigParam('data/host', null, $in_app),
+                'database' => $this->o_registry->getConfigParam('data/database', null, $in_app));
     }
 
     // }}}

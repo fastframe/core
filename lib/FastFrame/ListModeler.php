@@ -113,20 +113,6 @@ class FF_ListModeler {
     }
 
     // }}}
-    // {{{ getTotalModelsCount()
-
-    /**
-     * Gets the count of total number of models in the data set
-     *
-     * @access public
-     * @return int The total number of models.
-     */
-    function getTotalModelsCount()
-    {
-        return $this->o_dataAccess->getTotal($this->_getListFilter(true));
-    }
-
-    // }}}
     // {{{ getMatchedModelsCount()
 
     /**
@@ -218,12 +204,10 @@ class FF_ListModeler {
     /**
      * Gets the filter for the list.
      *
-     * @param bool $in_allRows Get all rows (in which case we don't use the search string)?
-     *
      * @access private
      * @return string The SQL filter clause
      */
-    function _getListFilter($in_allRows = false)
+    function _getListFilter()
     {
         $s_searchField = $this->o_list->getSearchField();
         if ($s_searchField == $this->o_list->getAllFieldsKey()) {
@@ -236,9 +220,8 @@ class FF_ListModeler {
             $a_searchFields = array($s_searchField);
         }
 
-        $s_searchString = $in_allRows ? '' : $this->o_list->getSearchString();
         $s_filter = $this->o_dataAccess->getListFilter(
-                $s_searchString,
+                $this->o_list->getSearchString(),
                 $a_searchFields, 
                 $this->filterName,
                 $this->filterData);

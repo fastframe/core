@@ -87,12 +87,6 @@ class FF_List {
     var $listId;
 
     /**
-     * The total number of records in the data set 
-     * @var int
-     */
-    var $totalRecords = 0;
-
-    /**
      * The total number of matched records in the data set 
      * @var int
      */
@@ -938,22 +932,6 @@ class FF_List {
     function setColumnData($in_columnData)
     {
         $this->columnData = (array) $in_columnData;
-    }
-
-    // }}}
-    // {{{ setTotalRecords()
-
-    /**
-     * Sets the total records variable 
-     *
-     * @param int $in_totalRecords The total number of records in the data set.
-     *
-     * @access public
-     * @return void
-     */
-    function setTotalRecords($in_totalRecords)
-    {
-        $this->totalRecords = $in_totalRecords;
     }
 
     // }}}

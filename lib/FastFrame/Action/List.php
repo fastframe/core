@@ -130,7 +130,6 @@ class FF_Action_List extends FF_Action_Form {
             return false;
         }
 
-        $this->o_list->setTotalRecords($this->o_listModeler->getTotalModelsCount());
         $this->o_list->setMatchedRecords($this->o_listModeler->getMatchedModelsCount());
         return true;
     }

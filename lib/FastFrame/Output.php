@@ -172,7 +172,7 @@ class FF_Output {
         // The main style sheet
         $this->renderCSS('widgets', $this->o_registry->getRootFile('widgets', 'themes'));
         if (FF_Request::getParam('printerFriendly', 'gp', false)) {
-            $this->renderCSS('widgets', $this->o_registry->getRootFile('widgets', 'themes'), 'print.tpl', 'screen');
+            $this->renderCSS('widgets', $this->o_registry->getRootFile('widgets', 'themes'), 'print.tpl', 'all');
         }
         else {
             // The theme-specific style sheet
