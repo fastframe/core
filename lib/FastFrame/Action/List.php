@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.6 2003/02/22 02:08:24 jrust Exp $ */
+/** $Id: List.php,v 1.7 2003/03/13 18:36:52 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -24,7 +24,7 @@
 
 require_once dirname(__FILE__) . '/Form.php';
 require_once dirname(__FILE__) . '/../List.php';
-require_once dirname(__FILE__) . '/../DataAccess/ListData.php';
+require_once dirname(__FILE__) . '/../Model/ListModeler.php';
 require_once dirname(__FILE__) . '/../Output/Table.php';
 
 // }}}
@@ -50,10 +50,10 @@ class FF_Action_List extends FF_Action_Form {
     var $o_list;
 
     /**
-     * The array of models we work with to create the list
-     * @type array
+     * The list helper object
+     * @type object
      */
-    var $modelArray;
+    var $o_listModeler;
 
     // }}}
     // {{{ constructor
@@ -106,12 +106,11 @@ class FF_Action_List extends FF_Action_Form {
             $this->getDefaultDisplayLimit(),
             array('actionId' => $this->currentActionId)
         );
-        $o_listData = new FF_DataAccess_ListData($this->o_list, $this->o_dataAccess);
         $this->processFieldMapForList($this->getFieldMap());
-        $this->o_list->setTotalRecords($o_listData->getListTotalRecordsCount());
-        $this->modelArray = $o_listData->getListModels();
-        $this->o_list->setMatchedRecords($o_listData->getListMatchedRecordsCount());
-        $this->o_list->setDisplayedRecords(count($this->modelArray));
+        $this->o_listModeler =& new FF_Model_ListModeler($this->o_list, $this->o_model);
+        $this->o_list->setTotalRecords($this->o_listModeler->getTotalModelsCount());
+        $this->o_list->setMatchedRecords($this->o_listModeler->getMatchedModelsCount());
+        $this->o_list->setDisplayedRecords($this->o_listModeler->getDisplayedModelsCount());
     }
 
     // }}}
@@ -163,15 +162,15 @@ class FF_Action_List extends FF_Action_Form {
     function renderListData($in_namespace)
     {
         if ($this->o_list->getDisplayedRecords() > 0) {
-            foreach ($this->modelArray as $tmp_model) {
-                // so any other methods can have access to the current model
-                $this->o_model =& $tmp_model;
+            while (($this->o_model =& $this->o_listModeler->getNextModel()) !== false) {
                 $this->o_output->touchBlock($in_namespace . 'table_row');
                 $this->o_output->cycleBlock($in_namespace . 'table_content_cell');
                 foreach ($this->getFieldMap() as $tmp_fields) {
+                    // see if the method refers to a field in the model
                     if (isset($tmp_fields['field'])) {
                         $tmp_displayData = $this->o_output->processCellData($this->o_model->$tmp_fields['method']());
                     }
+                    // otherwise it's a model in this class
                     else {
                         $tmp_displayData = $this->o_output->processCellData($this->$tmp_fields['method']());
                     }
