@@ -42,8 +42,8 @@ define('FASTFRAME_DEFAULT_APP', 'fastframe');
 
 /**
  * The FastFrame Registry class provides the innerworkings necessary for
- * transitioning between different applications, getting file paths, database
- * connections, and keeping track of configuration information 
+ * transitioning between different applications, getting file paths,
+ * and keeping track of configuration information 
  *
  * @version Revision: 2.0 
  * @author  The Horde Team <http://www.horde.org/>
