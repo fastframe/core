@@ -1,5 +1,4 @@
 <?php
-
 // {{{ includes
 require_once dirname(__FILE__) . '/Registry.php';
 require_once dirname(__FILE__) . '/Perms/PermSource.php';
@@ -15,7 +14,7 @@ require_once dirname(__FILE__) . '/Perms/PermSource.php';
  *
  * @author		Greg Gilbert <greg@treke.net>
  * @copyright	(c) 2003 by Brooks Institute of Photography
- * @version		$Id: Perms.php,v 1.1 2003/01/20 17:33:44 ggilbert Exp $
+ * @version		$Id: Perms.php,v 1.2 2003/01/21 20:21:08 ggilbert Exp $
  * @package		FastFrame
  * @see			User Auth
  */
@@ -46,13 +45,13 @@ class FastFrame_Perms {
     // //}}}
     // {{{ constructor
     /**
-    *
-    * Initializes the FastFrame_Perms class
-    *
-    * This function initializes the permissions class for the
-    * for the specified user.
-    *
-    */
+     *
+     * Initializes the FastFrame_Perms class
+     *
+     * This function initializes the permissions class for the
+     * for the specified user.
+     *
+     */
     function FastFrame_Perms(  $in_userID )
     {
         $this->_userID=$in_userID;
@@ -67,34 +66,36 @@ class FastFrame_Perms {
     // }}}
     // {{{ getAppList()
     /**
-    *
-    * Returns a list of apps the user has access to
-    *
-    * This function returns a list of FastFrame Apps that are 
-    * installed in this framework that the user as LOGIN 
-    * permissions for. 
-    *
-    */
+     *
+     * Returns a list of apps the user has access to
+     *
+     * This function returns a list of FastFrame Apps that are 
+     * installed in this framework that the user as LOGIN 
+     * permissions for. 
+     *
+     */
     function getAppList ()
     {
         
         $registry =& FastFrame_Registry::singleton();
 
-        if ($this->isSuperUser())
+        if ($this->isSuperUser()) {
             return $registry->getApps();
-        else
+        }
+        else {
             return  $this->permSource->getAppList();
+        }
     }
     // }}}
     // {{{ getGroupList()
     /**
-    *
-    * Returns a list of groups that the user belongs to in the current app
-    *
-    * This function returns an array containting all groups that the current 
-    * user has any permissions in
-    *
-    */
+     *
+     * Returns a list of groups that the user belongs to in the current app
+     *
+     * This function returns an array containting all groups that the current 
+     * user has any permissions in
+     *
+     */
     functION getGroupList ()
     {
         return  $this->permSource->getGroupList();
@@ -102,21 +103,22 @@ class FastFrame_Perms {
     // }}}
     // {{{ hasPerm()
     /**
-    *
-    * Check whether a user has the needed permission
-    *
-    * This function looks up whether a user is in a group
-    * with the requested permissions in the current app.
-    *
-    */
+     *
+     * Check whether a user has the needed permission
+     *
+     * This function looks up whether a user is in a group
+     * with the requested permissions in the current app.
+     *
+     */
     function hasPerms($in_perms)
     {
 
         $b_hasPerms=false;
         $s_app=FastFrame::getCurrentApp();
 
-        if ($this->isSuperUser())
+        if ($this->isSuperUser()) {
             return true;
+        }
 
         if (!is_array($this->_permCache[$s_app]) 
             && (count($this->_permCache[$s_app]) == 0 )) {
@@ -157,6 +159,4 @@ class FastFrame_Perms {
 
     }
     // }}}
-    
-
 }

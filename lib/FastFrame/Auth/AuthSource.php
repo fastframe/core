@@ -1,9 +1,4 @@
 <?php
-// {{{ constants
-// }}}
-// {{{ includes
-
-// }}}
 // {{{ class  AuthSource
 
 /**
@@ -41,7 +36,7 @@ class AuthSource {
      */
     function &create($type, $name, $params)
     {
-        require_once(dirname(__FILE__) . '/' . $type . ".php");
+        @include_once(dirname(__FILE__) . '/' . $type . ".php");
 				
         $authClass= "AuthSource_" . $type;
 				

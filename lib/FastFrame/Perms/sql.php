@@ -45,15 +45,15 @@ class PermSource_sql {
     // }}}
     // {{{ getAppList()
     /**
-    *
-    * Get a list of apps that the user has permission to log into
-    *
-    * This function returns an array applications that the user has
-    * been granted permission to log into
-    *
-    * @access	
-    * @see		??
-    */
+     *
+     * Get a list of apps that the user has permission to log into
+     *
+     * This function returns an array applications that the user has
+     * been granted permission to log into
+     *
+     * @access	
+     * @see		??
+     */
     function getAppList($in_user)
     {
         $o_db->_db =& $this->_openDatabase();
@@ -75,14 +75,14 @@ class PermSource_sql {
     // }}}
     // {{{ getGroupList()
     /**
-    *
-    * Get a list of groups the user is a member of
-    *
-    * This function returns the list of groups that the specified user
-    * is a member of
-    *
-    * @access public
-    */
+     *
+     * Get a list of groups the user is a member of
+     *
+     * This function returns the list of groups that the specified user
+     * is a member of
+     *
+     * @access public
+     */
     function getGroupList ( $in_userID, $in_app)
     {
         return array();
@@ -90,14 +90,14 @@ class PermSource_sql {
     // }}}
     // {{{ getPerms()
     /**
-    *
-    * Returns a list of permissions the user has
-    *
-    * This function returns the permissions that the specified user
-    * has in the specified application. 
-    *
-    * @access public
-    */
+     *
+     * Returns a list of permissions the user has
+     *
+     * This function returns the permissions that the specified user
+     * has in the specified application. 
+     *
+     * @access public
+     */
     function getPerms($in_userID,  $in_appName )
     {
         $a_allowed=$this->getPermissions($in_userID, $in_appName, false);
@@ -119,10 +119,12 @@ class PermSource_sql {
         {
             $o_db=&$this->_openDatabase();
 
-            if ($in_denied)
+            if ($in_denied) {
                 $i_getDenied=1;
-            else
+            }
+            else {
                 $i_getDenied=0;
+            }
 
             $s_sql=' SELECT `perms`.`perm` FROM `perms`, `groups` WHERE
             `groups`.`group`=`perms`.`group`
@@ -145,14 +147,14 @@ class PermSource_sql {
     // }}}
     // {{{ _openDatabase()
     /**
-    *
-    * This function creates a database connection 
-    *
-    * This is the long description for the Class
-    *
-    * @access	
-    * @see		??
-    */
+     *
+     * This function creates a database connection 
+     *
+     * This is the long description for the Class
+     *
+     * @access	
+     * @see		??
+     */
     function &_openDatabase()
     {
             $o_db=DB::connect($this->_dsn);

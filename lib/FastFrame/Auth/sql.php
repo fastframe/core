@@ -1,10 +1,6 @@
 <?php
-// {{{ constants
-// }}}
 // {{{ includes
-
 require_once("DB.php");
-
 // }}}
 // {{{ class  AuthSource_sql
 

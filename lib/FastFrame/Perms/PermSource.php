@@ -35,7 +35,7 @@ class PermSource {
      */
     function &create($type, $name, $params)
     {
-        require_once(dirname(__FILE__) . '/' . $type . ".php");
+        @include_once(dirname(__FILE__) . '/' . $type . ".php");
 				
         $permClass= "PermSource_" . $type;
 				
@@ -69,15 +69,15 @@ class PermSource {
     // }}}
     // {{{ getAppList()
     /**
-    *
-    * Get a list of apps that the user has permission to log into
-    *
-    * This function returns an array applications that the user has
-    * been granted permission to log into
-    *
-    * @access	
-    * @see		??
-    */
+     *
+     * Get a list of apps that the user has permission to log into
+     *
+     * This function returns an array applications that the user has
+     * been granted permission to log into
+     *
+     * @access	
+     * @see		??
+     */
     function getAppList($in_user)
     {
         return array();
@@ -85,14 +85,14 @@ class PermSource {
     // }}}
     // {{{ getGroupList()
     /**
-    *
-    * Get a list of groups the user is a member of
-    *
-    * This function returns the list of groups that the specified user
-    * is a member of
-    *
-    * @access public
-    */
+     *
+     * Get a list of groups the user is a member of
+     *
+     * This function returns the list of groups that the specified user
+     * is a member of
+     *
+     * @access public
+     */
     function getGroupList ( $in_userID, $in_app)
     {
         return array();
@@ -100,14 +100,14 @@ class PermSource {
     // }}}
     // {{{ getPerms()
     /**
-    *
-    * Returns a list of permissions the user has
-    *
-    * This function returns the permissions that the specified user
-    * has in the specified application. 
-    *
-    * @access public
-    */
+     *
+     * Returns a list of permissions the user has
+     *
+     * This function returns the permissions that the specified user
+     * has in the specified application. 
+     *
+     * @access public
+     */
     function getPerms($in_userID,  $in_appName )
     {
         return array();
@@ -127,7 +127,6 @@ class PermSource {
     {
         return $this->_sourceName;
     }
-
     // }}}
 }
 ?>
