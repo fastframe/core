@@ -235,10 +235,6 @@ class FF_ActionHandler {
                 FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
             }
         }
-
-        // Render output now that everything is done
-        $o_output =& FF_Output::singleton();
-        $o_output->output();
     }
 
     // }}}

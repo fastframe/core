@@ -226,6 +226,27 @@ class FF_Model {
     }
 
     // }}}
+    // {{{ _scalarToBool()
+
+    /**
+     * Converts a scalar int or string ('T' or 'F') to its boolean equivalent
+     *
+     * @param mixed $in_value The value, can be an int, bool, or string
+     *
+     * @access public
+     * @return bool The boolean equivalent
+     */
+    function _scalarToBool($in_value)
+    {
+        if (!is_bool($in_value)) {
+            return ($in_value == 'T' || $in_value == 1) ? true : false;
+        }
+        else {
+            return $in_value;
+        }
+    }
+
+    // }}}
     // {{{ _initDataAccess()
 
     /**
