@@ -44,18 +44,19 @@ require_once dirname(__FILE__) . '/FastFrame/Registry.php';
 
 // }}}
 class FastFrame {
-    // {{{ string  url()
+    // {{{ url()
 
     /**
      * Return a session-id-ified version of $uri.
      *
-     * @param  string $in_url The URL to be modified
-     * @param  array  $in_vars (optional) Set of variable = value pairs
-     * @param  bool   $in_full (optional) generate a full url?
+     * @param string $in_url The URL to be modified
+     * @param array  $in_vars (optional) Set of variable = value pairs
+     * @param bool   $in_full (optional) generate a full url?
+     * @param bool   $in_ssl (optional) Force a ssl/https url?
      *
      * @return string The url with the session id appended
      */
-    function url($in_url, $in_vars = array(), $in_full = false)
+    function url($in_url, $in_vars = array(), $in_full = false, $in_ssl = false)
     {
         if (strpos($in_url, 'javascript:') === 0) {
             return $in_url;
@@ -67,10 +68,12 @@ class FastFrame {
             $in_url = $o_registry->getConfigParam('webserver/web_root') . '/' . $in_url;
         }
 
-        // see if we need to make this a full query string
-        if ($in_full && !preg_match(':^https?\://:', $in_url)) {
-            $in_url = ($o_registry->getConfigParam('webserver/use_ssl') ? 'https' : 'http') . 
-                   '://' . $o_registry->getConfigParam('webserver/hostname') . $in_url;
+        // See if we need to make this a full query string.
+        // If using ssl then force all urls to be https.
+        $b_ssl = ($in_ssl || $o_registry->getConfigParam('webserver/use_ssl'));
+        if (($in_full || $b_ssl) && !preg_match(':^https?\://:', $in_url)) {
+            $in_url = ($b_ssl ? 'https' : 'http') .  '://' . 
+                $o_registry->getConfigParam('webserver/hostname') . $in_url;
         }
 
         // Add the session to the array list if it is configured to do so
@@ -105,18 +108,19 @@ class FastFrame {
     }
     
     // }}}
-    // {{{ string  selfURL()
+    // {{{ selfURL()
 
     /**
      * Return a session-id-ified version of $PHP_SELF.
      *
      * @param array $in_vars (optional) Set of variable = value pairs
      * @param bool  $in_full (optional) Whether to generate a full or partial link
+     * @param bool  $in_ssl (optional) Force a ssl/https url?
      *
      * @access public
      * @return string The URL
      */
-    function selfURL($in_vars = array(), $in_full = false)
+    function selfURL($in_vars = array(), $in_full = false, $in_ssl = false)
     {
         // Add on the module, app, and actionId to the beginning
         $o_actionHandler =& FF_ActionHandler::singleton();
@@ -129,11 +133,11 @@ class FastFrame {
         }
 
         // Add on the url to the beginning
-        return FastFrame::url($_SERVER['PHP_SELF'], $in_vars, $in_full);
+        return FastFrame::url($_SERVER['PHP_SELF'], $in_vars, $in_full, $in_ssl);
     }
 
     // }}}
-    // {{{ void    redirect()
+    // {{{ redirect()
     
     /**
      * Given a url, send the headers to redirect to that site.
@@ -153,7 +157,7 @@ class FastFrame {
     }
 
     // }}}
-    // {{{ bool    isEmpty()
+    // {{{ isEmpty()
 
     /**
      * Determine if the value of the variable is literally empty, contains no value.
