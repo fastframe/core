@@ -319,8 +319,11 @@ class FF_Auth {
     {
         if (is_null($in_logoutURL) && !$in_return) {
             $o_registry =& FF_Registry::singleton();
-            $s_logoutApp = $o_registry->getConfigParam('general/logout_app', $o_registry->getConfigParam('general/login_app'));
-            $s_logoutURL = FastFrame::url($o_registry->getRootFile('index.php', null, FASTFRAME_WEBPATH), array('app' => $s_logoutApp), true);
+            $s_logoutApp = $o_registry->getConfigParam('general/logout_app');
+            $s_redirectURL = FastFrame::selfURL(array(session_name() => false), true);
+            $s_logoutURL = FastFrame::url(
+                    $o_registry->getRootFile('index.php', null, FASTFRAME_WEBPATH), 
+                    array('app' => $s_logoutApp, 'loginRedirect' => $s_redirectURL), true);
         }
         else {
             $s_logoutURL = $in_logoutURL;

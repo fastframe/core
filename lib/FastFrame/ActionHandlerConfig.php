@@ -17,7 +17,7 @@
 // | MA 02111-1307, USA.                                                  |
 // +----------------------------------------------------------------------+
 // | Authors: Jason Rust <jrust@codejanitor.com>                          |
-// | Authors: Greg Gilbert <ggilbert@codejanitor.com>                          |
+// | Authors: Greg Gilbert <ggilbert@codejanitor.com>                     |
 // +----------------------------------------------------------------------+
 
 // }}}
@@ -30,7 +30,7 @@
  * @author  Greg Gilbert <ggilbert@codejanitor.com>
  * @version Revision: 1.0 
  * @access  public
- * @package Checkout 
+ * @package FastFrame 
  */
 
 // }}}

@@ -110,7 +110,7 @@ class FastFrame {
 
         // add the session to the array list if it is configured to do so
         if ($o_registry->getConfigParam('session/append')) {
-            $sessName = $o_registry->getConfigParam('session/name');
+            $sessName = session_name(); 
             // make sure it was not already set (like set to nothing)
             if (!isset($getVars[$sessName])) {
                 // don't lock the user out with an empty session id!
@@ -142,7 +142,8 @@ class FastFrame {
         $queryString = implode(ini_get('arg_separator.output'), $getPairs);
 
         if (!empty($queryString)) {
-            $url .= '?' . $queryString;
+            $url .= (strpos($url, '?') === false) ? '?' : ini_get('arg_separator.output');
+            $url .= $queryString;
         }
 
         return $url;

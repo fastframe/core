@@ -249,7 +249,7 @@ class FF_ActionHandler {
         static $a_configObjects, $s_lastApp, $s_lastModule;
         settype($a_configObjects, 'array');
         if (empty($this->appId)) {
-            $this->appId = $this->o_registry->getConfigParam('general/initial_app', 'login');
+            $this->appId = $this->o_registry->getConfigParam('general/initial_app');
         }
 
         if ($s_lastApp != $this->appId) {
@@ -258,7 +258,7 @@ class FF_ActionHandler {
             $this->_checkProfile();
         }
 
-        if (empty($this->moduleId) ) {
+        if (empty($this->moduleId)) {
             $this->moduleId = $this->o_registry->getConfigParam('general/initial_module');
         }
 
@@ -446,6 +446,7 @@ class FF_ActionHandler {
      *
      * @param bool $in_noModuleCheck (optional) Don't check the whether the module has auth?
      *             Useful if this is being called from an ActionHandlerConfig class
+     *
      * @access public 
      * @return void
      */
@@ -456,7 +457,17 @@ class FF_ActionHandler {
         } 
         else {
             if (!FF_Auth::checkAuth()) {
-                FF_Auth::logout();
+                // If there was no app specified then they have arrived newly at the
+                // site.  We don't want to bounce them to the initial app only to have
+                // them bounce back to the login page.  So we send them straight to it.
+                if (FastFrame::getCGIParam('app', 'gp', false) === false) {
+                    $this->setAppId($this->o_registry->getConfigParam('general/login_app'));
+                    $this->setModuleId($this->o_registry->getConfigParam('general/initial_module', null, array('app' => $this->appId)));
+                    $this->loadActions();
+                }
+                else {
+                    FF_Auth::logout();
+                }
             }
         }
     }
