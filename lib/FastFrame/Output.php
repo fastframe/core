@@ -272,7 +272,7 @@ class FF_Output {
                 // these can be blank or event (onmouseover, onmousemove or onclick)
                 'greasy' => '', 'sticky' => '',
                 'confirm' => '', 'onclick' => '', 'class' => '',
-                'style' => '', 'target' => '_self', 'getAccessKey' => false);
+                'style' => '', 'target' => '', 'getAccessKey' => false);
 
         $a_options = array_merge($a_options, $in_options);
 
@@ -302,26 +302,29 @@ class FF_Output {
             }
         }
         else {
-            $a_events = $this->_prepareTooltip(array('caption' => $a_options['caption'], 
-                        'content' => $a_options['title'], 'status' => $a_options['status'],
-                        'sticky' => $a_options['sticky'], 'greasy' => $a_options['greasy'],
-                        'onclick' => $a_options['onclick']));
             // Title is replaced by a tooltip
+            $s_title = $a_options['title'];
             $a_options['title'] = '';
+            $a_options['class'] .= ' tt';
         }
 
         // build the tag
         $s_tag = '<a href="' . $in_url . '"';
-        $s_tag .= !empty($a_events['onmouseover']) ? ' onmouseover="' . $a_events['onmouseover'] . '"' : '';
-        $s_tag .= !empty($a_events['onmousemove']) ? ' onmousemove="' . $a_events['onmousemove'] . '"' : '';
-        $s_tag .= !empty($a_events['onclick']) ? ' onclick="' . $a_events['onclick'] . '"' : '';
+        $s_tag .= !empty($a_options['onmouseover']) ? ' onmouseover="' . $a_options['onmouseover'] . '"' : '';
+        $s_tag .= !empty($a_options['onmousemove']) ? ' onmousemove="' . $a_options['onmousemove'] . '"' : '';
+        $s_tag .= !empty($a_options['onclick']) ? ' onclick="' . $a_options['onclick'] . '"' : '';
         $s_tag .= !empty($a_options['title']) ? ' title="' . $a_options['title'] . '"' : '';
         $s_tag .= !empty($a_options['class']) ? ' class="' . $a_options['class'] . '"' : '';
         $s_tag .= !empty($a_options['style']) ? ' style="' . $a_options['style'] . '"' : '';
         $s_tag .= !empty($a_options['target']) ? ' target="' . $a_options['target'] . '"' : '';
         $s_tag .= '>';
- 
-        return $s_tag . $this->highlightAccessKey($in_text, $s_ak) . '</a>';
+        $s_tag .= $this->highlightAccessKey($in_text, $s_ak);
+        if (!empty($a_options['caption'])) {
+            $s_tag .= '<span><div class="tt_caption">' . $a_options['caption'] . '</div><div class="tt_text">' . $s_title . '</div></span>';
+        }
+            
+        $s_tag .= '</a>';
+        return $s_tag;
     }
 
     // }}}
@@ -379,9 +382,9 @@ class FF_Output {
     {
         if ($this->o_registry->getConfigParam('user/use_help', false)) {
             $in_title = is_null($in_title) ? _('Help') : $in_title;
-            return $this->imgTag('help.png', 'actions', array('align' => 'middle', 'title' => $in_text, 
-                        'caption' => $in_title, 'status' => $in_title, 'sticky' => 'onclick', 
-                        'greasy' => false, 'style' => 'cursor: pointer;', 'height' => 16, 'width' => 16));
+            return $this->link('#', $this->imgTag('help.png', 'actions', array('align' => 'middle',
+                        'style' => 'cursor: pointer;', 'height' => 16, 'width' => 16)),
+                    array('title' => $in_text, 'caption' => $in_title));
         }
         else {
             return '';
@@ -528,9 +531,8 @@ class FF_Output {
      *               have to do with the image, included what type
      *               of image tag this is.  The options are as follows
      *               width, height, type, align, style, onclick, id,
-     *               onlyUrl, fullPath, title, status, caption, greasy,
-     *               sticky, name, app (if the image is in a specific
-     *               application)
+     *               onlyUrl, fullPath, title, name, app (if the image is
+     *               in a specific application)
      *
      * @access public
      * @return string The image tag
@@ -583,29 +585,13 @@ class FF_Output {
                 $in_options['height'] = $in_options['width'] = 16;
             }
 
-            if (isset($in_options['caption']) && isset($in_options['title'])) {
-                $a_events = $this->_prepareTooltip(array(
-                        'caption' => isset($in_options['caption']) ? $in_options['caption'] : '',
-                        'content' => isset($in_options['title']) ? $in_options['title'] : '',
-                        'status'  => isset($in_options['status']) ? $in_options['status'] : '',
-                        'sticky'  => isset($in_options['sticky']) ? $in_options['sticky'] : '',
-                        'greasy'  => isset($in_options['greasy']) ? $in_options['greasy'] : '',
-                        'onclick' => isset($in_options['onclick']) ? $in_options['onclick'] : ''));
-                unset($in_options['title']);
-            }
-            else {
-                $a_events['onmouseover'] = isset($in_options['onmouseover']) ? $in_options['onmouseover'] : '';
-                $a_events['onmousemove'] = isset($in_options['onmousemove']) ? $in_options['onmousemove'] : '';
-                $a_events['onclick'] = isset($in_options['onclick']) ? $in_options['onclick'] : '';
-            }
-
             $s_tag = '<';
             $s_tag .= isset($in_options['type']) && $in_options['type'] == 'input' ? 
                 'input type="image"' : 'img';
             $s_tag .= " src=\"$s_imgWebPath\"";
-            $s_tag .= $a_events['onmouseover'] != '' ? ' onmouseover="' . $a_events['onmouseover'] . '"' : '';
-            $s_tag .= $a_events['onmousemove'] != '' ? ' onmousemove="' . $a_events['onmousemove'] . '"' : '';
-            $s_tag .= $a_events['onclick'] != '' ? ' onclick="' . $a_events['onclick'] . '"' : '';
+            $s_tag .= isset($in_options['onmouseover']) ? ' onmouseover="' . $in_options['onmouseover'] . '"' : '';
+            $s_tag .= isset($in_options['onmousemove']) ? ' onmousemove="' . $in_options['onmousemove'] . '"' : '';
+            $s_tag .= isset($in_options['onclick']) ? ' onclick="' . $in_options['onclick'] . '"' : '';
             $s_tag .= isset($in_options['id']) ? " id=\"{$in_options['id']}\"" : '';
             $s_tag .= isset($in_options['title']) ? " title=\"{$in_options['title']}\" alt=\"{$in_options['title']}\"" : '';
             $s_tag .= isset($in_options['name']) ? " name=\"{$in_options['name']}\"" : '';
@@ -993,89 +979,6 @@ class FF_Output {
         }
 
         return $s_footer;
-    }
-
-    // }}}
-    // {{{ _prepareTooltip()
-
-    /**
-     * Prepares the tooltip caption, content, and the window status for the dom tooltip
-     *
-     * @param array $in_options caption, content, status, greasy, sticky, onclick
-     * greasy -> 'mousemove'
-     * sticky -> 'click'
-     * 
-     * @access private
-     * @return string events
-     */
-    function _prepareTooltip($in_options = array())
-    {
-        $a_events = array(
-            'onmouseover' => '',
-            'onmousemove' => '',
-            'onclick'     => '',
-        );
-
-        if ($in_options['content'] == '') {
-            if (!empty($in_options['onclick'])) {
-                $a_events['onclick'] = $in_options['onclick'];
-            }
-
-            return $a_events;
-        }
-
-        $a_events['onmouseover'] = 'greasy';
-        
-        $s_content = strtr(htmlentities(addcslashes($in_options['content'], '\'')), "\n\r", '  ');
-
-        $s_caption = $in_options['caption'] != '' ?
-            strtr(addcslashes(strip_tags($in_options['caption']), '\''), "\n\r", '  ') :
-            false;
-        
-        $s_status = $in_options['status'] != '' ?
-            strtr(addcslashes(strip_tags($in_options['status']), '\''), "\n\r", '  ') :
-            strip_tags($s_content);
-
-        // The way this will work, we default to use onmouseover as greasy...unless the user
-        // sticky option is onmouseover, onmouseover will be used to ensure the status bar is
-        // written so as to hide the link url
-        if (isset($in_options['greasy'])) {
-            // If greasy was set to false then turn it off for onmouseover
-            if ($in_options['greasy'] === false) {
-                $a_events['onmouseover'] = '';
-            }
-            elseif (!empty($in_options['greasy'])) {
-                $a_events[$in_options['greasy']] = 'greasy';
-            }
-        }
-
-        if (!empty($in_options['sticky'])) {
-            $a_events[$in_options['sticky']] = 'sticky';
-        }
-
-        // Require the needed javascript since a tooltip will be used
-        $this->addScriptFile($this->o_registry->getRootFile('domLib_strip.js', 'javascript', FASTFRAME_WEBPATH));
-        $this->addScriptFile($this->o_registry->getRootFile('domTT_strip.js', 'javascript', FASTFRAME_WEBPATH));
-        foreach ($a_events as $s_event => $s_type) {
-            if (!$s_type) {
-                continue;
-            }
-
-            $a_events[$s_event] = ($s_event == 'onmouseover' ? 'return makeTrue(' : '') . 
-                                  'domTT_activate(this, event, \'caption\', ' . 
-                                  ($s_caption === false ? 'false' : "'$s_caption'") . 
-                                  ", 'content', '$s_content', 'status', '$s_status', 'type', '" . 
-                                  ($s_type == 'sticky' ? 'sticky' : 'greasy') . 
-                                  '\'' .
-                                  ($s_event == 'onmouseover' ? ')' : '') . 
-                                  ');';
-        }
-        
-        if (!empty($in_options['onclick'])) {
-            $a_events['onclick'] .= ' ' . $in_options['onclick'];
-        }
-
-        return $a_events;
     }
 
     // }}}
