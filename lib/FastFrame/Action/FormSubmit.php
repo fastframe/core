@@ -65,6 +65,7 @@ class FF_Action_FormSubmit extends FF_Action {
 
         $o_result =& $this->validateInput();
         if (!$o_result->isSuccess()) {
+            FF_Request::setParam('submitWasSuccess', 0, 'g');
             $o_result->addMessage($this->getProblemMessage());
             $this->o_output->setMessage($o_result->getMessages(), FASTFRAME_ERROR_MESSAGE);
             $this->setProblemActionId();
