@@ -139,7 +139,7 @@ class FF_FileCache {
             ((isset($in_uploadData['error']) && 
               ($in_uploadData['error'] == 1 || $in_uploadData['error'] == 2)) ||
              $in_uploadData['size'] > $in_maxSize)) {
-            require_once dirname(__FILE__) . '/lib/FastFrame/Util.php';
+            require_once dirname(__FILE__) . '/Util.php';
             $o_result->addMessage(sprintf(_('The uploaded file was too big.  The maximum size is %s.'),
                         FF_Util::bytesToHuman($in_maxSize)));
             $o_result->setSuccess(false);
