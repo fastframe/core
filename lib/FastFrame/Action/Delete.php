@@ -1,5 +1,5 @@
 <?php
-/** $Id: Delete.php,v 1.2 2003/02/08 00:10:55 jrust Exp $ */
+/** $Id: Delete.php,v 1.3 2003/02/12 20:50:29 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -22,7 +22,7 @@
 // }}}
 // {{{ requires
 
-require_once dirname(__FILE__) . '/GenericForm.php';
+require_once dirname(__FILE__) . '/Action.php';
 
 // }}}
 // {{{ class ActionHandler_Delete
@@ -37,16 +37,7 @@ require_once dirname(__FILE__) . '/GenericForm.php';
  */
 
 // }}}
-class ActionHandler_Delete extends ActionHandler_GenericForm {
-    // {{{ properties
-
-    /**
-     * The field to match up to the objectId in the where clause
-     * @type string
-     */
-    var $deleteField = 'id';
-
-    // }}}
+class ActionHandler_Delete extends ActionHandler_Action {
     // {{{ constructor
 
     /**
@@ -57,7 +48,7 @@ class ActionHandler_Delete extends ActionHandler_GenericForm {
      */
     function ActionHandler_Delete()
     {
-        ActionHandler_GenericForm::ActionHandler_GenericForm();
+        ActionHandler_Action::ActionHandler_Action();
     }
 
     // }}}
@@ -71,16 +62,16 @@ class ActionHandler_Delete extends ActionHandler_GenericForm {
      */
     function run()
     {
-        if ($this->o_application->deleteData($this->deleteField, FastFrame::getCGIParam('objectId', 'gp'))) {
-            $o_output->setMessage($this->getSuccessMessage());
+        if ($this->o_application->removeData(FastFrame::getCGIParam('objectId', 'gp'))) {
+            $this->o_output->setMessage($this->getSuccessMessage());
             $this->setSuccessActionId();
         }
         else {
-            $o_output->setMessage($this->getProblemMessage());
+            $this->o_output->setMessage($this->getProblemMessage());
             $this->setProblemActionId();
         }
         
-        $this->takeAction();
+        $this->o_action->takeAction();
     }
 
     // }}}
@@ -108,7 +99,7 @@ class ActionHandler_Delete extends ActionHandler_GenericForm {
      */
     function getProblemMessage()
     {
-        return _('There was an error when trying to delete the object.');
+        return _('There was an error when trying to delete the data.');
     }
 
     // }}}
@@ -122,7 +113,7 @@ class ActionHandler_Delete extends ActionHandler_GenericForm {
      */
     function setProblemActionId()
     {
-        $this->setActionId(ACTION_LIST);
+        $this->o_action->setActionId(ACTION_LIST);
     }
 
     // }}}
@@ -136,7 +127,7 @@ class ActionHandler_Delete extends ActionHandler_GenericForm {
      */
     function setSuccessActionId()
     {
-        $this->setActionId(ACTION_LIST);
+        $this->o_action->setActionId(ACTION_LIST);
     }
 
     // }}}
