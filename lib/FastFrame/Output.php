@@ -875,7 +875,6 @@ class FF_Output extends FF_Template {
      */
     function _renderPageType()
     {
-        $s_footer = $this->o_registry->getConfigParam('general/footer_text');
         switch ($this->pageType) {
             case 'popup':
                 // a minimal page
@@ -897,18 +896,42 @@ class FF_Output extends FF_Template {
                     'css'
                 );
 
-                if ($s_footer) {
+                if ($s_footer = $this->_getFooterText()) {
                     $this->assignBlockData(array('T_banner_bottom' => $s_footer), 'switch_banner_bottom');
                 }
             break;
             case 'normal':
-                if ($s_footer) {
+                if ($s_footer = $this->_getFooterText()) {
                     $this->assignBlockData(array('T_banner_bottom' => $s_footer), 'switch_banner_bottom');
                 }
             break;
             default:
             break;
         }
+    }
+
+    // }}}
+    // {{{ _getFooterText()
+
+    /**
+     * Gets the footer text for the page
+     *
+     * @access private
+     * @return mixed False if ther is no footer or the footer text
+     */
+    function _getFooterText()
+    {
+        $s_footer = $this->o_registry->getConfigParam('general/footer_text');
+        if ($s_footer !== false && $this->o_registry->getConfigParam('general/add_user_to_footer')) {
+            if (FF_Auth::checkAuth()) {
+                $s_footer .= ' ' . sprintf(_('You are logged in as %s.'), FF_Auth::getCredential('username'));
+            }
+            else {
+                $s_footer .= ' ' . _('You are not logged in.');
+            }
+        }
+
+        return $s_footer;
     }
 
     // }}}
