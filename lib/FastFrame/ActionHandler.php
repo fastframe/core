@@ -1,5 +1,5 @@
 <?php
-/** $Id: ActionHandler.php,v 1.8 2003/03/19 00:36:00 jrust Exp $ */
+/** $Id: ActionHandler.php,v 1.9 2003/04/02 00:05:30 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -25,6 +25,9 @@
 require_once 'File.php';
 require_once dirname(__FILE__) . '/../FastFrame.php';
 require_once dirname(__FILE__) . '/Registry.php';
+require_once dirname(__FILE__) . '/Output.php';
+require_once dirname(__FILE__) . '/Auth.php';
+require_once dirname(__FILE__) . '/Perms.php';
 
 // }}}
 // {{{ constants
@@ -128,10 +131,16 @@ class FF_ActionHandler {
     function FF_ActionHandler()
     {
         $this->_initializeErrorHandler();
-        $this->_checkAuth();
-        $this->_makeActionPathsAbsolute();
-        $this->o_registry =& FF_Registry::singleton();
         $this->setActionId(FastFrame::getCGIParam('actionId', 'gp'));
+        $this->o_registry =& FF_Registry::singleton();
+        FF_Auth::sessionStart();
+        $this->_checkAuth();
+        $this->_checkProfile();
+        $this->_makeActionPathsAbsolute();
+        $o_output =& FF_Output::singleton();
+        $s_theme = FF_Auth::getCredential('theme');
+        $s_theme = empty($s_theme) ? $this->o_registry->getConfigParam('general/default_theme') : $s_theme;
+        $o_output->load($s_theme);
     }
 
     // }}}
@@ -318,10 +327,33 @@ class FF_ActionHandler {
      */
     function _checkAuth()
     {
-        require_once dirname(__FILE__) . '/Auth.php';
-        $o_auth =& FF_Auth::singleton();
-        if (!$o_auth->checkAuth()) {
-            $o_auth->logout();
+        if (!FF_Auth::checkAuth()) {
+            FF_Auth::logout();
+        }
+    }
+
+    // }}}
+    // {{{ _checkProfile()
+
+    /**
+     * Checks to see if the user must complete their profile before proceeding.  Redirects
+     * them to the profile page if so.
+     *
+     * @access private
+     * @return void
+     */
+    function _checkProfile()
+    {
+        if ($this->o_registry->hasApp('profile') &&
+            FF_Auth::checkAuth() && 
+            !FF_Auth::getCredential('isProfileComplete') &&
+            $this->getActionId() != ACTION_LOGOUT &&
+            $this->o_registry->getConfigParam('profile/force_complete', false, array('app' => 'profile'))) {
+            require_once $this->o_registry->getAppFile('ActionHandler/actions.php', 'profile', 'libs');
+            // don't redirect if already on the profile page or submitting it
+            if ($this->getActionId() != ACTION_MYPROFILE && $this->getActionId() != ACTION_EDIT_SUBMIT) {
+                FastFrame::redirect(FastFrame::selfURL(array('app' => 'profile', 'actionId' => ACTION_MYPROFILE)));
+            }
         }
     }
 
