@@ -22,7 +22,6 @@
 // }}}
 // {{{ requires
 
-define('ECLIPSE_ROOT', dirname(__FILE__) . '/../eclipse/');
 require_once dirname(__FILE__) . '/../Error/Error.php';
 require_once 'File.php';
 require_once dirname(__FILE__) . '/../FastFrame.php';
@@ -529,10 +528,10 @@ class FF_ActionHandler {
      */
     function _initializeErrorHandler()
     {
-        $o_reporter =& new ErrorReporter();
-        $o_reporter->setDateFormat('[Y-m-d H:i:s]');
-        $o_reporter->setStrictContext(false);
-        $o_reporter->setExcludeObjects(false);
+        $o_error =& new FF_ErrorHandler();
+        $GLOBALS['o_error'] =& $o_error;
+        $o_error->setDateFormat('[Y-m-d H:i:s]');
+        $o_error->setExcludeObjects(false);
         foreach ($this->o_registry->getConfigParam('error/reporters', array()) as $s_type => $a_reporter) {
             // Text-based browsers can't use console method
             if ($s_type == 'console' && !Net_UserAgent_Detect::hasFeature('javascript')) {
@@ -540,10 +539,8 @@ class FF_ActionHandler {
             }
 
             $a_reporter['data'] = isset($a_reporter['data']) ? $a_reporter['data'] : null;
-            $o_reporter->addReporter($s_type, $a_reporter['level'], $a_reporter['data']);
+            $o_error->addReporter($s_type, $a_reporter['level'], $a_reporter['data']);
         }
-
-        ErrorList::singleton($o_reporter, 'o_error');
     }
 
     // }}}

@@ -1,570 +1,516 @@
 <?php
-// {{{ includes
+/** $Id$ */
+// {{{ license
 
-require_once ECLIPSE_ROOT . 'Loop.php';
-require_once ECLIPSE_ROOT . 'ArrayList.php';
+// +----------------------------------------------------------------------+
+// | FastFrame Application Framework                                      |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 2002-2003 The Codejanitor Group                        |
+// +----------------------------------------------------------------------+
+// | This source file is subject to the GNU Lesser Public License (LGPL), |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.fsf.org/copyleft/lesser.html                              |
+// | If you did not receive a copy of the LGPL and are unable to          |
+// | obtain it through the world-wide-web, you can get it by writing the  |
+// | Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, |
+// | MA 02111-1307, USA.                                                  |
+// +----------------------------------------------------------------------+
+// | Authors: Jason Rust <jrust@codejanitor.com>                          |
+// |          Dan Allen <dan@mojavelinux.com>                             |
+// +----------------------------------------------------------------------+
 
 // }}}
 // {{{ constants
 
-define('E_USER_ALL',	E_USER_NOTICE | E_USER_WARNING | E_USER_ERROR);
-define('E_NOTICE_ALL',	E_NOTICE | E_USER_NOTICE);
-define('E_WARNING_ALL',	E_WARNING | E_USER_WARNING | E_CORE_WARNING | E_COMPILE_WARNING);
-define('E_ERROR_ALL',	E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR);
-define('E_NOTICE_NONE',	E_ALL & ~E_NOTICE_ALL);
-define('E_DEBUG',		0x10000000);
-define('E_VERY_ALL',	E_ERROR_ALL | E_WARNING_ALL | E_NOTICE_ALL | E_DEBUG);
+define('E_USER_ALL', E_USER_NOTICE | E_USER_WARNING | E_USER_ERROR);
+define('E_NOTICE_ALL', E_NOTICE | E_USER_NOTICE);
+define('E_WARNING_ALL', E_WARNING | E_USER_WARNING | E_CORE_WARNING | E_COMPILE_WARNING);
+define('E_ERROR_ALL', E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR);
+define('E_NOTICE_NONE', E_ALL & ~E_NOTICE_ALL);
+define('E_DEBUG', 0x10000000);
+define('E_VERY_ALL', E_ERROR_ALL | E_WARNING_ALL | E_NOTICE_ALL | E_DEBUG);
 
-define('SYSTEM_LOG',	0);
-define('TCP_LOG',		2);
-define('MAIL_LOG',		1);
-define('FILE_LOG',		3);
-
-// }}}
-// {{{ helper functions
-
-function strrpos2($string, $needle, $offset = 0)
-{
-	$addLen = strlen($needle);
-	$endPos = $offset - $addLen;
-
-	while (1)
-	{
-		if (($newPos = strpos($string, $needle, $endPos + $addLen)) === false) {
-			break;
-		}
-
-		$endPos = $newPos;
-	}
-
-	return ($endPos >= 0) ? $endPos : false;
-}
-
-function addPhpTags($source)
-{
-	$startTag  = '<?php';
-	$endTag = '?>';
-
-	$firstStartPos  = ($pos = strpos($source, $startTag)) !== false ? $pos : -1;
-	$firstEndPos = ($pos = strpos($source, $endTag)) !== false ? $pos : -1;
-	
-	// no tags found then it must be solid php since html can't throw a php error
-	if ($firstStartPos < 0 && $firstEndPos < 0)
-	{
-		return $startTag . "\n" . $source . "\n" . $endTag;
-	}
-
-	// found an end tag first, so we are missing a start tag
-	if ($firstEndPos >= 0 && ($firstStartPos < 0 || $firstStartPos > $firstEndPos))
-	{
-		$source = $startTag . "\n" . $source;
-	}
-
-	$sourceLength = strlen($source);
-	$lastStartPos  = ($pos = strrpos2($source, $startTag)) !== false ? $pos : $sourceLength + 1;
-	$lastEndPos  = ($pos = strrpos2($source, $endTag)) !== false ? $pos : $sourceLength + 1;
-
-	if ($lastEndPos < $lastStartPos || ($lastEndPos > $lastStartPos && $lastEndPos > $sourceLength))
-	{
-		$source .= $endTag;
-	}
-
-	return $source;
-}
-
-function &_var_export2(&$variable, $arrayIndent = '', $inArray = false, $level = 0)
-{
-	static $maxLevels = 0, $followObjectReferences = false;
-	if ($inArray != false)
-	{
-		$leadingSpace = '';
-		$trailingSpace = ',' . "\n";
-	}
-	else
-	{
-		$leadingSpace = $arrayIndent;
-		$trailingSpace = '';
-	}
-
-	$result = '';
-	switch (gettype($variable))
-	{
-		case 'object':
-			if ($inArray && !$followObjectReferences)
-			{
-				$result = '*OBJECT REFERENCE*';
-				$trailingSpace = "\n";
-				break;
-			}
-		case 'array':
-			if ($maxLevels && $level >= $maxLevels)
-			{
-				$result = '** truncated, too much recursion **';
-			}
-			else
-			{
-				$result = "\n" . $arrayIndent . 'array (' . "\n";
-				foreach ($variable as $key => $value)
-				{
-					$result .= $arrayIndent . '  ' . (is_int($key) ? $key : ('\'' . str_replace('\'', '\\\'', $key) . '\'')) . ' => ' . _var_export2($value, $arrayIndent . '  ', true, $level + 1);
-	 			}
-
-				$result .= $arrayIndent . ')';
-			}
-		break;
-	 
-		case 'string':
-			$result = '\'' . str_replace('\'', '\\\'', $variable) . '\'';
-		break;
-	 
-		case 'boolean':
-			$result = $variable ? 'true' : 'false';
-		break;
-	 
-		case 'NULL':
-			$result = 'NULL';
-		break;
-
-		case 'resource':
-			$result = get_resource_type($variable);
-		break;
-
-		default:
-			$result = $variable;
-		break;
-	}
-
-	return $leadingSpace . $result . $trailingSpace;
-}
-
-function var_export2(&$variable, $return = false)
-{
-	$result =& _var_export2($variable);
-	if ($return)
-	{
-		return $result;
-	}
-	else
-	{
-		echo $result;
-	}
-}
+define('SYSTEM_LOG', 0);
+define('TCP_LOG',    2);
+define('MAIL_LOG',   1);
+define('FILE_LOG',   3);
 
 // }}}
+// {{{ class FF_ErrorHandler
 
-class ErrorList extends ArrayList
-{
-	// {{{ __constructor()
+/**
+ * The FF_ErrorHandler is a class that handles all the errors (and debug
+ * statements) in FastFrame.  It has several "reporters" so that errors
+ * can be logged to different locations such as a log file, the browser,
+ * or an email.
+ *
+ * @version Revision: 2.0 
+ * @author  Jason Rust <jrust@codejanitor.com>
+ * @author  Dan Allen <dan@mojavelinux.com>
+ * @access  public
+ * @package FastFrame
+ */
 
-	function ErrorList(&$reporter, $variableName = 'error')
-	{
-		error_reporting(E_ALL);
-		// :NOTE: dallen 2003/01/31 it might be a good idea to keep this on
-		// if the console is used since some cases don't stop E_ERROR
-        // :WARNING: jrust 2003/02/10 This makes it so we can't see parse/fatal errors
-		// ini_set('display_errors', false);
+// }}}
+class FF_ErrorHandler {
+    // {{{ properties
 
-		parent::ArrayList();
-		$this->reporter =& $reporter;
+    /**
+     * The list of errors that occur
+     * @var array
+     */
+    var $errorList = array();
 
-		// trick to fix broken set_error_handler() function in php
-		$GLOBALS[$variableName] =& $this; 
-		trapError($variableName);
-		set_error_handler('trapError');
-		
-		register_shutdown_function(array(&$this, '__destructor'));
-	}
-	
-	// }}}
-	// {{{ __destructor()
+    /**
+     * The array of errors that will be displayed via console
+     * @var array
+     */
+    var $consoleErrors = array();
 
-	function __destructor()
-	{
-		error_reporting(E_ALL ^ E_NOTICE);
-		Loop::run(new ErrorIterator($this), $this->reporter);
-	}
+    /**
+     * The array of errors that will be sent via email
+     * @var array
+     */
+    var $mailErrors = array();
 
-	// }}}
-	// {{{ singleton()
-
-	function &singleton(&$reporter, $variableName = 'error')
-	{
-		static $instance = 0;
-		
-		if ($instance == 0)
-		{
-			$instance =& new ErrorList($reporter, $variableName);
-		}
-		
-		return $instance;
-	}
-
-	// }}}
-	// {{{ add()
-
-	function add(&$error)
-	{
-		// rearrange for eval'd code or create function errors
-		if (preg_match(';^(.*?)\((\d+)\) : (.*?)$;', $error['file'], $matches))
-		{
-			$error['message'] .= ' on line ' . $error['line'] . ' in ' . $matches[3];
-			$error['file'] = $matches[1];
-			$error['line'] = $matches[2];
-		}
-
-		$error['context'] = $this->_getContext($error['file'], $error['line']);
-
-	    parent::add($error);
-	}
-
-	// }}}
-	// {{{ debug()
-
-    function debug($variable, $name = '*variable*', $line = '*line*', $file = '*file*', $level = E_DEBUG)
-	{
-		$error = array(
-			'level'		=> intval($level),
-			'message'	=> 'user variable debug',
-			'file'		=> $file,
-			'line'		=> $line,
-			'variables' => array($name => $variable),
-			'signature'	=> mt_rand(),
-		);
-	     
-		$this->add($error);
-	}
-
-	// }}}
-	// {{{ _getContext()
-
-	function _getContext($file, $line)
-	{
-		if (!@is_readable($file)) {
-		    return array(
-		    	'start'		=> 0,
-		    	'end'		=> 0,
-		    	'source'	=> '',
-		    	'variables'	=> array(),
-		    );
-        }
-
-		$sourceLines = file($file);
-		$offset = max($line - 1 - $this->reporter->contextLines, 0);
-		$numLines = 2 * $this->reporter->contextLines + 1;
-		$sourceLines = array_slice($sourceLines, $offset, $numLines);
-		$numLines = count($sourceLines);
-		// add line numbers
-		foreach ($sourceLines as $index => $line)
-		{
-			$sourceLines[$index] = ($offset + $index + 1)  . ': ' . $line;
-		}
-	
-		$source = addPhpTags(join('', $sourceLines));
-		preg_match_all(';\$([[:alnum:]]+);', $source, $matches);
-		$variables = array_values(array_unique($matches[1]));
-		return array(
-			'start'		=> $offset + 1,
-			'end'		=> $offset + $numLines,
-			'source'	=> $source,
-			'variables'	=> $variables,
-		);
-	}
-
-	// }}}
-}
-
-class ErrorIterator /*extends Iterator*/
-{
-	// {{{ properties
-
-	var $errorList;
-
-	var $index;
-
-	// }}}
-	// {{{ __constructor()
-
-	function ErrorIterator(&$errorList)
-	{
-		$this->errorList =& $errorList;
-		$this->reset();
-	}
-	
-	// }}}
-	// {{{ reset()
-
-	function reset()
-	{
-		$this->index = 0;
-	}
-
-	// }}}
-	// {{{ next()
-
-	function next()
-	{
-		$this->index++;
-	}
-
-	// }}}
-	// {{{ isValid()
-
-	function isValid()
-	{
-		return ($this->index < $this->errorList->size());
-	}
-
-	// }}}
-	// {{{ getCurrent()
-
-	function &getCurrent()
-	{
-		return $this->errorList->get($this->index);
-	}
-	
-	// }}}
-}
-
-class ErrorReporter /*extends LoopManipulator*/
-{
-	// {{{ properties
-
-	var $errorList;
-
-	var $reports;
+    /**
+     * The available reporters
+     * @var array
+     */
+    var $reporters = array(
+            'mail'        => array('level' => 0, 'data' => null),
+            'file'        => array('level' => 0, 'data' => null),
+            'console'    => array('level' => 0, 'data' => null),
+            'stdout'    => array('level' => 0, 'data' => null),
+            'system'    => array('level' => 0, 'data' => null),
+            'redirect'  => array('level' => 0, 'data' => null),
+            'browser'   => array('level' => 0, 'data' => null));
   
-	var $contextLines;
+    /**
+     * The number of context lines to display
+     * @var int
+     */
+    var $contextLines = 5;
 
-	var $strictContext;
+    /**
+     * Should we only show variables that are in the context as defined
+     * by contextLines?
+     * @var bool
+     */
+    var $strictContext = true;
 
-	var $dateFormat;
+    /**
+     * The date format
+     * @var string
+     */
+    var $dateFormat = '[Y-m-d H:i:s]';
 
-	var $classExcludeList;
+    /**
+     * List of classes to exclude from the error dump
+     * @var array
+     */
+    var $classExcludeList = array();
 
-    var $excludeObjects;
+    /**
+     * Should objects be excluded from the context dumps?
+     * @var bool
+     */
+    var $excludeObjects = true;
 
-	// }}}
-	// {{{ __constructor
+    /**
+     * An array of templates used for displaying errors
+     * @var array
+     */
+    var $templates = array(
+            'message' => '<b>%date%</b> <span class="errorLevel">[%errorLevel%]</span> in %file% on line <span style="text-decoration: underline; padding-bottom: 1px; border-bottom: 1px solid black;">%line%</span>
+<div class="errorMessage">%errorMessage%</div>',
+            'variable' => '<div style="margin: 5px 5px 0 5px; font-weight: bold;">==> Variable scope report</div>
+<div style="margin: 0px 5px 5px 5px;">%variable%</div>',
+            'backtraceHeader' => '<div style="margin: 5px 5px 0 5px; font-weight: bold;">==> Backtrace</div>',
+            'backtrace' => '<div style="margin: 0px 5px 5px 5px;"><b>%num%</b>. Function %func% called on line %line% from %file%</div>',
+            'details' => '<div style="margin: 5px 5px 0 5px; font-weight: bold;">==> Source report from %file% around line %line% (%ctxStart% - %ctxEnd%)</div>
+<div style="margin: 0 5px 5px 5px; background-color: #eee; border: 1px dashed #000;">%source%</div>');
 
-	function ErrorReporter()
-	{
-		$this->errorList = array();
-		$this->reports = array(
-			'mail'		=> array('level' => 0, 'data' => null),
-			'file'		=> array('level' => 0, 'data' => null),
-			'console'	=> array('level' => 0, 'data' => null),
-			'stdout'	=> array('level' => 0, 'data' => null),
-			'system'	=> array('level' => 0, 'data' => null),
-			'redirect'  => array('level' => 0, 'data' => null),
-			'browser'   => array('level' => 0, 'data' => null),
-		);
+    // }}}
+    // {{{ __constructor()
 
-		$this->contextLines = 5;
-		$this->strictContext = true;
-		$this->classExcludeList = array();
-        $this->excludeObjects = true;
-	}
-	
-	// }}}
-	// {{{ setDateFormat()
-
-	function setDateFormat($format)
-	{
-		$this->dateFormat = $format;
-	}
-
-	// }}}
-	// {{{ setContextLines()
-
-	function setContextLines($lines)
-	{
-		$this->contextLines = intval($lines);
-	}
-
-	// }}}
-	// {{{ setStrictContext()
-
-	function setStrictContext($boolean)
-	{
-		$this->strictContext = $boolean ? true : false;
-	}
-
-	// }}}
-    // {{{ setExcludeObjects()
-
-    function setExcludeObjects()
+    function FF_ErrorHandler()
     {
-        if (gettype(func_get_arg(0)) == 'boolean')
-        {
-            $this->excludeObjects = func_get_arg(0);
+        error_reporting(E_ALL);
+        // Trick to fix broken set_error_handler() function in php
+        $GLOBALS['_o_error_reporter'] =& $this; 
+        trapError('_o_error_reporter');
+        set_error_handler('trapError');
+        register_shutdown_function(array(&$this, '__destructor'));
+    }
+    
+    // }}}
+    // {{{ __destructor()
+
+    function __destructor()
+    {
+        error_reporting(E_ALL ^ E_NOTICE);
+        // Process errors
+        foreach ($this->errorList as $a_error) {
+            $this->_processError($a_error);
         }
-        else
-        {
-		    $list = func_get_args();
-		    $this->classExcludeList = array_map('strtolower', $list);
+
+        // Handle those reporters that handle their errors as a batch
+        if (count($this->consoleErrors)) {
+            $a_errors =& $this->consoleErrors;
+            include 'error.tpl.php';
+        }
+
+        if (count($this->mailErrors)) {
+            $msg = implode(str_repeat('-=', 50) . "\n\n", $this->mailErrors);
+            @error_log($this->_cleanMessage($msg), MAIL_LOG, $this->reporters['mail']['data']);
         }
     }
 
     // }}}
-	// {{{ addReporter()
+    // {{{ setTemplate()
 
-	function addReporter($reporter, $level, $data = null)
-	{
-		$this->reports[$reporter] = array(
-			'level'	=> $level,
-			'data'	=> $data
-		); 
-	}
+    /**
+     * Sets one of the templates.
+     * 
+     * @param string $in_name The name of the template (message,
+     *        details, variable, backtrace, backtraceHeader)
+     * @param string $in_template The template string
+     *
+     * @access public
+     * @return void
+     */
+    function setTemplate($in_name, $in_template)
+    {
+        $this->templates[$in_name] = $in_template;
+    }
 
-	// }}}
-	// {{{ getMessage()
+    // }}}
+    // {{{ setDateFormat()
 
-	function getMessage(&$error)
-	{
-		$message = '<div style="display: none;">' . date($this->dateFormat) . ' </div>';
+    function setDateFormat($in_format)
+    {
+        $this->dateFormat = $in_format;
+    }
 
-		if ($error['level'] & E_ERROR_ALL)
-		{
-			$message .= '<span class="errorLevel">[error]</span>';
-		}
-		else if ($error['level'] & E_WARNING_ALL)
-		{
-			$message .= '<span class="errorLevel">[warning]</span>';
-		}
-		else if ($error['level'] & E_NOTICE_ALL)
-		{
-			$message .= '<span class="errorLevel">[notice]</span>';
-		}
-		else if ($error['level'] & E_DEBUG)
-		{
-			$message .= '<span class="errorLevel">[debug]</span>';
-		}
-		else if ($error['level'] & E_LOG)
-		{
-			$message .= '<span class="errorLevel">[log]</span>';
-		}
-		else
-		{
-			$message .= '<span class="errorLevel">[unknown]</span>';
-		}
+    // }}}
+    // {{{ setContextLines()
 
-		$message .= ' in ' . $error['file'] . ' on line <span style="text-decoration: underline; padding-bottom: 1px; border-bottom: 1px solid black;">' . $error['line'] . '</span> <div class="errorMessage">' . $error['message'] . '</div>' . "\n";
+    function setContextLines($in_lines)
+    {
+        $this->contextLines = intval($lines);
+    }
 
-		return $message;
-	}
+    // }}}
+    // {{{ setStrictContext()
 
-	// }}}
-    // {{{ getDetails()
+    function setStrictContext($bool)
+    {
+        $this->strictContext = $bool ? true : false;
+    }
+
+    // }}}
+    // {{{ setExcludeObjects()
+
+    /**
+     * A list of objects to exclude from the context error report.
+     * Arguments can be a list of classes or a boolean telling whether
+     * or not to exclude objects.
+     *
+     * @access public
+     * @return void
+     */
+    function setExcludeObjects()
+    {
+        if (gettype(func_get_arg(0)) == 'boolean') {
+            $this->excludeObjects = func_get_arg(0);
+        }
+        else {
+            $list = func_get_args();
+            $this->classExcludeList = array_map('strtolower', $list);
+        }
+    }
+
+    // }}}
+    // {{{ addReporter()
+
+    /**
+     * Adds a reporter.
+     *
+     * @param string $in_reporter The reporter name (must be one of the
+     *        valid reporters)
+     * @param int $in_level The debug level at which this reporter is
+     *        active.
+     * @param array $in_data (optional) An array of any needed data for
+     *        the reporter.
+     *
+     * @access public
+     * @return void
+     */
+    function addReporter($in_reporter, $in_level, $in_data = null)
+    {
+        $this->reporters[$in_reporter] = array('level' => $in_level, 'data' => $in_data); 
+    }
+
+    // }}}
+    // {{{ addError()
+
+    /**
+     * Adds an error to the stack
+     *
+     * @param array $in_error The error
+     *
+     * @access public
+     * @return void
+     */
+    function addError($in_error)
+    {
+        // rearrange for eval'd code or create function errors
+        if (preg_match(';^(.*?)\((\d+)\) : (.*?)$;', $in_error['file'], $matches))
+        {
+            $in_error['message'] .= ' on line ' . $in_error['line'] . ' in ' . $matches[3];
+            $in_error['file'] = $matches[1];
+            $in_error['line'] = $matches[2];
+        }
+
+        $in_error['date'] = date($this->dateFormat);
+        $in_error['context'] = $this->_getContext($in_error['file'], $in_error['line']);
+        if (function_exists('debug_backtrace')) {
+            $in_error['backtrace'] = debug_backtrace();
+        }
+        else {
+            $in_error['backtrace'] = array();
+        }
+
+        $this->errorList[] = $in_error;
+    }
+
+    // }}}
+    // {{{ debug()
+
+    /**
+     * Adds a debug error to the error stack.
+     *
+     * @param string $in_variable The variable to debug
+     * @param string $in_name (optional) The variable name
+     * @param int $in_line (optional) The line number
+     * @param string $in_file (optional) The file name
+     * @param int $in_level (optional) At what debug level to display the debug
+     *
+     * @access public
+     * @return void
+     */
+    function debug($in_variable, $in_name = '*variable*', $in_line = '*line*', $in_file = '*file*', $in_level = E_DEBUG)
+    {
+        $a_error = array('level' => intval($in_level), 'message' => 'user variable debug',
+            'file' => $in_file, 'line' => $in_line,
+            'variables' => array($in_name => $in_variable), 'signature' => mt_rand());
+        $this->addError($a_error);
+    }
+
+    // }}}
+    // {{{ _processError()
+
+    /**
+     * Processes an error for each reporter.
+     *
+     * @var array $in_error The error array
+     *
+     * @access private
+     * @return void
+     */
+    function _processError($in_error)
+    {
+        $message = $this->_getMessage($in_error);
+
+        // syslog
+        if ($this->reporters['system']['level'] & $in_error['level']) {
+            @error_log(str_replace("\n", '', strip_tags($message)) . "\n", SYSTEM_LOG);
+        }
+
+        // file
+        if ($this->reporters['file']['level'] & $in_error['level']) {
+            @error_log(str_replace("\n", ' ', strip_tags($message)) . "\n", FILE_LOG, $this->reporters['file']['data']);
+        }
+
+        // stdout
+        if ($this->reporters['stdout']['level'] & $in_error['level']) {
+            echo $this->_cleanMessage($message . $this->_getDetails($in_error));
+        }
+
+        // redirect
+        if ($this->reporters['redirect']['level'] & $in_error['level']) {
+            echo '<script type="text/javascript">window.location.href = \'' . $this->reporters['redirect']['data'] . '\';</script>';
+            exit;
+        }
+
+        // email
+        if ($this->reporters['mail']['level'] & $in_error['level']) {
+            $this->mailErrors[] = $message . $this->_getDetails($in_error);
+        }
+        
+        // browser
+        if ($this->reporters['browser']['level'] & $in_error['level']) {
+            echo $message . $this->_getDetails($in_error);
+        }
+
+        // console
+        if ($this->reporters['console']['level'] & $in_error['level']) {
+            $this->consoleErrors[] = $this->_makeStringJSSafe($message . $this->_getDetails($in_error));
+        }
+    }
+
+    // }}}
+    // {{{ _getMessage()
+
+    /**
+     * Gets the message for an error.
+     *
+     * @access private
+     * @return string The error message, formatted nicely.
+     */
+    function _getMessage($in_error)
+    {
+        if ($in_error['level'] & E_ERROR_ALL) {
+            $tmp_level = 'error';
+        }
+        elseif ($in_error['level'] & E_WARNING_ALL) {
+            $tmp_level = 'warning';
+        }
+        elseif ($in_error['level'] & E_NOTICE_ALL) {
+            $tmp_level = 'notice';
+        }
+        elseif ($in_error['level'] & E_DEBUG) {
+            $tmp_level = 'debug';
+        }
+        elseif ($in_error['level'] & E_LOG) {
+            $tmp_level = 'log';
+        }
+        else {
+            $tmp_level = 'unknown';
+        }
+
+        $s_message = $this->templates['message'];
+        $s_message = str_replace('%date%', $in_error['date'], $s_message);
+        $s_message = str_replace('%errorLevel%', $tmp_level, $s_message);
+        $s_message = str_replace('%file%', $in_error['file'], $s_message);
+        $s_message = str_replace('%line%', $in_error['line'], $s_message);
+        $s_message = str_replace('%errorMessage%', $in_error['message'], $s_message);
+        return $s_message;
+    }
+
+    // }}}
+    // {{{ _getDetails()
 
     /**
      * Gets the details of a message, such as the variable context
      *
-     * @param object $error The error object
+     * @param array $in_error The error array 
      *
      * @access public
      * @return string The html of any details of the error
      */
-    function getDetails(&$error)
+    function _getDetails($in_error)
     {
-        // :NOTE: dallen 2003/02/01 perhaps we can add an addition data option for error
-        // level which includes source and variable context
-        // :BUG: dallen 2003/02/03 this should be a class specification
-        $output = '<div style="margin: 5px 5px 0 5px; font-family: sans-serif; font-size: 10px;">';
-        $output .= '==> Source report from ' . $error['file'] . ' around line ' . $error['line'];
-        $output .= ' (' . $error['context']['start'] . '-' . $error['context']['end'] . ')</div>';
-        $output .= '<div style="margin: 0 5px 5px 5px; background-color: #EEEEEE; border: 1px dashed #000000;">';
-        $output .= str_replace('  ', '&nbsp; ', str_replace('&nbsp;', ' ', @highlight_string(stripslashes($error['context']['source']), true)));
-        $output .= '</div>';
-        $variables = $this->_exportVariables($error['variables'], $error['context']['variables']);
-        if ($variables !== false)
-        {
+        $s_message = $this->templates['details'];
+        $s_message = str_replace('%file%', $in_error['file'], $s_message);
+        $s_message = str_replace('%line%', $in_error['line'], $s_message);
+        $s_message = str_replace('%ctxStart%', $in_error['context']['start'], $s_message);
+        $s_message = str_replace('%ctxEnd%', $in_error['context']['end'], $s_message);
+        $s_message = str_replace('%source%', str_replace('  ', '&nbsp; ', str_replace('&nbsp;', ' ', @highlight_string(stripslashes($in_error['context']['source']), true))), $s_message);
+        $s_message .= $this->_getBacktrace($in_error);
+        $variables = $this->_exportVariables($in_error['variables'], $in_error['context']['variables'], $in_error['level']);
+        if ($variables !== false) {
             $variables = @highlight_string(stripslashes('<?php' . $variables . '?>'), true);
             // strip the php tags
             $variables = preg_replace(':(&lt;\?php(<br />)*|\?&gt;):', '', $variables);
-            // :BUG: dallen 2003/02/03 this should be a class specification
-            $output .= '<div style="margin: 5px 5px 0 5px; font-family: sans-serif; font-size: 10px;">';
-            $output .= '==> Variable scope report</div>';
-            $output .= '<div style="margin: 0px 5px 5px 5px;">' . $variables . '</div>';
+            $s_message .= str_replace('%variable%', $variables, $this->templates['variable']);
         }
         
-        return $output;
+        return $s_message;
     }
 
     // }}}
-	// {{{ prepare()
+    // {{{ _getBacktrace()
 
-	function prepare()
-	{
-	}
+    /**
+     * Gets the backtrace details of the error.
+     *
+     * @param array $in_error The error
+     *
+     * @access private
+     * @return string The backtrace list.
+     */
+    function _getBacktrace($in_error)
+    {
+        // First two are always from the error handler.
+        @array_shift($in_error['backtrace']);
+        @array_shift($in_error['backtrace']);
+        $s_message = '';
+        if (count($in_error['backtrace'])) {
+            $in_error['backtrace'] = array_reverse($in_error['backtrace']);
+            $s_message = $this->templates['backtraceHeader'] . "\n";
+            foreach ($in_error['backtrace'] as $k => $a_trace) {
+                if (isset($a_trace['class'])) {
+                    $a_trace['function'] = $a_trace['class'] . $a_trace['type'] . $a_trace['function'];
+                }
 
-	// }}}
-	// {{{ current()
+                $a_trace['function'] = '<span style="color: #0000cc;">' . $a_trace['function'] . '</span>';
+                $a_trace['function'] .= '<span style="color: #006600;">(</span>';
+                $a_trace['function'] .= isset($a_trace['args']) ? '<span style="color: #cc0000;">' . implode('</span>, <span style="color: #cc0000;">', $a_trace['args']) . '</span>' : '';
+                $a_trace['function'] .= '<span style="color: #006600;">)</span>';
 
-	function current(&$error, $index)
-	{
-		$message = $this->getMessage($error);
+                $a_replace = array('%num%' => $k + 1, '%func%' => $a_trace['function'], 
+                        '%line%' => $a_trace['line'], '%file%' => $a_trace['file']);
+                $s_message .= str_replace(array_keys($a_replace), $a_replace, $this->templates['backtrace']) . "\n";
+            }
 
-		// syslog
-		if ($this->reports['system']['level'] & $error['level'])
-		{
-			@error_log(strip_tags($message), SYSTEM_LOG);
-		}
+            $s_message .= "\n";
+        }
 
-		// file
-		if ($this->reports['file']['level'] & $error['level'])
-		{
-			@error_log(strip_tags($message), FILE_LOG, $this->reports['file']['data']);
-		}
+        return $s_message;
+    }
 
-		// email
-		if ($this->reports['mail']['level'] & $error['level'])
-		{
-			@error_log(strip_tags($message), MAIL_LOG, $this->reports['mail']['data']);
-		}
-		
-		// redirect
-		if ($this->reports['redirect']['level'] & $error['level'])
-		{
-			echo '<script type="text/javascript">window.location.href = \'' . $this->reports['redirect']['data'] . '\';</script>';
-			exit;
-		}
+    // }}}
+    // {{{ _getContext()
 
-		// stdout
-		if ($this->reports['stdout']['level'] & $error['level'])
-		{
-			echo strip_tags($message);
-		}
+    function _getContext($file, $line)
+    {
+        if (!@is_readable($file)) {
+            return array('start' => 0, 'end' => 0, 'source' => '', 'variables' => array());
+        }
 
-		// browser
-		if ($this->reports['browser']['level'] & $error['level'])
-		{
-			echo $message . $this->getDetails($error);
-		}
+        $fp = fopen($file, 'r');
+        $start = max($line - $this->contextLines, 0);
+        $end = $line + $this->contextLines;
+        $lineNum = 0;
+        $source = '';
+        // Get context lines
+        while ($lineNum < $end) {
+            $lineNum++;
+            if ($lineNum < $start) {
+                fgets($fp, 4096);
+            }
+            else {
+                $data = fgets($fp, 4096);
+                if (feof($fp)) {
+                    break;
+                }
 
-		// console
-		if ($this->reports['console']['level'] & $error['level'])
-		{
-			$this->errorList[$index + 1] = $this->_makeStringJSSafe($message . $this->getDetails($error));
-		}
-	}
+                $source .= $lineNum . ': ' . $data; 
+            }
+        }
 
-	// }}}
-	// {{{ between()
+        fclose($fp);
+        $source = $this->_addPhpTags($source);
+        preg_match_all(';\$([[:alnum:]_]+);', $source, $matches);
+        $variables = array_values(array_unique($matches[1]));
+        return array('start' => $start + 1, 'end' => $lineNum,
+            'source' => $source, 'variables' => $variables);
+    }
 
-	function between()
-	{
-	}
-
-	// }}}
-	// {{{ finish()
-
-	function finish()
-	{
-		$errors =& $this->errorList;
-		include 'error.tpl.php';
-	}
-
-	// }}}
+    // }}}
     // {{{ _makeStringJSSafe()
 
     /**
@@ -581,129 +527,221 @@ class ErrorReporter /*extends LoopManipulator*/
     }
 
     // }}}
-	// {{{ _exportVariables()
+    // {{{ _exportVariables()
 
-	function _exportVariables(&$variables, $contextVariables)
-	{
-		$variableString = '';
-		foreach ($variables as $name => $contents)
-		{
-			// if we are using strict context and this variable is not in the context, skip it
-			if ($this->strictContext && !in_array($name, $contextVariables))
-			{
-				continue;
-			}
+    function _exportVariables(&$variables, $contextVariables, $level)
+    {
+        $variableString = '';
+        foreach ($variables as $name => $contents) {
+            // If we are using strict context and this variable is not in the context, skip it
+            // When debugging always show the variable (this allows us to catch constants)
+            if (!($level & E_DEBUG) && $this->strictContext && !in_array($name, $contextVariables)) {
+                continue;
+            }
 
-			// if this is an object and the class is in the exclude list, skip it
-			if (is_object($contents) && in_array(get_class($contents), $this->classExcludeList))
-			{
-				continue;
-			}
+            // if this is an object and the class is in the exclude list, skip it
+            if (is_object($contents) && in_array(get_class($contents), $this->classExcludeList)) {
+                continue;
+            }
 
-			$variableString .= '$' . $name . ' = ' . var_export2($contents, true) . ';' . "\n";
-		}
+            $variableString .= '$' . $name . ' = ' . $this->_var_export($contents) . ';' . "\n";
+        }
 
-		if (empty($variableString))
-		{
-			return false;
-		}
-		else
-		{
-			return "\n" . $variableString;
-		}
-	}
+        if (empty($variableString)) {
+            return false;
+        }
+        else {
+            return "\n" . $variableString;
+        }
+    }
 
-	// }}}
+    // }}}
+    // {{{ _strrpos2() 
+
+    function _strrpos2($string, $needle, $offset = 0)
+    {
+        $addLen = strlen($needle);
+        $endPos = $offset - $addLen;
+
+        while (1) {
+            if (($newPos = strpos($string, $needle, $endPos + $addLen)) === false) {
+                break;
+            }
+
+            $endPos = $newPos;
+        }
+
+        return ($endPos >= 0) ? $endPos : false;
+    }
+
+    // }}}
+    // {{{ _addPhpTags()
+
+    function _addPhpTags($source)
+    {
+        $startTag  = '<?php';
+        $endTag = '?>';
+
+        $firstStartPos  = ($pos = strpos($source, $startTag)) !== false ? $pos : -1;
+        $firstEndPos = ($pos = strpos($source, $endTag)) !== false ? $pos : -1;
+        
+        // no tags found then it must be solid php since html can't throw a php error
+        if ($firstStartPos < 0 && $firstEndPos < 0) {
+            return $startTag . "\n" . $source . "\n" . $endTag;
+        }
+
+        // found an end tag first, so we are missing a start tag
+        if ($firstEndPos >= 0 && ($firstStartPos < 0 || $firstStartPos > $firstEndPos)) {
+            $source = $startTag . "\n" . $source;
+        }
+
+        $sourceLength = strlen($source);
+        $lastStartPos  = ($pos = $this->_strrpos2($source, $startTag)) !== false ? $pos : $sourceLength + 1;
+        $lastEndPos  = ($pos = $this->_strrpos2($source, $endTag)) !== false ? $pos : $sourceLength + 1;
+
+        // See if we need to add an end tag
+        if ($lastEndPos < $lastStartPos || ($lastEndPos > $lastStartPos && $lastEndPos > $sourceLength)) {
+            $source .= $endTag;
+        }
+
+        return $source;
+    }
+
+    // }}}
+    // {{{ _var_export()
+
+    function &_var_export(&$variable, $arrayIndent = '', $inArray = false, $level = 0)
+    {
+        static $maxLevels = 0, $followObjectReferences = false;
+        if ($inArray != false) {
+            $leadingSpace = '';
+            $trailingSpace = ',' . "\n";
+        }
+        else {
+            $leadingSpace = $arrayIndent;
+            $trailingSpace = '';
+        }
+
+        $result = '';
+        switch (gettype($variable)) {
+            case 'object':
+                if ($inArray && !$followObjectReferences) {
+                    $result = '*OBJECT REFERENCE*';
+                    $trailingSpace = "\n";
+                    break;
+                }
+            case 'array':
+                if ($maxLevels && $level >= $maxLevels) {
+                    $result = '** truncated, too much recursion **';
+                }
+                else {
+                    $result = "\n" . $arrayIndent . 'array (' . "\n";
+                    foreach ($variable as $key => $value) {
+                        $result .= $arrayIndent . '  ' . (is_int($key) ? $key : ('\'' . str_replace('\'', '\\\'', $key) . '\'')) . ' => ' . $this->_var_export($value, $arrayIndent . '  ', true, $level + 1);
+                     }
+
+                    $result .= $arrayIndent . ')';
+                }
+            break;
+            case 'string':
+                $result = '\'' . str_replace('\'', '\\\'', $variable) . '\'';
+            break;
+            case 'boolean':
+                $result = $variable ? 'true' : 'false';
+            break;
+            case 'NULL':
+                $result = 'NULL';
+            break;
+            case 'resource':
+                $result = get_resource_type($variable);
+            break;
+            default:
+                $result = $variable;
+            break;
+        }
+
+        return $leadingSpace . $result . $trailingSpace;
+    }
+
+    // }}}
+    // {{{ _cleanMessage()
+
+    function _cleanMessage($in_msg)
+    {
+        $in_msg = str_replace('<br />', "\n", $in_msg);
+        $in_msg = str_replace('&nbsp;', ' ', $in_msg);
+        $in_msg = strip_tags($in_msg);
+        $in_msg = str_replace(get_html_translation_table(HTML_ENTITIES), array_keys(get_html_translation_table(HTML_ENTITIES)), $in_msg);
+        return $in_msg;
+    }
+
+    // }}}
 }
 
 // {{{ trapError()
 
 function trapError()
 {
-	static $variable, $signatures = array();
+    static $variable, $signatures = array();
 
-	if (!isset($prependString) || !isset($appendString))
-	{
-		$prependString = ini_get('error_prepend_string');
-		$appendString = ini_get('error_append_string');
-	}
+    if (!isset($prependString) || !isset($appendString)) {
+        $prependString = ini_get('error_prepend_string');
+        $appendString = ini_get('error_append_string');
+    }
 
-	// error event has been caught
-	if (func_num_args() == 5)
-	{
-		// silenced error (using @)
-		if (error_reporting() == 0)
-		{
-			return;
-		}
-		
-		$args = func_get_args();
+    // error event has been caught
+    if (func_num_args() == 5) {
+        // silenced error (using @)
+        if (error_reporting() == 0) {
+            return;
+        }
+        
+        $args = func_get_args();
 
-		// weed out duplicate errors (coming from same line and file)
-		$signature = md5($args[1] . ':' . $args[2] . ':' . $args[3]);
-		if (isset($signatures[$signature]))
-		{
-			return;
-		}
-		else
-		{
-			$signatures[$signature] = true;
-		}
+        // Weed out duplicate errors (coming from same line and file)
+        $signature = md5($args[1] . ':' . $args[2] . ':' . $args[3]);
+        if (isset($signatures[$signature])) {
+            return;
+        }
+        else {
+            $signatures[$signature] = true;
+        }
 
-		// cut out the fat from the variable context (we get back a lot of junk)
-		$variables =& $args[4];
-		$variablesFiltered = array();
-        $excludeObjects = $GLOBALS[$variable]->reporter->excludeObjects;
-		foreach (array_keys($variables) as $variableName)
-		{
-			// these are server variables most likely
-			if ($variableName == strtoupper($variableName))
-			{
-				continue;
-			}
-			elseif ($variableName{0} == '_')
-			{
-				continue;
-			}
-			elseif ($variableName == 'argv' || $variableName == 'argc')
-			{
-				continue;
-			}
-            elseif ($excludeObjects && gettype($variables[$variableName]) == 'object')
-            {
+        // Cut out the fat from the variable context (we get back a lot of junk)
+        $variables =& $args[4];
+        $variablesFiltered = array();
+        $excludeObjects = $GLOBALS[$variable]->excludeObjects;
+        foreach (array_keys($variables) as $variableName) {
+            // These are server variables most likely
+            if ($variableName == strtoupper($variableName) ||
+                // Private/Super-Global vars
+                $variableName{0} == '_' ||
+                // Passed in vars
+                $variableName == 'argv' || $variableName == 'argc' ||
+                // See if objects should be excluded
+                ($GLOBALS[$variable]->excludeObjects && gettype($variables[$variableName]) == 'object') ||
+                // Don't allow instance of errorstack to come through
+                is_a($variables[$variableName], 'FF_ErrorHandler')) {
                 continue;
             }
-			// don't allow instance of errorstack to come through
-			elseif (is_a($variables[$variableName], 'ErrorList') ||
-					is_a($variables[$variableName], 'ErrorReporter'))
-			{
-				continue;
-			}
-			
-			// :WARNING: dallen 2003/01/31 This could lead to a memory leak,
-			// maybe only copy up to a certain size
-			// make a copy to preserver the state at time of error
-			$variablesFiltered[$variableName] = $variables[$variableName];
-		}
+            
+            // Make a copy to preserve the state at time of error
+            $variablesFiltered[$variableName] = $variables[$variableName];
+        }
 
-		$error = array(
-			'level'		=> $args[0],
-			'message'	=> $prependString . $args[1] . $appendString,
-			'file'		=> $args[2],
-			'line'		=> $args[3],
-			'variables'	=> $variablesFiltered,
-			'signature'	=> $signature,
-		);
-
-		$GLOBALS[$variable]->add($error);
-	}
-	elseif (func_num_args() == 1)
-	{
-		$variable = func_get_arg(0);
-	}
-	else {
-		return $variable;
-	}
+        $a_error = array('level' => $args[0],
+            'message' => $prependString . $args[1] . $appendString,
+            'file' => $args[2], 'line' => $args[3],
+            'variables' => $variablesFiltered, 'signature' => $signature);
+        $GLOBALS[$variable]->addError($a_error);
+    }
+    // If only one arg this is the initialization of this function
+    elseif (func_num_args() == 1) {
+        $variable = func_get_arg(0);
+    }
+    else {
+        return $variable;
+    }
 }
 
 // }}}

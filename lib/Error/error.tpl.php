@@ -1,7 +1,3 @@
-<?php
-if (count($errors))
-{
-?>
 <script type="text/javascript">
 function showErrors()
 {
@@ -12,9 +8,9 @@ function showErrors()
     errorWindow.document.writeln('<script>function errorJump(index, offset) { if (element = document.getElementById(\'error\' + (index + offset))) { window.scrollTo(0, element.offsetTop); } return void(0); }</scr' + 'ipt>');
     errorWindow.document.writeln('</head><body>');
     <?php
-    foreach ($errors as $index => $error) {
+    foreach ($a_errors as $k => $message) {
     ?>
-    errorWindow.document.writeln('<div id="error<?php echo $index; ?>" style="float: right;">Error Number: <?php echo $index; ?> | <a href="javascript: errorJump(<?php echo $index; ?>, -1);">prev</a> | <a href="javascript: errorJump(<?php echo $index; ?>, 1);">next</a></div><?php echo $error; ?><div style="height: 1px; line-height: 1px; background-color: black; border: 0; margin-bottom: 5px;"><br /></div>');
+    errorWindow.document.writeln('<div id="error<?php echo $k + 1; ?>" style="float: right;">Error Number: <?php echo $k + 1; ?> | <a href="javascript: errorJump(<?php echo $k + 1; ?>, -1);">prev</a> | <a href="javascript: errorJump(<?php echo $k + 1; ?>, 1);">next</a></div><?php echo $message; ?><div style="height: 1px; line-height: 1px; background-color: black; border: 0; margin-bottom: 5px;"><br /></div>');
     <?php
     }
     ?>
@@ -24,6 +20,3 @@ function showErrors()
 }
 </script>
 <div style="position: fixed; right: 5px; bottom: 5px;"><img src="./graphics/general/core.png" style="cursor: pointer; cursor: hand;" onclick="return showErrors();" title="Error Reporter" alt="Error Reporter" /></div>
-<?php
-}
-?>
