@@ -1,5 +1,5 @@
 <?php
-/** $Id: Perms.php,v 1.9 2003/04/02 00:09:01 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -94,14 +94,12 @@ class FF_Perms {
     function &factory()
     {
         static $a_instances;
-        if (!isset($a_instances)) {
-            $a_instances = array();
-        }
+        settype($a_instances, 'array');
 
         $o_registry =& FF_Registry::singleton();
         $s_type = $o_registry->getConfigParam('perms/source');
         $s_userId = FF_Auth::getCredential('userId');
-        if (!isset($a_instances[$s_type]) && !isset($a_instances[$s_type][$s_userId])) {
+        if (!isset($a_instances[$s_type]) || !isset($a_instances[$s_type][$s_userId])) {
             // the dummy type is just an instance of this class whose methods will
             // allow all users to do everything 
             if ($s_type == 'dummy') { 
@@ -109,7 +107,6 @@ class FF_Perms {
             } 
             // use the model class from the permissions app to tell us info about perms
             elseif ($s_type == 'permissions_app') {
-                $s_class = 'ff_perms_' . $s_type;
                 require_once $o_registry->getAppFile('Model/Perms.php', 'permissions', 'libs');
                 $a_instances[$s_type][$s_userId] =& new FF_Perms_PermissionsApp($s_userId);
             } 

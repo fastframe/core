@@ -127,6 +127,25 @@ class FF_ActionHandler {
      */
     var $availableActions;
 
+    /**
+     * The array of the default available actions
+     * @type array
+     */
+    var $defaultActions = array(
+        ACTION_PROBLEM    => array('Action/Problem.php', 'FF_Action_Problem'),
+        ACTION_ADD        => array('Action/Form.php', 'FF_Action_Form'),
+        ACTION_ADD_SUBMIT => array('Action/FormSubmit.php', 'FF_Action_FormSubmit'),
+        ACTION_EDIT       => array('Action/Form.php', 'FF_Action_Form'),
+        ACTION_EDIT_SUBMIT=> array('Action/FormSubmit.php', 'FF_Action_FormSubmit'),
+        ACTION_DELETE     => array('Action/Delete.php', 'FF_Action_Delete'),
+        ACTION_LIST       => array('Action/List.php', 'FF_Action_List'),
+        ACTION_LOGIN      => array('Action/Login.php', 'FF_Action_Login'),
+        ACTION_LOGIN_SUBMIT=> array('Action/LoginSubmit.php', 'FF_Action_LoginSubmit'),
+        ACTION_LOGOUT     => array('Action/Logout.php', 'FF_Action_Logout'),
+        ACTION_DISPLAY    => array('Action/Display.php', 'FF_Action_Display'),
+        ACTION_TREE       => array('Action/Tree.php', 'FF_Action_Tree'),
+    );
+
     // }}}
     // {{{ constructor
 
@@ -143,16 +162,7 @@ class FF_ActionHandler {
         $this->setActionId(FastFrame::getCGIParam('actionId', 'gp'));
         $this->setModuleId(FastFrame::getCGIParam('module', 'gp'));
         $this->setAppId(FastFrame::getCGIParam('app', 'gp'));
-        if (empty($this->appId)) {
-            $this->appId = $this->o_registry->getConfigParam('general/initial_app', 'login');
-        }
-
-        $this->o_registry->pushApp($this->appId);
-
-        if (empty($this->moduleId) ) {
-            $this->moduleId = $this->o_registry->getConfigParam('general/initial_module');
-        }
-
+        $this->_makeDefaultPathsAbsolute();
         FF_Auth::sessionStart();
         $this->_checkProfile();
         $o_output =& FF_Output::singleton();
@@ -172,21 +182,11 @@ class FF_ActionHandler {
      */
     function takeAction()
     {
-        $this->loadActions($this->appId, $this->moduleId);
-        if (empty($this->actionId) ||
-            !isset($this->availableActions[$this->actionId])) {
-            if (isset($this->availableActions[$this->defaultActionId])) {
-                $this->setActionId($this->defaultActionId);
-            }
-            else {
-                $this->setActionId(ACTION_PROBLEM);
-            }
-        }
-
         $hitLastAction = false;
         while (!$hitLastAction) {
-            $this->loadActions($this->appId, $this->moduleId);
+            $this->loadActions();
             $this->checkAuth();
+            $this->_checkActionId();
             $pth_actionFile = $this->availableActions[$this->actionId][0];
             if (file_exists($pth_actionFile)) {
                 require_once $pth_actionFile;
@@ -198,11 +198,11 @@ class FF_ActionHandler {
                 }
                 else {
                     $this->setActionId($o_nextAction->getNextActionId());
-                    if ($o_nextAction->getNextAppId()) {
+                    if (!is_null($o_nextAction->getNextAppId())) {
                         $this->setAppId($o_nextAction->getNextAppId());
                     }
 
-                    if ($o_nextAction->getNextModuleId()) {
+                    if (!is_null($o_nextAction->getNextModuleId())) {
                         $this->setModuleId($o_nextAction->getNextModuleId());
                     }
                 }
@@ -219,56 +219,46 @@ class FF_ActionHandler {
 
     /**
      * Adds/modifies an available action and registers the necessary class filees.
-     * 
-     * @param string $in_actionId The action id 
-     * @param string $in_classFile The path to the class file for this action
-     * @param string $in_className The name of the class for this action
      *
      * @access public
      * @return void
      */
-    function loadActions($in_app, $in_module)
+    function loadActions()
     {
         static $a_configObjects, $s_lastApp, $s_lastModule;
-        if (!isset($a_configObjects)) {
-            $a_configObjects = array();
+        settype($a_configObjects, 'array');
+        if (empty($this->appId)) {
+            $this->appId = $this->o_registry->getConfigParam('general/initial_app', 'login');
+        }
+
+        if ($s_lastApp != $this->appId) {
+            $this->o_registry->pushApp($this->appId);
+        }
+
+        if (empty($this->moduleId) ) {
+            $this->moduleId = $this->o_registry->getConfigParam('general/initial_module');
         }
 
         // no need to reload if not changing module and app 
-        if ($s_lastApp == $in_app && $s_lastModule == $in_module) {
+        if ($s_lastApp == $this->appId && $s_lastModule == $this->moduleId) {
             return;
         }
 
-        $s_lastApp = $in_app;
-        $s_lastModule = $in_module;
-        $s_className = 'FF_ActionHandlerConfig_' . $in_module;
+        $s_lastApp = $this->appId;
+        $s_lastModule = $this->moduleId;
+        $s_className = 'FF_ActionHandlerConfig_' . $this->moduleId;
         if (!isset($a_configObjects[$s_className])) {
-            $pth_config= $this->o_registry->getAppFile("ActionHandler/$in_module.php", $in_app, 'libs'); 
+            $pth_config= $this->o_registry->getAppFile("ActionHandler/$this->moduleId.php", $this->appId, 'libs'); 
             if (file_exists($pth_config)) {
                 require_once $pth_config;
                 $a_configObjects[$s_className] =& new $s_className($this);
             }
             else {
-                FastFrame::fatal("The class file for Module $in_module ($pth_config) does not exist", __FILE__, __LINE__); 
+                FastFrame::fatal("The class file for Module $this->moduleId ($pth_config) does not exist", __FILE__, __LINE__); 
             }
         }
 
-        $this->defaultActionId = '';
-        $this->availableActions = array(
-            ACTION_PROBLEM    => array('Action/Problem.php', 'FF_Action_Problem'),
-            ACTION_ADD        => array('Action/Form.php', 'FF_Action_Form'),
-            ACTION_ADD_SUBMIT => array('Action/FormSubmit.php', 'FF_Action_FormSubmit'),
-            ACTION_EDIT       => array('Action/Form.php', 'FF_Action_Form'),
-            ACTION_EDIT_SUBMIT=> array('Action/FormSubmit.php', 'FF_Action_FormSubmit'),
-            ACTION_DELETE     => array('Action/Delete.php', 'FF_Action_Delete'),
-            ACTION_LIST       => array('Action/List.php', 'FF_Action_List'),
-            ACTION_LOGIN      => array('Action/Login.php', 'FF_Action_Login'),
-            ACTION_LOGIN_SUBMIT=> array('Action/LoginSubmit.php', 'FF_Action_LoginSubmit'),
-            ACTION_LOGOUT     => array('Action/Logout.php', 'FF_Action_Logout'),
-            ACTION_DISPLAY    => array('Action/Display.php', 'FF_Action_Display'),
-            ACTION_TREE       => array('Action/Tree.php', 'FF_Action_Tree'),
-        );
-        $this->_makeActionPathsAbsolute();
+        $this->availableActions = $this->defaultActions;
         $this->moduleConfig =& $a_configObjects[$s_className];
         $this->moduleConfig->loadConfig();
     }
@@ -453,20 +443,42 @@ class FF_ActionHandler {
     }
 
     // }}}
-    // {{{ _makeActionPathsAbsolute()
+    // {{{ _checkActionId()
 
     /**
-     * Fixes the action paths so that they are absolute paths
+     * Verifies that the actionId is a valid one
      *
      * @access private
      * @return void
      */
-    function _makeActionPathsAbsolute()
+    function _checkActionId()
+    {
+        if (empty($this->actionId) ||
+            !isset($this->availableActions[$this->actionId])) {
+            if (isset($this->availableActions[$this->defaultActionId])) {
+                $this->setActionId($this->defaultActionId);
+            }
+            else {
+                $this->setActionId(ACTION_PROBLEM);
+            }
+        }
+    }
+
+    // }}}
+    // {{{ _makeDefaultPathsAbsolute()
+
+    /**
+     * Fixes the default action paths so that they are absolute paths
+     *
+     * @access private
+     * @return void
+     */
+    function _makeDefaultPathsAbsolute()
     {
         $s_path = dirname(__FILE__) . '/';
-        foreach ($this->availableActions as $s_action => $a_vals) {
+        foreach ($this->defaultActions as $s_action => $a_vals) {
             if (strpos($a_vals[0], '/') !== 0) {
-                $this->availableActions[$s_action][0] = $s_path . $a_vals[0];
+                $this->defaultActions[$s_action][0] = $s_path . $a_vals[0];
             }
         }
     }

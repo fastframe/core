@@ -89,7 +89,7 @@ class FF_NextAction{
     function setNextAppId($in_appId)
     {
         $this->lastAction = false;
-        $this->nextAppId = $in_appid;
+        $this->nextAppId = $in_appId;
     }
 
     // }}}
