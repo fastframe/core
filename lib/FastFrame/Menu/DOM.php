@@ -1,5 +1,5 @@
 <?php
-/** $Id: DOM.php,v 1.1 2003/01/15 01:04:50 jrust Exp $ */
+/** $Id: DOM.php,v 1.2 2003/02/06 18:58:38 jrust Exp $ */
 // {{{ class FastFrame_Menu_DOM
 
 /**
@@ -17,15 +17,6 @@
 
 // }}}
 class FastFrame_Menu_DOM extends FastFrame_Menu {
-    // {{{ properties
-
-    /**
-     * FastFrame_HTML instance
-     * @var object $FastFrame_HTML
-     */
-    var $FastFrame_HTML;
-
-    // }}}
     // {{{ constructor()
 
     /**
@@ -36,7 +27,6 @@ class FastFrame_Menu_DOM extends FastFrame_Menu {
      */
     function FastFrame_Menu_DOM()
     {
-        $this->FastFrame_HTML =& FastFrame_HTML::singleton();
         parent::FastFrame_Menu();
     }
 
@@ -55,12 +45,12 @@ class FastFrame_Menu_DOM extends FastFrame_Menu {
         // generate javascript menu vars
         $s_jsMenuVars = $this->_generate_menu_vars();
         // turn on menu
-        $this->FastFrame_HTML->touchBlock('switch_menu');
+        $this->o_output->touchBlock('switch_menu');
         // load menu js
-        $this->FastFrame_HTML->assignBlockData(
+        $this->o_output->assignBlockData(
             array(
-                'T_javascript' => '<script type="text/javascript" src="' . $this->FastFrame_Registry->getRootFile('domMenu.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" .
-                                  '<script type="text/javascript" src="' . $this->FastFrame_Registry->getRootFile('domMenu_items.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" .
+                'T_javascript' => '<script type="text/javascript" src="' . $this->o_registry->getRootFile('domMenu.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" .
+                                  '<script type="text/javascript" src="' . $this->o_registry->getRootFile('domMenu_items.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" .
                                   '<script type="text/javascript">' . $s_jsMenuVars . '</script>',
             ),
             'javascript'
@@ -137,7 +127,7 @@ class FastFrame_Menu_DOM extends FastFrame_Menu {
         // then we check if there are any other nodes to recurse into
         $tmp_contents = isset($in_data['contents']) ? addcslashes($in_data['contents'], '\'') : '';
         $tmp_status = isset($in_data['statusText']) ? $in_data['statusText'] : $tmp_contents;
-        $tmp_icon = isset($in_data['icon']) ? addcslashes($this->FastFrame_HTML->imgTag($in_data['icon'], 'none'), '\'') . ' ' : '';
+        $tmp_icon = isset($in_data['icon']) ? addcslashes($this->o_output->imgTag($in_data['icon'], 'none'), '\'') . ' ' : '';
         $tmp_contents = $tmp_icon . $tmp_status;
         $tmp_target = isset($in_data['target']) ? $in_data['target'] : '_self';
         $tmp_uri = $this->_get_link_URL($in_data['urlParams']);
