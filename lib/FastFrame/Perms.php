@@ -65,7 +65,7 @@ class FF_Perms {
      * The array of super users defined in the config file
      * @var array 
      */
-    var $superUsers;
+    var $superUsers = array();
 
 
     // }}}
@@ -177,8 +177,7 @@ class FF_Perms {
      */
     function setSuperUsers()
     {
-        $o_registry =& FF_Registry::singleton();
-        $this->superUsers = (array) $o_registry->getConfigParam('perms/superusers', array(), array('app' => 'permissions'));
+        // interface
     }
 
     // }}}
