@@ -1,5 +1,5 @@
 <?php
-/** $Id: Output.php,v 1.6 2003/03/19 00:36:01 jrust Exp $ */
+/** $Id: Output.php,v 1.7 2003/04/02 00:08:20 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -86,6 +86,18 @@ class FF_Output extends FF_Template {
      */
     var $pageType = 'normal';
 
+    /**
+     * The theme setting
+     * @type string
+     */
+    var $theme;
+
+    /**
+     * The array of messages
+     * @type array
+     */
+    var $messages = array();
+
     // }}}
     // {{{ constructor
 
@@ -98,51 +110,6 @@ class FF_Output extends FF_Template {
     function FF_Output()
     {
         $this->o_registry =& FF_Registry::singleton();
-
-        $s_directory = $this->o_registry->getRootFile($this->o_registry->getUserParam('theme'), 'themes');
-        // make sure the main template exists
-        if (PEAR::isError($s_directory) || !is_readable($s_directory . '/overall.tpl')) {
-            $tmp_error = PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_ERROR, "The main template file $s_directory/overall.tpl is not readable", 'FF_Error', true);
-            FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
-        }
-
-        // now that we have the template directory, we can initialize the template engine
-        parent::FF_Template($s_directory);
-        $this->load('overall.tpl', 'file');
-
-        // create CSS
-        $this->renderCSS();
-
-        // some things are on for all page types
-        $this->assignBlockData(
-            array(
-                'COPYWRITE' => 'Copywrite &#169; 2002 CodeJanitor.com',
-                'CONTENT_ENCODING' => $this->o_registry->getConfigParam('general/charset', 'ISO-8559-1'),
-                'U_SHORTCUT_ICON' => $this->o_registry->getConfigParam('general/favicon'),
-                'CANVAS_WIDTH' => '100%',
-            ),
-            FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
-            false
-        );
-
-        // include some common js
-        $this->assignBlockData(
-            array(
-                'T_javascript' => '<script language="Javascript" src="' . $this->o_registry->getRootFile('domTT.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" .
-                                  '<script language="Javascript" src="' . $this->o_registry->getRootFile('core.lib.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>',
-            ),
-            'javascript'
-        );
-
-        // Always want this block touched because it is a wrapper for field & content cells.
-        // It is in the template so we can do this: field cell | content cell | field cell | content cell...
-        $this->makeBlockPersistent('table_cell_group');
-
-        // always turn on main content
-        $this->touchBlock('content_middle');
-
-        // initialize menu to default type
-        $this->setMenuType($this->o_registry->getConfigParam('menu/type'));
     }
 
     // }}}
@@ -168,6 +135,51 @@ class FF_Output extends FF_Template {
     }
 
     // }}}
+    // {{{ load()
+
+    /**
+     * Loads in the template file and registers default blocks
+     *
+     * @param string $in_theme The theme to use
+     *
+     * @access public
+     * @return void
+     */
+    function load($in_theme)
+    {
+        $this->theme = $in_theme;
+        $s_directory = $this->o_registry->getRootFile($this->theme, 'themes');
+        // make sure the main template exists
+        if (!is_readable($s_directory . '/overall.tpl')) {
+            FastFrame::fatal("The main template file $s_directory/overall.tpl is not readable", __FILE__, __LINE__); 
+        }
+
+        // now that we have the template directory, we can initialize the template engine
+        parent::FF_Template($s_directory);
+        parent::load('overall.tpl', 'file');
+
+        // Always want this block touched because it is a wrapper for field & content cells.
+        // It is in the template so we can do this: field cell | content cell | field cell | content cell...
+        $this->makeBlockPersistent('table_cell_group');
+
+        // always turn on main content
+        $this->touchBlock('content_middle');
+
+        // initialize menu to default type
+        $this->setMenuType($this->o_registry->getConfigParam('menu/type'));
+        
+        // include some common js, needs to be at top before any of their functions are used
+        $this->assignBlockData(
+            array(
+                'T_javascript' => '<script language="Javascript" src="' . $this->o_registry->getRootFile('domLib.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" .
+                                  '<script language="Javascript" src="' . $this->o_registry->getRootFile('domTT.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" .
+                                  '<script language="Javascript" src="' . $this->o_registry->getRootFile('core.lib.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>',
+            ),
+            'javascript'
+        );
+    }
+
+    // }}}
     // {{{ output()
 
     /**
@@ -178,30 +190,20 @@ class FF_Output extends FF_Template {
      */
     function output()
     {
-        $this->renderPageType();
-        $this->prender();
-    }
-
-    // }}}
-    // {{{ renderPageType()
-
-    /**
-     * Renders the page type.  Performs any necessary touches or assignments of data based
-     * on the page type. 
-     *
-     * @access public
-     * @return void 
-     */
-    function renderPageType()
-    {
+        $this->_renderMessages();
+        $this->renderCSS();
         $this->assignBlockData(
             array(
+                'COPYWRITE' => 'Copywrite &#169; 2002-2003 The CodeJanitor Group',
+                'CONTENT_ENCODING' => $this->o_registry->getConfigParam('general/charset', 'ISO-8559-1'),
+                'U_SHORTCUT_ICON' => $this->o_registry->getConfigParam('general/favicon'),
+                'CANVAS_WIDTH' => '100%',
                 'PAGE_TITLE' => $this->getPageTitle(),
             ),
             FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
             false
         );
-        
+
         // set up menu
         if ($this->menuType != 'none') {
             require_once dirname(__FILE__) . '/Menu.php';
@@ -213,55 +215,12 @@ class FF_Output extends FF_Template {
             $o_menu->renderMenu();
         }
 
-        switch ($this->pageType) {
-            case 'popup':
-                // a minimal page
-            break;
-            case 'smallTable':
-                // override canvas width
-                $this->assignBlockData(
-                    array(
-                        'CANVAS_WIDTH' => '450px',
-                    ),
-                    FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
-                    false
-                );
-
-                // move it down slightly
-                $this->assignBlockData(
-                    array(
-                        'T_css' => '
-                        <style type="text/css">
-                        table.canvas {
-                          margin-top: 100px;
-                        }
-                        </style>',
-                    ),
-                    'css'
-                );
-
-                $this->assignBlockData(
-                    array(
-                        'T_banner_bottom' => _('Run by FastFrame.  Licensed under the GPL.'),
-                    ),
-                    'switch_banner_bottom'
-                );
-            break;
-            case 'normal':
-                $this->assignBlockData(
-                    array(
-                        'T_banner_bottom' => _('Run by FastFrame.  Licensed under the GPL.'),
-                    ),
-                    'switch_banner_bottom'
-                );
-            break;
-            default:
-            break;
-        }
+        $this->_renderPageType();
+        $this->prender();
     }
 
     // }}}
-    // {{{  renderCSS()
+    // {{{ renderCSS()
 
     /**
      * Creates a link to the css file (creating it in cache if necessary), and then
@@ -275,7 +234,7 @@ class FF_Output extends FF_Template {
     function renderCSS($in_remakeCSS = false)
     {
         require_once 'System.php';
-        $s_theme = $this->o_registry->getUserParam('theme');
+        $s_theme = $this->theme;
         $s_cssCacheDir = $this->o_registry->getRootFile("css/$s_theme", 'cache');
         if (!@System::mkdir("-p $s_cssCacheDir"))  {
             return PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_WARNING, $s_cssCacheDir, 'FF_Error', true);
@@ -539,7 +498,7 @@ class FF_Output extends FF_Template {
 
         if (!isset($a_themePaths)) {
             $a_themePaths = array();
-            $tmp_theme = $this->o_registry->getUserParam('theme');
+            $tmp_theme = $this->theme;
             $a_themePaths['web'] = $this->o_registry->getRootFile($tmp_theme . '/graphics', 'themes', FASTFRAME_WEBPATH);
             $a_themePaths['file'] = $this->o_registry->getRootFile($tmp_theme . '/graphics', 'themes');
         }
@@ -751,28 +710,27 @@ class FF_Output extends FF_Template {
      *
      * @param mixed $in_message The message to inform the user what has just taken place.
      *                          If it is an array then we will register all of them.
-     * @param string $in_mode The mode, which is then translated into an image
+     * @param string $in_mode (optional) The mode, which is then translated into an image
+     * @param bool $in_top (optional) Put the message at the top of the stack instead of
+     *             bottom?
      *
      * @access public
      * @return void
      */
-    function setMessage($in_message, $in_mode = FASTFRAME_NORMAL_MESSAGE)
+    function setMessage($in_message, $in_mode = FASTFRAME_NORMAL_MESSAGE, $in_top = false)
     {
-        // keep track of count so we can have multiple messages on one page
-        static $s_count;
-        settype($s_count, 'int');
         foreach ((array) $in_message as $s_message) {
-            $s_count++;
+            if (empty($s_message)) {
+                continue;
+            }
 
-            $this->assignBlockData(
-                array(
-                    'S_status_message_count' => $s_count,
-                    'T_status_message' => $s_message,
-                    'I_status_message' => $this->imgTag($in_mode, 'alerts'),
-                    'I_status_message_close' => $this->imgTag('close.gif', 'actions', array('onclick' => 'document.getElementById(\'message_' . $s_count . '\').style.display = \'none\';', 'style' => 'cursor: pointer;')),
-                ),
-                'status_message'
-            );
+            $a_message = array($s_message, $in_mode);
+            if ($in_top) {
+                array_unshift($this->messages, $a_message);
+            }
+            else {
+                $this->messages[] = $a_message;
+            }
         }
     }
 
@@ -831,6 +789,89 @@ class FF_Output extends FF_Template {
     function setMenuType($in_type)
     {
         $this->menuType = $in_type;
+    }
+
+    // }}}
+    // {{{ _renderMessages()
+
+    /**
+     * Renders any messages that have been set
+     *
+     * @access private
+     * @return void
+     */
+    function _renderMessages()
+    {
+        foreach ($this->messages as $s_key => $a_message) {
+            $this->assignBlockData(
+                array(
+                    'S_status_message_count' => $s_key,
+                    'T_status_message' => $a_message[0],
+                    'I_status_message' => $this->imgTag($a_message[1], 'alerts'),
+                    'I_status_message_close' => $this->imgTag('close.gif', 'actions', array('onclick' => 'document.getElementById(\'message_' . $s_key . '\').style.display = \'none\';', 'style' => 'cursor: pointer;')),
+                ),
+                'status_message'
+            );
+        }
+    }
+
+    // }}}
+    // {{{ _renderPageType()
+
+    /**
+     * Renders the page type.  Performs any necessary touches or assignments of data based
+     * on the page type. 
+     *
+     * @access private 
+     * @return void 
+     */
+    function _renderPageType()
+    {
+        switch ($this->pageType) {
+            case 'popup':
+                // a minimal page
+            break;
+            case 'smallTable':
+                // override canvas width
+                $this->assignBlockData(
+                    array(
+                        'CANVAS_WIDTH' => '450px',
+                    ),
+                    FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
+                    false
+                );
+
+                // move it down slightly
+                $this->assignBlockData(
+                    array(
+                        'T_css' => '
+                        <style type="text/css">
+                        table.canvas {
+                          margin-top: 100px;
+                        }
+                        </style>',
+                    ),
+                    'css'
+                );
+
+                $this->assignBlockData(
+                    array(
+                        'T_banner_bottom' => _('Run by FastFrame.  Licensed under the GPL.'),
+                    ),
+                    'switch_banner_bottom'
+                );
+            break;
+            case 'normal':
+                $this->assignBlockData(
+                    array(
+                        'T_banner_bottom' => _('Run by FastFrame.  Licensed under the GPL.'),
+                    ),
+                    'switch_banner_bottom'
+                );
+            break;
+            default:
+            break;
+        }
     }
 
     // }}}
@@ -894,7 +935,7 @@ class FF_Output extends FF_Template {
                 continue;
             }
 
-            $a_events[$s_event] = ($s_event == 'onmouseover' ? 'return domTT_true(' : '') . 
+            $a_events[$s_event] = ($s_event == 'onmouseover' ? 'return makeTrue(' : '') . 
                                   'domTT_activate(this, event, \'caption\', ' . 
                                   ($s_caption === false ? 'false' : "'$s_caption'") . 
                                   ", 'content', '$s_content', 'status', '$s_status', 'type', '" . 
