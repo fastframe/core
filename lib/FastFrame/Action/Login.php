@@ -1,5 +1,5 @@
 <?php
-/** $Id: Login.php,v 1.8 2003/03/15 01:26:57 jrust Exp $ */
+/** $Id: Login.php,v 1.9 2003/04/02 00:14:11 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -77,7 +77,8 @@ class FF_Action_Login extends FF_Action_Form {
 
         $this->o_form->setConstants($a_constants);
         $this->createFormElements();
-        $this->renderFormTable();
+        $o_table =& $this->renderFormTable();
+        $this->renderCreateAccountLink($o_table);
         $this->o_output->output();
         return $this->o_nextAction;
     }
@@ -171,6 +172,44 @@ class FF_Action_Login extends FF_Action_Form {
         ob_end_clean();
     }
     
+    // }}}
+    // {{{ renderCreateAccountLink()
+
+    /**
+     * Renders the create account link if it is enabled
+     *
+     * @param $in_tableObj The table object
+     * 
+     * @access private
+     * @return void
+     */
+    function renderCreateAccountLink(&$in_tableObj)
+    {
+        if ($this->o_registry->hasApp('profile') &&
+            $this->o_registry->getConfigParam('add_profile/login_link', false, array('app' => 'profile'))) {
+            // see if we just created an account
+            if (FastFrame::getCGIParam('fromProfile', 'g', false)) {
+                $this->o_output->setMessage(_('Created your account successfully'), FASTFRAME_SUCCESS_MESSAGE);
+            }
+
+            $s_createAcct = $this->o_output->link(
+                                FastFrame::selfURL(array('app' => 'profile', 'actionId' => ACTION_ADD, 'fromLogin' => 1)),
+                                _('Don\'t have an account? Create one.'),
+                                array('title' => _('Create an account if you do not already have one.'))
+                            );
+            $this->o_output->touchBlock($in_tableObj->getTableNamespace() . 'table_row');
+            $this->o_output->cycleBlock($in_tableObj->getTableNamespace() . 'table_field_cell');
+            $this->o_output->assignBlockData(
+                array(
+                    'T_table_field_cell' => $s_createAcct, 
+                    'S_table_field_cell' => 'colspan="' . $in_tableObj->getNumColumns() . '" ' .
+                                            'style="text-align: center;"',
+                ),
+                $in_tableObj->getTableNamespace() . 'table_field_cell'
+            );
+        }
+    }
+
     // }}}
     // {{{ setDefaultMessage()
 
