@@ -181,29 +181,33 @@ class FF_Output {
             $this->renderCSS('widgets', $this->o_registry->getRootFile('widgets', 'themes'), 'print.tpl', 'print');
         }
 
-        if ($this->o_registry->getConfigParam('help/show_link')) {
-            $s_help = $this->link(FastFrame::selfURL(array('actionId' => ACTION_CONTACT)), _('Need Help?'));
-        }
-        else {
-            $s_help = '';
-        }
-
-        if (!FF_Auth::isGuest()) {
-            $o_perms =& FF_Perms::factory();
-            if ($o_perms->hasPerm('has_my_profile', 'profile')) {
-                require_once $this->o_registry->getAppFile('ActionHandler/actions.php', 'profile', 'libs');
-                $s_user = $this->link(FastFrame::selfURL(
-                            array('actionId' => ACTION_MYPROFILE, 'app' => 'profile', 'module' => 'Profile')),
-                        FF_auth::getCredential('username'));
+        if ($this->pageType != 'popup') {
+            if ($this->o_registry->getConfigParam('help/show_link')) {
+                $s_help = $this->link(FastFrame::selfURL(array('actionId' => ACTION_CONTACT)), _('Need Help?'));
             }
             else {
-                $s_user = '<b>' . FF_Auth::getCredential('username') . '</b>';
+                $s_help = '';
             }
 
-            $s_status = sprintf(_('You are logged in as %s.'), $s_user);
-        }
-        else {
-            $s_status = _('You are not logged in.');
+            if (!FF_Auth::isGuest()) {
+                $o_perms =& FF_Perms::factory();
+                if ($o_perms->hasPerm('has_my_profile', 'profile')) {
+                    require_once $this->o_registry->getAppFile('ActionHandler/actions.php', 'profile', 'libs');
+                    $s_user = $this->link(FastFrame::selfURL(
+                                array('actionId' => ACTION_MYPROFILE, 'app' => 'profile', 'module' => 'Profile')),
+                            FF_auth::getCredential('username'));
+                }
+                else {
+                    $s_user = '<b>' . FF_Auth::getCredential('username') . '</b>';
+                }
+
+                $s_status = sprintf(_('You are logged in as %s.'), $s_user);
+            }
+            else {
+                $s_status = _('You are not logged in.');
+            }
+
+            $this->o_tpl->assign(array('T_login_status' => $s_status, 'T_help_link' => $s_help));
         }
 
         $this->o_tpl->assign(array(
@@ -211,9 +215,7 @@ class FF_Output {
                     'CONTENT_ENCODING' => $this->o_registry->getConfigParam('general/charset', 'ISO-8559-1'),
                     'U_SHORTCUT_ICON' => $this->o_registry->getConfigParam('general/favicon'),
                     'PAGE_TITLE' => $this->getPageTitle(),
-                    'LANG' => getenv('LANG'),
-                    'T_login_status' => $s_status,
-                    'T_help_link' => $s_help));
+                    'LANG' => getenv('LANG')));
         $this->_renderPageType();
         $this->_renderMenus();
     }
