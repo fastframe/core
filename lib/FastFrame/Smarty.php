@@ -198,3 +198,4 @@ class FF_Smarty extends Smarty {
 
     // }}}
 }
+?>
