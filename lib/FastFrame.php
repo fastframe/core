@@ -1,5 +1,5 @@
 <?php
-/** $Id: FastFrame.php,v 1.5 2003/01/21 19:34:12 jrust Exp $ */
+/** $Id: FastFrame.php,v 1.6 2003/01/22 20:47:32 jrust Exp $ */
 // {{{ includes
 
 require_once dirname(__FILE__) . '/FastFrame/Registry.php';
@@ -96,7 +96,16 @@ class FastFrame {
             $sessName = $o_registry->getConfigParam('session/name');
             // make sure it was not already set (like set to nothing)
             if (!isset($getVars[$sessName])) {
-                $getVars[$sessName] = session_id();
+                // don't lock the user out with an empty session id!
+                if (!FastFrame::isEmpty(session_id())) {
+                    $getVars[$sessName] = session_id();
+                }
+                elseif (!FastFrame::isEmpty($_REQUEST[$sessName], false)) {
+                    $getVars[$sessName] = $_REQUEST[$sessName]; 
+                }
+                else {
+                    unset($getVars[$sessName]);
+                }
             }
             // if it was set to false then remove it
             elseif (empty($getVars[$sessName])) {
