@@ -1,5 +1,5 @@
 <?php
-/** $Id: HTML.php,v 1.8 2003/01/22 18:57:56 jrust Exp $ */
+/** $Id: HTML.php,v 1.9 2003/01/23 22:58:49 jrust Exp $ */
 // {{{ includes
 
 require_once dirname(__FILE__) . '/Template.php';
@@ -403,7 +403,7 @@ class FastFrame_HTML extends FastFrame_Template {
         $js .= $in_type . 'Window.focus();';
         $js .= 'return false;';
 
-        $link = FastFrame_HTML::link('javascript: void(0);', $settings['text'][$in_type] . $settings['image'][$in_type], array('onclick' => $js, 'title' => $settings['title'][$in_type], 'status' => $in_options['status'], 'help' => $in_options['useHelp'], 'class' => $in_options['class']));
+        $link = $this->link('javascript: void(0);', $settings['text'][$in_type] . $settings['image'][$in_type], array('onclick' => $js, 'title' => $settings['title'][$in_type], 'status' => $in_options['status'], 'help' => $in_options['useHelp'], 'class' => $in_options['class']));
         $link .= '<script>var ' . $in_type . 'Window = null;</script>';
         return $link;
     }
