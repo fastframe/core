@@ -1,5 +1,5 @@
 <?php
-/** $Id: Delete.php,v 1.6 2003/03/15 01:26:57 jrust Exp $ */
+/** $Id: Delete.php,v 1.7 2003/04/02 00:12:49 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -64,9 +64,13 @@ class FF_Action_Delete extends FF_Action {
      */
     function run()
     {
+        if (!$this->checkPerms()) {
+            return $this->o_nextAction;
+        }
+
         $o_result =& $this->o_model->remove(FastFrame::getCGIParam('objectId', 'gp'));
         if ($o_result->isSuccess()) {
-            $this->o_output->setMessage($this->getSuccessMessage());
+            $this->o_output->setMessage($this->getSuccessMessage(), FASTFRAME_SUCCESS_MESSAGE);
             $this->setSuccessActionId();
         }
         else {
@@ -89,7 +93,7 @@ class FF_Action_Delete extends FF_Action {
      */
     function getSuccessMessage()
     {
-        return _('Deleted the data successfully.');
+        return sprintf(_('Deleted the %s successfully.'), $this->getSingularText());
     }
 
     // }}}
@@ -103,7 +107,7 @@ class FF_Action_Delete extends FF_Action {
      */
     function getProblemMessage()
     {
-        return _('There was an error when trying to delete the data.');
+        return sprintf(_('There was an error when trying to delete the %s.'), $this->getSingularText());
     }
 
     // }}}
@@ -132,6 +136,34 @@ class FF_Action_Delete extends FF_Action {
     function setSuccessActionId()
     {
         $this->o_nextAction->setNextActionId(ACTION_LIST);
+    }
+
+    // }}}
+    // {{{ getSingularText()
+
+    /**
+     * Gets the text that describes a singular version of the item deleted 
+     *
+     * @access public
+     * @return string The singular text
+     */
+    function getSingularText()
+    {
+        return _('data');
+    }
+
+    // }}}
+    // {{{ checkPerms()
+
+    /**
+     * Check the permissions on this action.
+     *
+     * @access public
+     * @return bool True if everything is ok, false if a new action has been set
+     */
+    function checkPerms()
+    {
+        return true;
     }
 
     // }}}
