@@ -1,5 +1,5 @@
 <?php
-/** $Id: FastFrame.php,v 1.2 2003/01/08 00:08:51 jrust Exp $ */
+/** $Id: FastFrame.php,v 1.3 2003/01/15 00:58:45 jrust Exp $ */
 // {{{ includes
 
 require_once dirname(__FILE__) . '/FastFrame/Registry.php';
@@ -87,6 +87,7 @@ class FastFrame {
             if ($getVarList === $_GET || $getVarList === $_POST || $getVarList === $_COOKIE) {
                 $getVarList = FastFrame::disableMagicQuotes($getVarList);    
             }
+
             $getVars = array_merge($getVars, $getVarList);
         }
 
@@ -221,6 +222,7 @@ class FastFrame {
         $s_errortext = _('<b>A fatal error has occurred:</b>') . "<br /><br />\n";
         if (PEAR::isError($in_message)) {
             $s_errortext .= $in_message->getMessage() . "<br /><br />\n";
+            $s_errortext .= $in_message->getDebugInfo() . "<br /><br />\n";
         }
         else {
             $s_errortext .= $in_message . "<br /><br />\n";
@@ -421,48 +423,70 @@ HTML;
      * Since servers have gpc_magic_quotes enabled, we need to make an easy way to
      * strip them off when we grab form data for display.  
      *
-     * @param  string $in_var name of the variable
-     * @param  string $in_type (optional) type of variable (get, post, cookie or request (all))
-     * @param  string $in_default (optional) default value if no value is found
+     * @param  string $in_str_varName name of the variable
+     * @param  string $in_str_type (optional) type of variable (get, post, cookie, session)
+     * @param  string $in_mix_default (optional) default value if no value is found
+     * @param  bool $in_bol_emptyStringValid (optional) Does an empty string count as the 
+     *                                       value not being set?
      *
      * @access public
-     * @return string value of the variable or default value
+     * @return string Value of the variable or default value
      */
-    function getCGIParam($in_var, $in_type = 'gpc', $in_default = null, $in_callback = null, $in_args = array(), $in_index = 1)
+    function getCGIParam($in_str_varname, $in_str_type = 'gpc', $in_mix_default = null, $in_bol_emptyStringValid = true)
     {
-        // handle variables that are arrays
-        if ($pos = strpos($in_var, '[')) {
-            $var = '[\'' . substr($in_var, 0, $pos) . '\']' . substr($in_var, $pos);
+        if (function_exists('version_compare')) {
+            $bol_autoGlobal = true;
+            $arr_types = array(
+                'c' => '$_COOKIE',
+                'p' => '$_POST',
+                'g' => '$_GET',
+                's' => '$_SESSION',
+            );
         }
         else {
-            $var = '[\'' . $in_var . '\']';
+            $bol_autoGlobal = false;
+            $arr_types = array(
+                'c' => '$HTTP_COOKIE_VARS',
+                'p' => '$HTTP_POST_VARS',
+                'g' => '$HTTP_GET_VARS',
+                's' => '$HTTP_SESSION_VARS',
+            );
         }
 
-        if (stristr($in_type, 's') && eval("return isset(\$_SESSION$var);")) {
-            $data = FastFrame::disableMagicQuotes(eval("return \$_SESSION$var;")); 
+        // can't have single quotes in variable name
+        $tmp_str_varname = str_replace("'", '', $in_str_varname);
+
+        // make a key reference for the variable array out of the variable
+        if ($tmp_pos = strpos($tmp_str_varname, '[')) {
+            $tmp_str_varname = '[\'' . substr($tmp_str_varname, 0, $pos) . '\']' . str_replace(array('[', ']'), array('[\'', '\']'), substr($tmp_str_varname, $pos));
         }
-        elseif (stristr($in_type, 'c') && eval("return isset(\$_COOKIE$var);")) {
-            $data = FastFrame::disableMagicQuotes(eval("return \$_COOKIE$var;")); 
-        }
-        elseif (stristr($in_type, 'p') && eval("return isset(\$_FILES$var);")) {
-            $data = FastFrame::disableMagicQuotes(eval("return \$_FILES$var;")); 
-        }
-        elseif (stristr($in_type, 'p') && eval("return isset(\$_POST$var);")) {
-            $data = FastFrame::disableMagicQuotes(eval("return \$_POST$var;")); 
-        }
-        elseif (stristr($in_type, 'g') && eval("return isset(\$_GET$var);")) {
-            $data = FastFrame::disableMagicQuotes(eval("return \$_GET$var;")); 
-        }
-     
-        if (!isset($data)) {
-            $data = $in_default;
-        }
-        elseif (!is_null($in_callback)) {
-            array_splice($in_args, $in_index - 1, $in_index - 1, $data);
-            $data = call_user_func_array($in_callback, $in_args);
+        else {
+            $tmp_str_varname = '[\'' . $tmp_str_varname . '\']';
         }
 
-        return $data;
+        // find the variable in the requested types
+        foreach ($arr_types as $tmp_str_abbr => $tmp_str_varArray) {
+            if (!$bol_autoGlobal) {
+                eval('global ' . $tmp_str_varArray . ';');
+            }
+
+            $tmp_str_variable = $tmp_str_varArray . $tmp_str_varname;
+            $tmp_condition = $in_bol_emptyStringValid ? '' : ' && ' . $tmp_str_variable . ' != \'\'';
+            if (stristr($in_str_type, $tmp_str_abbr) && eval('return isset(' . $tmp_str_variable . ')' . $tmp_condition . ';')) {
+                $mix_data = eval('return ' . $tmp_str_variable . ';');
+                break;
+            }
+        }
+
+        // {!} no check for type of data here {!}
+        if (isset($mix_data)) {
+            $mix_data = FastFrame::disableMagicQuotes($mix_data);
+        }
+        else {
+            $mix_data = $in_mix_default;
+        }
+
+        return $mix_data;
     }
 
     // }}}
@@ -489,7 +513,7 @@ HTML;
 
         if ($magic_quotes_enabled) {
             if (is_array($in_var)) {
-                $in_var = array_deep_map($in_var, 'stripslashes');
+                $in_var = FastFrame::array_deep_map($in_var, 'stripslashes');
             }
             else {
                 $in_var = stripslashes($in_var);
@@ -920,20 +944,62 @@ function $funcName(field_name, value) {";
     // {{{ bool    isEmpty()
 
     /**
-     * Checks to see if a variable isset and it is not empty
+     * Determine if the value of the variable is literally empty, contains no value.
      *
-     * @param $in_var The variable to check
+     * This function represents empty() in its true form.  If the variable contains absolutely
+     * no data, or is just an empty array, then the boolean value 'true' is returned.  If it
+     * has a value of 0 or contains only spaces or endlines (and the strict is not-set) then it
+     * returns false.  This is unlike the php-function empty() which just returns if the variable
+     * would evaluate as true or false.
+     *
+     * @param  mixed $in_var variable to be evaluated
+     * @param  bool  $in_countWhiteSpace (optional) count whitespace as valid contents
+     *
      * @access public
-     * @return bool Boolean of whether it is empty or not
+     * @return bool whether the variable has contents or not
      */
-    function isEmpty($in_var)
+    function isEmpty($in_var, $in_countWhiteSpace = true)
     {
-        if ($in_var != '' && $in_var !== false && !is_null($in_var)) {
-            return false;
+        $var = $in_countWhiteSpace || is_array($in_var) ? $in_var : trim($in_var);
+        return (!isset($var) || (is_array($var) && empty($var)) || $var === '') ? true : false;
+    }
+
+    // }}}
+    // {{{ array   array_deep_map()
+
+
+    /**
+     * Similar to array_map except it works on recursive arrays.
+     *
+     * @param array $in_array The array to modify
+     * @param string $in_func The function to apply to the array elements
+     * @param array $in_args (optional) Used for the recursive functionality.
+     * @param array $in_index (optional) Used for the recursive functionality.
+     *
+     * @access public
+     * @return array The modified array
+     */
+    function array_deep_map(&$in_array, $in_func, $in_args = array(), $in_index = 1) {
+        // fix people from messing up the index of the value
+        if ($in_index < 1) {
+           $in_index = 1;
         }
-        else {
-            return true;
+
+        foreach (array_keys($in_array) as $key) {
+            // we need a reference, not a copy, normal foreach won't do
+            $value =& $in_array[$key];
+            // we need to copy args because we are doing manipulation on it farther down
+            $args = $in_args;
+            if (is_array($value)) {
+                FastFrame::array_deep_map($value, $in_func, $in_args, $in_index);
+            }
+            else {
+                array_splice($args, $in_index - 1, $in_index - 1, $value);
+                $value = call_user_func_array($in_func, $args);
+            }
         }
+
+        return $in_array;
     }
 
     // }}}
