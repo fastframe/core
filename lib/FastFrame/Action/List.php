@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.10 2003/04/02 00:13:46 jrust Exp $ */
+/** $Id: List.php,v 1.11 2003/04/07 22:52:49 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -365,7 +365,7 @@ class FF_Action_List extends FF_Action_Form {
      */
     function getEmptySetText()
     {
-        return _('No items were found.');
+        return sprintf(_('No %s were found.'), strtolower($this->getPluralText()));
     }
     
     // }}}
