@@ -1,5 +1,5 @@
 <?php
-/** $Id: Auth.php,v 1.8 2003/02/08 00:10:54 jrust Exp $ */
+/** $Id: Auth.php,v 1.9 2003/02/22 02:06:10 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -243,17 +243,17 @@ class FastFrame_Auth {
      * Return the currently logged in user, if there is one.
      *
      * Check to see if there is a valid user by determinig if the registered bit
-     * is set on the __auth__ array and if so return that userID, else return false
+     * is set on the __auth__ array and if so return that userId, else return false
      *
      * @access public
-     * @return mixed either the userID of the current user or false if there is no registered user
+     * @return mixed either the userId of the current user or false if there is no registered user
      */
     function getAuth()
     {
         if (isset($_SESSION['__auth__']) && 
             (boolean) $_SESSION['__auth__']['registered'] == true && 
-            !@isempty($_SESSION['__auth__']['userID'])) {
-            return $_SESSION['__auth__']['userID'];
+            !@isempty($_SESSION['__auth__']['userId'])) {
+            return $_SESSION['__auth__']['userId'];
         }
 
         return false;
@@ -280,22 +280,22 @@ class FastFrame_Auth {
      * Force a transparent login.
      *
      * Set the appropriate variables so as to force a transparent login using
-     * the userID.  The credentials are the extra information on the user such
+     * the userId.  The credentials are the extra information on the user such
      * as the companyID and the perms of the user
      *
-     * @param  string  $in_userID The userID who has been authorized
+     * @param  string  $in_userId The userId who has been authorized
      * @param  mixed   $in_credentials (optional) other information to store about the user
      * @param  bool    $in_setAnchor Set the anchor to tie this session to the browser?
      *
      * @access public
      * @return void
      */
-    function setAuth($in_userID, $in_credentials = null, $in_setAnchor = false)
+    function setAuth($in_userId, $in_credentials = null, $in_setAnchor = false)
     {
         $_SESSION['__auth__'] = array(
             'registered' => true,
             'status'     => FASTFRAME_AUTH_OK,
-            'userID'     => $in_userID,
+            'userId'     => $in_userId,
             'timestamp'  => time(),
             'idle'       => time()
         );
@@ -303,6 +303,9 @@ class FastFrame_Auth {
         if (!is_null($in_credentials)) {
             $_SESSION['__auth__']['credentials'] = $in_credentials;
         }
+
+        // userId is a credential as well as an auth item
+        $_SESSION['__auth__']['credentials']['userId'] = $in_userId;
         
         // set the anchor for this browser to never expire
         if ($in_setAnchor) {
@@ -491,7 +494,7 @@ class FastFrame_Auth {
      */
     function _get_session_anchor()
     {
-        return @md5($_SESSION['__auth__']['userID']);
+        return @md5($_SESSION['__auth__']['userId']);
     }
 
     // }}}
