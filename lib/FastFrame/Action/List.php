@@ -69,17 +69,14 @@ class FF_Action_List extends FF_Action_Form {
             return $this->o_nextAction;
         }
 
-
         $this->initList();
-	
         if (!$this->queryData()) {
             return $this->o_nextAction;
         }
 
         $this->renderAdditionalLinks();
         $this->o_output->o_tpl->assign(array('has_search_box' => true, 
-                    'W_search_box' => $this->o_list->renderSearchBox($this->getPluralText())));
-
+                    'W_search_box' => $this->o_list->renderSearchBox($this->getPluralText(), true)));
         $this->o_output->setPageName($this->getPageName());
         $this->createListTable();
         $this->setNextAction();

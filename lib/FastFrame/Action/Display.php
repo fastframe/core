@@ -108,7 +108,7 @@ class FF_Action_Display extends FF_Action {
         $o_list->setSearchBoxType(SEARCH_BOX_ONLYSEARCH, false);
         $o_list->setPersistentData($this->persistentData);
         $this->o_output->o_tpl->assign(array('has_search_box' => true, 
-                    'W_search_box' => $o_list->renderSearchBox($this->getPluralText())));
+                    'W_search_box' => $o_list->renderSearchBox($this->getPluralText(), true)));
     }
 
     // }}}

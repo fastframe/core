@@ -202,11 +202,12 @@ class FF_List {
      * searchTable widget.
      *
      * @param string $in_pluralText The plural form of what is being searched
+     * @param bool $in_focusSearch Focus the search box?
      *
      * @access public
      * @return string The html for the search table 
      */
-    function renderSearchBox($in_pluralText)
+    function renderSearchBox($in_pluralText, $in_focusSearch)
     {
         // {{{ quickform preparation
 
@@ -270,7 +271,7 @@ class FF_List {
         }
 
         $o_form->addElement('text', "searchString[$this->listId]", null, 
-                array('size' => 15, 'style' => 'vertical-align: middle;', 'onfocus' => 'this.value = ""',
+                array('size' => 15, 'style' => 'vertical-align: middle;', 'onfocus' => 'this.select();',
                     'accesskey' => $this->o_output->getAccessKey(_('Search for'))));
         $o_form->addElement('submit', 'query_submit', _('» Search'), 
                 array('style' => 'vertical-align: bottom;'));
@@ -306,6 +307,10 @@ class FF_List {
         $s_searchSubmit = $o_renderer->elementToHtml('query_submit');  
         if ($this->listAll) {
             $s_searchSubmit .= ' ' . $o_renderer->elementToHtml('listall_submit');
+        }
+
+        if ($in_focusSearch) {
+            $this->o_output->o_tpl->append('javascript', '<script>addOnload(function () { document.search_box["searchString[' . $this->listId . ']"].focus(); });</script>');
         }
 
         $o_searchWidget =& new FF_Smarty('searchTable');
