@@ -247,7 +247,7 @@ class FF_Output {
         // register the CSS file 
         $this->o_tpl->append('headers',
                 // put the filemtime on so that they only grab the new file when it is recreated
-                '<link rel="stylesheet" type="text/css" media="' . $in_media . '" href="' . $s_cssURL . '?fresh=' . filemtime($s_cssTemplateFile) . '" />');
+                '<style type="text/css" media="' . $in_media . '">@import url("' . $s_cssURL . '");</style>');
     }
 
     // }}}
