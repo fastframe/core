@@ -1,8 +1,9 @@
 <?php
-/** $Id: HTML.php,v 1.3 2003/01/09 22:46:29 jrust Exp $ */
+/** $Id: HTML.php,v 1.4 2003/01/15 01:17:57 jrust Exp $ */
 // {{{ includes
 
 require_once dirname(__FILE__) . '/Template.php';
+require_once dirname(__FILE__) . '/Error.php';
 
 // }}}
 // {{{ class FastFrame_HTML
@@ -76,6 +77,12 @@ class FastFrame_HTML extends FastFrame_Template {
      */
     var $pageName;
 
+    /**
+     * The menu type used. 
+     * @var string $menuType
+     */
+    var $menuType;
+
     // }}}
     // {{{ constructor
 
@@ -129,6 +136,9 @@ class FastFrame_HTML extends FastFrame_Template {
 
         // always turn on main content
         $this->touchBlock('content_middle');
+
+        // initialize menu to default type
+        $this->setMenuType($this->FastFrame_Registry->getConfigParam('menu/type'));
     }
 
     // }}}
@@ -478,7 +488,8 @@ class FastFrame_HTML extends FastFrame_Template {
      * with the correct width and height attributes 
      *
      * @param string $in_img Name of image, if an absolute path is not given we prepend ffol path 
-     * @param string $in_type (optional) The type of image
+     * @param string $in_type (optional) The type of image.  If 'none' then we assume that
+     *                        the path includes the type in it.
      * @param array  $in_options (optional) A number of options that have to do with the image tag, included 
      *                           what type of image tag this is.  The options are as follows
      *                           width, height, type, align, style, onclick, state, onlyURL
@@ -513,6 +524,7 @@ class FastFrame_HTML extends FastFrame_Template {
         }
 
         $in_options['state'] = isset($in_options['state']) ? $in_options['state'] : false;
+        $s_type = $in_type == 'none' ? '/' : "/$in_type/";
 
         // if image is an absolute path, we assume it is a webpath and check if it exists
         if (strpos($in_img, '/') === 0) {
@@ -526,7 +538,7 @@ class FastFrame_HTML extends FastFrame_Template {
         }
         // see if it's a relative path to the image
         elseif (!preg_match(';^(http://|ftp://);', $in_img)) {
-            $tmp_img = "/$in_type/$in_img";
+            $tmp_img = $s_type . $in_img;
             // see if it's in the theme directory
             if (file_exists(($s_imgFilePath = $a_themePaths['file'] . $tmp_img))) {
                 $s_imgWebPath = $a_themePaths['web'] . $tmp_img;
@@ -611,7 +623,7 @@ class FastFrame_HTML extends FastFrame_Template {
             $status = isset($in_options['status']) ? 
                 addcslashes($in_options['status'], '\'') : 
                 addcslashes($in_options['title'], '\'');
-            $statusOver = 'window.status=\'$status\';';
+            $statusOver = 'window.status=\'' . $status . '\';';
             $statusOut = 'window.status=\'\';';
         }
 
@@ -653,10 +665,7 @@ class FastFrame_HTML extends FastFrame_Template {
      * Prints an image tag (either input type="image" or img) properly formatted and 
      * with the correct width and height attributes 
      *
-     * @param string $in_img Name of image, if an absolute path is not given we prepend ffol path 
-     * @param array  $in_options A number of options that have to do with the image tag, included 
-     *                           what type of image tag this is.  The options are as follows
-     *                           width, height, type, align, style
+     * @see pimgTag
      * @access public
      */
     function pimgTag($in_img = null, $in_type = 'icons', $in_options = array())
@@ -694,6 +703,16 @@ class FastFrame_HTML extends FastFrame_Template {
             FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
             false
         );
+        
+        // set up menu
+        if ($this->getMenuType() != 'none') {
+            $o_menu =& FastFrame_Menu::factory($this->getMenuType());
+            if (FastFrame_Error::isError($o_menu)) {
+                FastFrame::fatal($o_menu, __FILE__, __LINE__); 
+            }
+            
+            $o_menu->renderMenu();
+        }
 
         switch ($in_type) {
             case 'popup':
@@ -730,18 +749,6 @@ class FastFrame_HTML extends FastFrame_Template {
                 );
             break;
             case 'normal':
-                // load menu js
-                $this->assignBlockData(
-                    array(
-                        'T_javascript' => '<script type="text/javascript" src="' . $this->FastFrame_Registry->getRootFile('domMenu.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" .
-                                          '<script type="text/javascript" src="' . $this->FastFrame_Registry->getRootFile('domMenu_items.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>',
-                    ),
-                    'javascript'
-                );
-
-                // turn on menu
-                $this->touchBlock('switch_menu');
-
                 $this->assignBlockData(
                     array(
                         'T_banner_bottom' => _('Run by FastFrame.  Licensed under the GPL.'),
@@ -1301,6 +1308,36 @@ class FastFrame_HTML extends FastFrame_Template {
     function getPageName()
     {
         return $this->pageName;
+    }
+
+    // }}}
+    // {{{ setMenuType()
+
+    /**
+     * Sets the menu type, which can be any of the valid extensions of the Menu class
+     *
+     * @param string $in_type The menu type
+     *
+     * @access public
+     * @return void 
+     */
+    function setMenuType($in_type)
+    {
+        $this->menuType = $in_type;
+    }
+
+    // }}}
+    // {{{ getMenuType()
+
+    /**
+     * Gets the menu type
+     *
+     * @access public
+     * @return string The menu type
+     */
+    function getMenuType()
+    {
+        return $this->menuType;
     }
 
     // }}}
