@@ -483,7 +483,7 @@ class FF_Output extends FF_Template {
      * @param array  $in_options (optional) A number of options that have to do with the image tag, included 
      *                           what type of image tag this is.  The options are as follows
      *                           width, height, type, align, style, onclick, state, onlyUrl,
-     *                           fullPath
+     *                           fullPath, title
      *
      * @access public
      * @return string image tag
