@@ -30,7 +30,9 @@ define('FASTFRAME_AUTH_EXPIRED',   2);
 define('FASTFRAME_AUTH_NO_LOGIN',  3);
 define('FASTFRAME_AUTH_BAD_APP',   4);
 define('FASTFRAME_AUTH_NO_ANCHOR', 5);
-define('FASTFRAME_AUTH_LOGOUT',    6);
+define('FASTFRAME_AUTH_SESSIONIP', 6);
+define('FASTFRAME_AUTH_BROWSER',   7);
+define('FASTFRAME_AUTH_LOGOUT',    8);
 
 // }}}
 // {{{ includes
@@ -95,6 +97,8 @@ class FF_Auth {
         }
 
         if ($b_authenticated) {
+            // Clear session data in case the previous user hadn't actually logged out
+            $_SESSION = array();
             FF_Auth::setAuth($in_username, $a_credentials);
         }
 
@@ -129,8 +133,16 @@ class FF_Auth {
         }
 
         $o_registry =& FF_Registry::singleton();
-        if (FF_Request::getParam('__auth__', 's', false) !== false) {
-            if (FF_Request::getParam('__auth__[\'timestamp\']', 's', false) &&
+        if (FF_Request::getParam('__auth__', 's', false) != false) {
+            if (FF_Request::getParam('__auth__[\'remote_addr\']', 's', false) != @$_SERVER['REMOTE_ADDR']) {
+                FF_Auth::_setStatus(FASTFRAME_AUTH_SESSIONIP);
+                return false;
+            }
+            elseif (FF_Request::getParam('__auth__[\'browser\']', 's', false) != @$_SERVER['HTTP_USER_AGENT']) {
+                FF_Auth::_setStatus(FASTFRAME_AUTH_BROWSER);
+                return false;
+            }
+            elseif (FF_Request::getParam('__auth__[\'timestamp\']', 's', false) &&
                 ($expire = $o_registry->getConfigParam('session/expire')) > 0 && 
                 (FF_Request::getParam('__auth__[\'timestamp\']', 's') + $expire) < time()) {
                 FF_Auth::_setStatus(FASTFRAME_AUTH_EXPIRED);
@@ -229,6 +241,8 @@ class FF_Auth {
             'registered' => true,
             'status'     => FASTFRAME_AUTH_OK,
             'username'   => $in_username,
+            'remote_addr'=> isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : null,
+            'browser'    => isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : null,
             'timestamp'  => time(),
             'idle'       => time()), 's');
         $in_credentials['username'] = $in_username;
@@ -241,25 +255,6 @@ class FF_Auth {
                 $o_registry->getConfigParam('cookie/path'),
                 $o_registry->getConfigParam('cookie/domain'));
         }
-    }
-
-    // }}}
-    // {{{ clearAuth()
-
-    /**
-     * Clear any authentication tokens in the current session.
-     *
-     * @access public
-     * @return void
-     */
-    function clearAuth()
-    {
-        $o_registry =& FF_Registry::singleton();
-        FF_Request::unsetCookies(array('__auth__', FF_Auth::_getSessionAnchor()),
-                $o_registry->getConfigParam('cookie/path'),
-                $o_registry->getConfigParam('cookie/domain'));
-        FF_Request::setParam('__auth__', array(), 's');
-        FF_Request::setParam('__auth__[\'registered\']', false, 's');
     }
 
     // }}}
@@ -326,8 +321,14 @@ class FF_Auth {
         $o_result =& new FF_Result();
         $s_status = FF_Request::getParam('__auth__[\'status\']', 's');
         switch ($s_status) {
+            case FASTFRAME_AUTH_SESSIONIP:
+                $o_result->addMessage(_('Your internet address has changed since the beginning of your session. To protect your security, you must login again.'));
+            break;
+            case FASTFRAME_AUTH_BROWSER:
+                $o_result->addMessage(_('Your browser has changed since the beginning of your session. To protect your security, you must login again.'));
+            break;
             case FASTFRAME_AUTH_IDLED:
-                $o_result->addMessage(_('You have been logged out due to inactivity.'));
+                $o_result->addMessage(_('To protect your security you have been logged out due to inactivity.'));
             break;
             case FASTFRAME_AUTH_EXPIRED:
                 $o_result->addMessage(_('Your have been logged out because your session has expired.'));
@@ -344,17 +345,18 @@ class FF_Auth {
         }
 
         /**
-         * If logged out due to a bad session anchor then we just want
+         * If logged out due to what looks to be session hijacking then we just want
          * to redirect them to a safe logout page, but not clear the
          * session, since that would end the session for the real user.
          */
-        if ($s_status != FASTFRAME_AUTH_NO_ANCHOR) {
-            FF_Auth::clearAuth();
-            @session_destroy();
+        if ($s_status != FASTFRAME_AUTH_NO_ANCHOR && 
+            $s_status != FASTFRAME_AUTH_SESSIONIP && 
+            $s_status != FASTFRAME_AUTH_BROWSER) {
+            FF_Auth::destroySession();
         }
 
         // Start session again so we don't end up with an empty session_id
-        FF_Auth::sessionStart(true);
+        FF_Auth::startSession(true);
         return $o_result;
     }
 
@@ -397,7 +399,7 @@ class FF_Auth {
     }
 
     // }}}
-    // {{{ sessionStart()
+    // {{{ startSession()
 
     /**
      * Start a session.
@@ -410,7 +412,7 @@ class FF_Auth {
      * @access public 
      * @return void
      */
-    function sessionStart($in_clean = false) 
+    function startSession($in_clean = false) 
     {
         static $isStarted;
         
@@ -447,6 +449,25 @@ class FF_Auth {
                 session_id(md5(uniqid(mt_rand(), true)));
             }
         }
+    }
+
+    // }}}
+    // {{{ destroySession()
+
+    /**
+     * Destroys the current session
+     *
+     * @access public
+     * @return void
+     */
+    function destroySession()
+    {
+        $o_registry =& FF_Registry::singleton();
+        $_SESSION = array();
+        FF_Request::unsetCookies(array(session_name(), FF_Auth::_getSessionAnchor()),
+                $o_registry->getConfigParam('cookie/path'),
+                $o_registry->getConfigParam('cookie/domain'));
+        @session_destroy();
     }
 
     // }}}

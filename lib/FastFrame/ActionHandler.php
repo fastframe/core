@@ -169,7 +169,7 @@ class FF_ActionHandler {
     {
         $this->o_registry =& FF_Registry::singleton();
         $this->_initializeErrorHandler();
-        FF_Auth::sessionStart();
+        FF_Auth::startSession();
         // Always set the locale to a guaranteed language first so that a custom language
         // (i.e. en_BIP) will work
         FF_Locale::setLang('en_US');
