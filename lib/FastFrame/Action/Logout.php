@@ -1,5 +1,5 @@
 <?php
-/** $Id: Logout.php,v 1.2 2003/02/08 00:10:55 jrust Exp $ */
+/** $Id: Logout.php,v 1.3 2003/02/12 20:51:43 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -22,7 +22,7 @@
 // }}}
 // {{{ requires
 
-require_once dirname(__FILE__) . '/GenericAction.php';
+require_once dirname(__FILE__) . '/Action.php';
 
 // }}}
 // {{{ class ActionHandler_Logout
@@ -37,7 +37,7 @@ require_once dirname(__FILE__) . '/GenericAction.php';
  */
 
 // }}}
-class ActionHandler_Logout extends ActionHandler_GenericAction {
+class ActionHandler_Logout extends ActionHandler_Action {
     // {{{ properties
 
     /**
@@ -57,7 +57,7 @@ class ActionHandler_Logout extends ActionHandler_GenericAction {
      */
     function ActionHandler_Logout()
     {
-        ActionHandler_GenericAction::ActionHandler_GenericAction();
+        ActionHandler_Action::ActionHandler_Action();
         $this->o_auth =& FastFrame_Auth::singleton();
     }
 

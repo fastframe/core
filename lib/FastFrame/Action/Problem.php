@@ -1,5 +1,5 @@
 <?php
-/** $Id: Problem.php,v 1.3 2003/02/08 00:10:55 jrust Exp $ */
+/** $Id: Problem.php,v 1.4 2003/02/12 20:51:43 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -38,7 +38,7 @@ require_once dirname(__FILE__) . '/GenericProblem.php';
  */
 
 // }}}
-class ActionHandler_Problem extends ActionHandler_GenericAction {
+class ActionHandler_Problem extends ActionHandler_Action {
     // {{{ constructor
 
     /**
@@ -49,7 +49,7 @@ class ActionHandler_Problem extends ActionHandler_GenericAction {
      */
     function ActionHandler_Problem()
     {
-        ActionHandler_GenericAction::ActionHandler_GenericAction();
+        ActionHandler_Action::ActionHandler_Action();
     }
 
     // }}}

@@ -1,5 +1,5 @@
 <?php
-/** $Id: Display.php,v 1.3 2003/02/08 00:10:55 jrust Exp $ */
+/** $Id: Display.php,v 1.4 2003/02/12 20:51:43 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -38,7 +38,7 @@ require_once dirname(__FILE__) . '/GenericDisplay.php';
  */
 
 // }}}
-class ActionHandler_Display extends ActionHandler_GenericAction {
+class ActionHandler_Display extends ActionHandler_Action {
     // {{{ constructor
 
     /**
@@ -49,7 +49,7 @@ class ActionHandler_Display extends ActionHandler_GenericAction {
      */
     function ActionHandler_Display()
     {
-        ActionHandler_GenericAction::ActionHandler_GenericAction();
+        ActionHandler_Action::ActionHandler_Action();
     }
 
     // }}}
