@@ -260,6 +260,7 @@ class FF_SystemTest {
      */
     function _checkPEARDBLdap()
     {
+        @include_once 'DB.php';
         @include_once 'DB/ldap.php';
         return class_exists('DB_ldap');
     }

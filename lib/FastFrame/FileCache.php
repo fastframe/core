@@ -207,6 +207,11 @@ class FF_FileCache {
      */
     function exists($in_filePath, $in_useApp = false)
     {
+        // If it's a directory then don't test existence
+        if (substr($in_filePath, -1) == '/') {
+            return false;
+        }
+
         return file_exists($this->getPath($in_filePath, $in_useApp));
     }
 
