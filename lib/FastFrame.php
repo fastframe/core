@@ -895,8 +895,10 @@ function $funcName(field_name, value) {";
                 FastFrame::array_deep_map($value, $in_func, $in_args, $in_index);
             }
             else {
-                array_splice($args, $in_index - 1, $in_index - 1, $value);
-                $value = call_user_func_array($in_func, $args);
+                if (!is_null($value)) {
+                    array_splice($args, $in_index - 1, $in_index - 1, $value);
+                    $value = call_user_func_array($in_func, $args);
+                }
             }
         }
 
