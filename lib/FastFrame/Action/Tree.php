@@ -73,6 +73,12 @@ class FF_Action_Tree extends FF_Action {
     var $numRootNodes;
 
     /**
+     * Tells if the current node should be opened or not
+     * @var int
+     */
+    var $isOpen = 0;
+
+    /**
      * Template block that the container is rendered into
      * @var string
      */
@@ -255,13 +261,8 @@ class FF_Action_Tree extends FF_Action {
         $s_branch = $this->getIcon($s_branch);
         $s_folder = $this->getNodeIcon($in_hasChildren, $in_isOpen) . ' ';
         if ($in_hasChildren) {
-            $s_expand = $in_isOpen ? 0 : 1;
-            $s_branch = $this->o_output->link(
-                    FastFrame::selfURL(array(
-                        'nodeId' => $this->o_model->getId(), 
-                        'expand' => $s_expand),
-                        $this->getBranchUrlParams()),
-                    $s_branch);
+            $this->isOpen = $in_isOpen ? 0 : 1;
+            $s_branch = $this->o_output->link(FastFrame::selfURL($this->getBranchUrlParams()), $s_branch);
         }
 
         $s_html .= $s_branch;
@@ -275,14 +276,15 @@ class FF_Action_Tree extends FF_Action {
     // {{{ getBranchUrlParams()
 
     /**
-     * Gets any extra parameters for the branch (open/close) url.
+     * Gets the parameters for the branch (open/close) url.
      *
      * @access public
      * @return array The array of url params
      */
     function getBranchUrlParams()
     {
-        return array('actionId' => $this->currentActionId);
+        return array('nodeId' => $this->o_model->getId(), 'expand' => $this->isOpen, 
+                'actionId' => $this->currentActionId);
     }
 
     // }}}
