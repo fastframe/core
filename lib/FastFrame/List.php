@@ -309,12 +309,9 @@ class FF_List {
 
             $tmp_help = _('Find items in the list by entering a search term in the box to the right.  If you want to only search a particular field then select it from the drop down list.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy');
             $s_findText = sprintf(
-                            _('%1$s %2$s in %3$s'), 
-                            $this->o_output->link(
-                                'javascript: void(0);',
-                                _('Find'),
-                                array('title' => $tmp_help, 'caption' => _('Search Help'), 'status' => _('Search Help'))
-                            ),
+                            _('%1$s %2$s %3$s in %4$s'), 
+                            $this->o_output->getHelpLink($tmp_help, _('Search Help')),
+                            _('Find'),
                             $o_renderer->elementToHtml('searchString'), 
                             $o_renderer->elementToHtml('searchField') . ' ' .
                             $o_renderer->elementToHtml('query_submit') . ' ' .
