@@ -93,6 +93,12 @@ class FF_Output extends FF_Template {
     var $theme;
 
     /**
+     * The theme directory
+     * @var string
+     */
+    var $themeDir;
+
+    /**
      * The array of messages
      * @var array
      */
@@ -147,21 +153,31 @@ class FF_Output extends FF_Template {
      */
     function load($in_theme)
     {
-        $this->theme = FF_Request::getParam('printerFriendly', 'gp', false) ? 
-            $this->o_registry->getConfigParam('general/print_theme') : $in_theme;
-        $s_directory = $this->o_registry->getRootFile($this->theme, 'themes');
+        $this->theme = FF_Request::getParam('printerFriendly', 'gp', false) && 
+            !$this->o_registry->getConfigParam('display/theme_locked', false) ?
+            $this->o_registry->getConfigParam('display/print_theme') : $in_theme;
+
+        // See if theme is a full path (if theme is in app directory it can be)
+        if ($this->_is_absolute($this->theme)) {
+            $this->themeDir = $this->theme;
+            $this->theme = basename($this->theme);
+        }
+        else {
+            $this->themeDir = $this->o_registry->getRootFile($this->theme, 'themes');
+        }
+
         // See if theme has its own main template
-        if (!is_readable($s_directory . '/overall.tpl')) {
-            $s_directory = $this->o_registry->getRootFile('widgets', 'themes');
+        $pth_overall = $this->themeDir;
+        if (!is_readable($pth_overall . '/overall.tpl')) {
+            $pth_overall = $this->o_registry->getRootFile('widgets', 'themes');
         }
 
         // now that we have the template directory, we can initialize the template engine
-        parent::FF_Template($s_directory);
+        parent::FF_Template($pth_overall);
         parent::load('overall.tpl', 'file');
 
-
         // Initialize menu to default type
-        $this->setMenuType($this->o_registry->getConfigParam('menu/type'));
+        $this->setMenuType($this->o_registry->getConfigParam('display/menu_type'));
 
         // If it's printer friendly we have no menu
         if (FF_Request::getParam('printerFriendly', 'gp', false)) {
@@ -233,7 +249,7 @@ class FF_Output extends FF_Template {
         }
         else {
             $in_widget .= '.tpl';
-            $s_directory = $this->o_registry->getRootFile($this->theme, 'themes');
+            $s_directory = $this->themeDir;
             if (!is_readable($s_directory . '/' . $in_widget)) {
                 $s_directory = $this->o_registry->getRootFile('widgets', 'themes');
             }
@@ -258,13 +274,15 @@ class FF_Output extends FF_Template {
      */
     function renderCSS($in_remakeCSS = false)
     {
-        require_once 'System.php';
-        $s_cssCacheDir = $this->o_registry->getRootFile(File::buildPath(array('css', $this->theme)), 'cache');
-        if (!@System::mkdir("-p $s_cssCacheDir"))  {
-            return PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_WARNING, $s_cssCacheDir, 'FF_Error', true);
+        $s_cssCacheDir = $this->o_registry->getRootFile('css/' . $this->theme, 'cache');
+        if (!is_dir($s_cssCacheDir)) {
+            require_once 'System.php';
+            if (!@System::mkdir("-p $s_cssCacheDir"))  {
+                return PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_WARNING, $s_cssCacheDir, 'FF_Error', true);
+            }
         }
 
-        $s_cssTemplateFile = $this->o_registry->getRootFile(File::buildPath(array($this->theme, 'style.tpl')), 'themes');
+        $s_cssTemplateFile = $this->themeDir . '/style.tpl';
         $s_browser = Net_UserAgent_Detect::getBrowser(array('ie', 'gecko'));
         // All other browsers get treated as gecko
         if (is_null($s_browser)) {
@@ -273,7 +291,7 @@ class FF_Output extends FF_Template {
 
         // Determine the css file based on the browser
         $s_cssFileName = 'style-' . $s_browser . '.css';
-        $s_cssCacheFile = File::buildPath(array($s_cssCacheDir, $s_cssFileName));
+        $s_cssCacheFile = $s_cssCacheDir . '/' . $s_cssFileName;
 
         // make the CSS file if needed
         if ($in_remakeCSS ||
@@ -285,7 +303,7 @@ class FF_Output extends FF_Template {
             // set some variables
             $o_cssWidget->assignBlockData(
                 array(
-                    'THEME_DIR' => $this->o_registry->getRootFile($this->theme, 'themes', FASTFRAME_WEBPATH),
+                    'THEME_DIR' => $this->o_registry->rootPathToWebPath($this->themeDir),
                     'ROOT_GRAPHICS_DIR' => $this->o_registry->getRootFile('', 'graphics', FASTFRAME_WEBPATH),
                 ),
                 $this->getGlobalBlockName()
@@ -295,8 +313,7 @@ class FF_Output extends FF_Template {
             File::close($s_cssCacheFile, FILE_MODE_WRITE);
         }
 
-        $s_cssURL = $this->o_registry->getRootFile(
-                File::buildPath(array('css', $this->theme, $s_cssFileName), '/'), 
+        $s_cssURL = $this->o_registry->getRootFile('css/' . $this->theme . '/' . $s_cssFileName, 
                 'cache', FASTFRAME_WEBPATH);
         // register the CSS file 
         $this->assignBlockData(
@@ -489,7 +506,7 @@ class FF_Output extends FF_Template {
      * @param array  $in_options (optional) A number of options that
      *               have to do with the image tag, included what type
      *               of image tag this is.  The options are as follows
-     *               width, height, type, align, style, onclick,
+     *               width, height, type, align, style, onclick, id,
      *               onlyUrl, fullPath, title, status, caption, greasy,
      *               sticky, name
      *
@@ -601,6 +618,7 @@ class FF_Output extends FF_Template {
             $s_tag .= $a_events['onmouseover'] != '' ? ' onmouseover="' . $a_events['onmouseover'] . '"' : '';
             $s_tag .= $a_events['onmousemove'] != '' ? ' onmousemove="' . $a_events['onmousemove'] . '"' : '';
             $s_tag .= $a_events['onclick'] != '' ? ' onclick="' . $a_events['onclick'] . '"' : '';
+            $s_tag .= isset($in_options['id']) ? " id=\"{$in_options['id']}\"" : '';
             $s_tag .= isset($in_options['name']) ? " name=\"{$in_options['name']}\"" : '';
             $s_tag .= isset($in_options['align']) ? " align=\"{$in_options['align']}\"" : '';
             $s_tag .= isset($in_options['hspace']) ? " hspace=\"{$in_options['hspace']}\"" : '';
@@ -614,21 +632,6 @@ class FF_Output extends FF_Template {
 
             return $s_tag;
         }
-    }
-
-    // }}}
-    // {{{ pimgTag()
-
-    /**
-     * Prints an image tag (either input type="image" or img) properly formatted and 
-     * with the correct width and height attributes 
-     *
-     * @see imgTag
-     * @access public
-     */
-    function pimgTag($in_img = null, $in_type = 'icons', $in_options = array())
-    {
-        echo FF_Image::imgTag($in_img, $in_type, $in_options);
     }
 
     // }}}
@@ -716,7 +719,7 @@ class FF_Output extends FF_Template {
             $s_title = "$s_title :: $s_page";
         }
 
-        if (!FastFrame::isempty(($s_siteName = $this->o_registry->getConfigParam('general/site_name')))) {
+        if (!FastFrame::isEmpty(($s_siteName = $this->o_registry->getConfigParam('display/site_name')))) {
             $s_title = "$s_siteName :: $s_title";
         }
 
@@ -817,11 +820,19 @@ class FF_Output extends FF_Template {
                 // move it down slightly
                 $this->assignBlockData(array('T_css' => '<style type="text/css">table.canvas { margin-top: 100px; } </style>'), 'css');
 
+                if ($s_header = $this->_getHeaderText()) {
+                    $this->assignBlockData(array('T_banner_top' => $s_header), 'switch_banner_top');
+                }
+
                 if ($s_footer = $this->_getFooterText()) {
                     $this->assignBlockData(array('T_banner_bottom' => $s_footer), 'switch_banner_bottom');
                 }
             break;
             case 'normal':
+                if ($s_header = $this->_getHeaderText()) {
+                    $this->assignBlockData(array('T_banner_top' => $s_header), 'switch_banner_top');
+                }
+
                 if ($s_footer = $this->_getFooterText()) {
                     $this->assignBlockData(array('T_banner_bottom' => $s_footer), 'switch_banner_bottom');
                 }
@@ -868,33 +879,61 @@ class FF_Output extends FF_Template {
     }
 
     // }}}
+    // {{{ _getHeaderText()
+
+    /**
+     * Gets the header text for the page
+     *
+     * @access private
+     * @return mixed False if ther is no header or header text 
+     */
+    function _getHeaderText()
+    {
+        $s_header = $this->o_registry->getConfigParam('display/header_text');
+        if (FastFrame::isEmpty($s_header)) {
+            $s_header = false;
+        }
+        else {
+            $s_header = str_replace('%title%', $this->getPageTitle(), $s_header);
+        }
+
+        return $s_header;
+    }
+
+    // }}}
     // {{{ _getFooterText()
 
     /**
      * Gets the footer text for the page
      *
      * @access private
-     * @return mixed False if ther is no footer or the footer text
+     * @return mixed False if ther is no footer or footer text
      */
     function _getFooterText()
     {
-        $s_footer = $this->o_registry->getConfigParam('general/footer_text');
-        if ($s_footer !== false && $this->o_registry->getConfigParam('general/add_user_to_footer')) {
+        $s_footer = $this->o_registry->getConfigParam('display/footer_text');
+        if (strpos($s_footer, '%userInfo%') !== false) {
             if (FF_Auth::checkAuth()) {
-                $s_footer .= ' ' . sprintf(_('You are logged in as %s.'), FF_Auth::getCredential('username'));
+                $s_footer = str_replace('%userInfo%', sprintf(_('You are logged in as %s.'), 
+                            FF_Auth::getCredential('username')), $s_footer);
             }
             else {
-                $s_footer .= ' ' . _('You are not logged in.');
+                $s_footer = str_replace('%userInfo%', _('You are not logged in.'), $s_footer);
             }
         }
 
-        $s_footer = str_replace('%version%', $this->o_registry->getConfigParam('version/primary', 
-                    null, array('app' => FASTFRAME_DEFAULT_APP)), $s_footer);
-        $s_footer = str_replace('%build%', $this->o_registry->getConfigParam('version/build', 
-                    null, array('app' => FASTFRAME_DEFAULT_APP)), $s_footer);
-        $a_microtime = explode(' ', microtime());
-        define('FASTFRAME_END_TIME', $a_microtime[1] . substr($a_microtime[0], 1));
-        $s_footer = str_replace('%renderTime%', number_format(FASTFRAME_END_TIME - FASTFRAME_START_TIME, 2), $s_footer);
+        if (FastFrame::isEmpty($s_footer)) {
+            $s_footer = false;
+        }
+        else {
+            $s_footer = str_replace('%version%', $this->o_registry->getConfigParam('version/primary', 
+                        null, array('app' => FASTFRAME_DEFAULT_APP)), $s_footer);
+            $s_footer = str_replace('%build%', $this->o_registry->getConfigParam('version/build', 
+                        null, array('app' => FASTFRAME_DEFAULT_APP)), $s_footer);
+            $a_microtime = explode(' ', microtime());
+            define('FASTFRAME_END_TIME', $a_microtime[1] . substr($a_microtime[0], 1));
+            $s_footer = str_replace('%renderTime%', number_format(FASTFRAME_END_TIME - FASTFRAME_START_TIME, 2), $s_footer);
+        }
 
         return $s_footer;
     }

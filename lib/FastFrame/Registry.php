@@ -613,6 +613,23 @@ class FF_Registry {
     }
 
     // }}}
+    // {{{ rootPathToWebPath()
+
+    /**
+     * Converts a root file path to its web path
+     *
+     * @param string $in_path The full root file path
+     *
+     * @access public
+     * @return string The web server path
+     */
+    function rootPathToWebPath($in_path)
+    {
+        return str_replace($this->getConfigParam('webserver/file_root'), 
+                $this->getConfigParam('webserver/web_root'), $in_path, 1);
+    }
+
+    // }}}
     // {{{ useGuestFramework()
 
     /**

@@ -111,7 +111,7 @@ class FF_Menu_StaticList extends FF_Menu {
             $s_node .= "<?php echo _('{$in_data['contents']}'); ?>";
         }
 
-        $s_node .= '</div>';
+        $s_node .= "</div>\n";
 
         // Recurse sub-elements
         $s_nextLevel = $in_level + 1;
