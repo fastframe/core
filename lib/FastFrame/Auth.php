@@ -24,13 +24,13 @@
 // }}}
 // {{{ constants
 
-define('FASTFRAME_AUTH_OK',         0);
-define('FASTFRAME_AUTH_IDLED',     -1);
-define('FASTFRAME_AUTH_EXPIRED',   -2);
-define('FASTFRAME_AUTH_NO_LOGIN',  -3);
-define('FASTFRAME_AUTH_BAD_LOGIN', -4);
-define('FASTFRAME_AUTH_BAD_APP',   -5);
-define('FASTFRAME_AUTH_LOGOUT',    -6);
+define('FASTFRAME_AUTH_OK',        0);
+define('FASTFRAME_AUTH_IDLED',     1);
+define('FASTFRAME_AUTH_EXPIRED',   2);
+define('FASTFRAME_AUTH_NO_LOGIN',  3);
+define('FASTFRAME_AUTH_BAD_APP',   4);
+define('FASTFRAME_AUTH_NO_ANCHOR', 5);
+define('FASTFRAME_AUTH_LOGOUT',    6);
 
 // }}}
 // {{{ includes
@@ -72,11 +72,6 @@ class FF_Auth {
      */
     function authenticate($in_username, $in_password) 
     {
-        // if we are already logged in, just return true immediately
-        if (FF_Auth::checkAuth()) {
-            return true;
-        }
-
         $o_registry =& FF_Registry::singleton();
         $s_authType = $o_registry->getConfigParam('auth/method');
         $b_authenticated = false;
@@ -119,7 +114,7 @@ class FF_Auth {
      *             so normally we don't do it.
      *
      * @access public
-     * @return bool {or void logout exception}
+     * @return bool True on good auth, false otherwise?
      */
     function checkAuth($in_full = false)
     {
@@ -170,13 +165,11 @@ class FF_Auth {
 
         /** 
          * If they don't have this cookie it means they either they
-         * deleted it or they sent the link to someone. In either case
-         * we just want to redirect them to a safe logout page, but not
-         * clear the session, since that would end the session for the
-         * real user.
+         * deleted it or they sent the link to someone.
          */
         if (!FF_Request::getParam(FF_Auth::_getSessionAnchor(), 'c')) {
-            FF_Auth::logout(null, false, true);
+            FF_Auth::_setStatus(FASTFRAME_AUTH_NO_ANCHOR);
+            return false;
         }
 
         return true;
@@ -315,48 +308,47 @@ class FF_Auth {
     // {{{ logout()
 
     /**
-     * Log the user out.
-     *
-     * @param string $in_logoutURL (optional) The logout url.  Otherwise we determine it
-     * @param bool $in_return (optional) Just return instead of redirecting to logout page?
-     * @param bool $in_safe (optional) Do a safe logout, where the session is not cleared?
-     *             Sends the user to the logout page, but doesn't clear the session and
-     *             authentication variables.  This is used in the case that the url was
-     *             given to someone else...if we perform a true logout we destroy the
-     *             session of the user who is already logged in.
+     * Log the user out by clearing their session..
      *
      * @access public
-     * @return mixed Redirect on success, true if $in_return is set
+     * @return object A result object with any pertinent logout messages.
      */
-    function logout($in_logoutURL = null, $in_return = false, $in_safe = false) 
+    function logout()
     {
-        if (is_null($in_logoutURL) && !$in_return) {
-            $o_registry =& FF_Registry::singleton();
-            // Get the request url without the session.  Not using selfURL() because it calls
-            // action handler which can make an infinite loop.
-            $s_redirectURL = preg_replace('/[?&]' . session_name() . '=[^?&]*/', '', $_SERVER['REQUEST_URI']);
-            $s_logoutURL = FastFrame::url(
-                    $o_registry->getRootFile('index.php', null, FASTFRAME_WEBPATH), 
-                    array('app' => 'login', 'loginRedirect' => $s_redirectURL, session_name() => false), true);
-        }
-        else {
-            $s_logoutURL = $in_logoutURL;
+        $o_result =& new FF_Result();
+        $s_status = FF_Request::getParam('__auth__[\'status\']', 's');
+        switch ($s_status) {
+            case FASTFRAME_AUTH_IDLED:
+                $o_result->addMessage(_('You have been logged out due to inactivity.'));
+            break;
+            case FASTFRAME_AUTH_EXPIRED:
+                $o_result->addMessage(_('Your have been logged out because your session has expired.'));
+            break;
+            case FASTFRAME_AUTH_BAD_APP:
+                $o_result->addMessage(_('You have been logged out because you have tried to access a protected application.'));
+            break;
+            case FASTFRAME_AUTH_NO_ANCHOR:
+                $o_result->addMessage(_('You have been logged out because your session anchor could not be verified.  Ensure that you have cookies enabled.'));
+            break;
+            default:
+                $o_result->addMessage(_('You have been successfully logged out.'));
+            break;
         }
 
-        if (!$in_safe) {
+        /**
+         * If logged out due to a bad session anchor then we just want
+         * to redirect them to a safe logout page, but not clear the
+         * session, since that would end the session for the real user.
+         */
+        if ($s_status != FASTFRAME_AUTH_NO_ANCHOR) {
             FF_Auth::clearAuth();
             FF_Auth::_setStatus(FASTFRAME_AUTH_LOGOUT);
             FF_Auth::_sessionEnd();
         }
 
-        if ($in_return) {
-            // Start session again so we don't end up with an empty session_id
-            FF_Auth::sessionStart();
-            return true;
-        }
-        else {
-            FastFrame::redirect($s_logoutURL);
-        }
+        // Start session again so we don't end up with an empty session_id
+        FF_Auth::sessionStart();
+        return $o_result;
     }
 
     // }}}

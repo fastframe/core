@@ -486,17 +486,22 @@ class FF_ActionHandler {
         } 
         else {
             if (!FF_Auth::checkAuth(true)) {
+                $this->setAppId('login');
+                $this->setModuleId($this->o_registry->getConfigParam('general/initial_module', null, $this->appId));
+                $this->loadActions();
                 // If there was no app specified then they have arrived newly at the
                 // site.  We don't want to bounce them to the initial app only to have
                 // them bounce back to the login page.  So we send them straight to it.
                 if (FF_Request::getParam('app', 'gp', false) === false) {
-                    $this->setAppId('login');
-                    $this->setModuleId($this->o_registry->getConfigParam('general/initial_module', null, $this->appId));
-                    $this->loadActions();
                     $this->setActionId($this->defaultActionId);
                 }
                 else {
-                    FF_Auth::logout();
+                    // They were trying to get somewhere but don't have
+                    // auth, store where they were trying to go so we can
+                    // bounce back there after login.
+                    $s_redirectURL = preg_replace('/[?&]' . session_name() . '=[^?&]*/', '', $_SERVER['REQUEST_URI']);
+                    FF_Request::setParam('loginRedirect', $s_redirectURL, 'p');
+                    $this->setActionId(ACTION_LOGOUT);
                 }
             }
         }
