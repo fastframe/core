@@ -552,19 +552,22 @@ class FF_ActionHandler {
     {
         // This causes all pear errors to be sent to the error handler
         PEAR::setErrorHandling(PEAR_ERROR_TRIGGER, E_USER_NOTICE); 
-        $o_error =& new FF_ErrorHandler();
-        $GLOBALS['o_error'] =& $o_error;
-        $o_error->setDateFormat('[Y-m-d H:i:s]');
-        $o_error->setExcludeObjects(false);
-        $o_error->setFileUrl($this->o_registry->getConfigParam('error/file_url'));
-        foreach ($this->o_registry->getConfigParam('error/reporters', array()) as $s_type => $a_reporter) {
-            // Text-based browsers can't use console method
-            if ($s_type == 'console' && !Net_UserAgent_Detect::hasFeature('javascript')) {
-                $s_type = 'browser';
-            }
+        // Don't re-initialize the error handler
+        if (!isset($GLOBALS['o_error'])) {
+            $o_error =& new FF_ErrorHandler();
+            $GLOBALS['o_error'] =& $o_error;
+            $o_error->setDateFormat('[Y-m-d H:i:s]');
+            $o_error->setExcludeObjects(false);
+            $o_error->setFileUrl($this->o_registry->getConfigParam('error/file_url'));
+            foreach ($this->o_registry->getConfigParam('error/reporters', array()) as $s_type => $a_reporter) {
+                // Text-based browsers can't use console method
+                if ($s_type == 'console' && !Net_UserAgent_Detect::hasFeature('javascript')) {
+                    $s_type = 'browser';
+                }
 
-            $a_reporter['data'] = isset($a_reporter['data']) ? $a_reporter['data'] : null;
-            $o_error->addReporter($s_type, $a_reporter['level'], $a_reporter['data']);
+                $a_reporter['data'] = isset($a_reporter['data']) ? $a_reporter['data'] : null;
+                $o_error->addReporter($s_type, $a_reporter['level'], $a_reporter['data']);
+            }
         }
     }
 
