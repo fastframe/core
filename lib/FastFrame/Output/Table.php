@@ -121,7 +121,7 @@ class FF_Output_Table {
                 break;
             case 'twoColumn':
             default:
-                $this->o_widget =& new FF_Smarty('genericTable');
+                $this->o_widget =& new FF_Smarty('twoColumnTable');
                 $this->_renderTwoColumnTable();
         }
 

@@ -180,7 +180,7 @@ class FF_Action_Form extends FF_Action {
     // {{{ renderFormTable()
 
     /**
-     * Renders the table and form using the genericTable widget.
+     * Renders the table and form using the twoColumnTable widget.
      *
      * @access public
      * @return object The table object 

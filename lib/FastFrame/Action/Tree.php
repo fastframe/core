@@ -141,7 +141,7 @@ class FF_Action_Tree extends FF_Action {
      */
     function renderContainer($in_tree)
     {
-        $o_tableWidget =& new FF_Smarty('genericTable');
+        $o_tableWidget =& new FF_Smarty('twoColumnTable');
         $o_tableWidget->assign(array('S_table_columns' => 1, 
                     'T_table_header' => $this->getPageName(), 'has_table_header' => true));
         $o_tableWidget->append('rows', array('has_content_cell' => true, 

@@ -174,7 +174,7 @@ class FF_List {
 
     /**
      * Create a search/navigation box that can be used to search a list or navigate it by
-     * page.  Then render the generated form using the genericTable widget. 
+     * page.  Then render the generated form using the twoColumnTable widget. 
      *
      * @param string $in_singularLang Singular description of the data 
      * @param string $in_pluralLang Plural description of the data 
