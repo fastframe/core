@@ -1,5 +1,5 @@
 <?php
-/** $Id: HTML.php,v 1.5 2003/01/16 01:03:48 jrust Exp $ */
+/** $Id: HTML.php,v 1.6 2003/01/21 19:33:26 jrust Exp $ */
 // {{{ includes
 
 require_once dirname(__FILE__) . '/Template.php';
@@ -148,11 +148,11 @@ class FastFrame_HTML extends FastFrame_Template {
      */
     function renderCSS($in_remakeCSS = false)
     {
+        require_once 'System.php';
         $s_theme = $this->FastFrame_Registry->getUserParam('theme');
         $s_cssCacheDir = $this->FastFrame_Registry->getRootFile("css/$s_theme", 'cache');
-        FastFrame::mkdirp($s_cssCacheDir);
-        // make sure the cache directory exists
-        if (!is_dir($s_cssCacheDir)) {
+        $GLOBALS['o_error']->debug($s_cssCacheDir, 's_cssCacheDir', __FILE__, __LINE__);
+        if (!@System::mkdir("-p $s_cssCacheDir"))  {
             return PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_WARNING, $s_cssCacheDir, 'FastFrame_Error', true);
         }
 
