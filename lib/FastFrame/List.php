@@ -322,7 +322,7 @@ class FF_List {
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
             $o_searchWidget->assign(array('T_switch_type' => $this->o_output->link(
                             FastFrame::selfURL(array_merge($this->persistentData, $a_listVars, 
-                                    array('searchBoxType' => SEARCH_BOX_ADVANCED))), _('» More Search Options'))));
+                                    array('searchBoxType' => SEARCH_BOX_ADVANCED))), '&#187; ' . _('More Search Options'))));
         }
         elseif ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
             $s_limitText = sprintf(_('Display %s results per page'), 
@@ -330,7 +330,7 @@ class FF_List {
 
             $o_searchWidget->assign(array('T_switch_type' => $this->o_output->link(
                             FastFrame::selfURL(array_merge($this->persistentData, $a_listVars, 
-                                    array('searchBoxType' => SEARCH_BOX_SIMPLE))), _('» Fewer Search Options')),
+                                    array('searchBoxType' => SEARCH_BOX_SIMPLE))), '&#187; ' . _('Fewer Search Options')),
                         'T_search_limit' => $s_limitText,
                         'T_search_fields' => _('Search fields'),
                         'T_search_fieldSelect' => $o_renderer->elementToHtml("searchField[$this->listId]"),
@@ -378,33 +378,25 @@ class FF_List {
                                     $this->o_output->link(
                                             FastFrame::selfURL(array_merge($a_urlVars, array(
                                                     "pageOffset[$this->listId]" => $this->getPageId('first')))), 
-                                            $this->o_output->imgTag('first.gif', 'arrows'), 
-                                            $lang_firstPage) : 
-                                    $this->o_output->imgTag('first-gray.gif', 'arrows', $lang_atFirst);
+                                            '&#171; ' . _('First'), $lang_firstPage) : '&nbsp;';
 
         $a_navigation['previous'] = $this->getPageOffset() > 1 ?
                                     $this->o_output->link(
                                             FastFrame::selfURL(array_merge($a_urlVars, array(
                                                     "pageOffset[$this->listId]" => $this->getPageId('previous')))), 
-                                            $this->o_output->imgTag('prev.gif', 'arrows'), 
-                                            $lang_prevPage) : 
-                                    $this->o_output->imgTag('prev-gray.gif', 'arrows', $lang_atFirst);
+                                            '&#139; ' . _('Previous'), $lang_prevPage) : '&nbsp;';
 
         $a_navigation['next']     = $this->getPageOffset() < $this->getPageId('last') ? 
                                     $this->o_output->link(
                                             FastFrame::selfURL(array_merge($a_urlVars, array(
                                                     "pageOffset[$this->listId]" => $this->getPageId('next')))), 
-                                            $this->o_output->imgTag('next.gif', 'arrows'), 
-                                            $lang_nextPage) : 
-                                    $this->o_output->imgTag('next-gray.gif', 'arrows', $lang_atLast);
+                                            _('Next') . ' &#155;', $lang_nextPage) : '&nbsp;';
 
         $a_navigation['last']     = $this->getPageOffset() < $this->getPageId('last') ? 
                                     $this->o_output->link(
                                             FastFrame::selfURL(array_merge($a_urlVars, array(
                                                     "pageOffset[$this->listId]" => $this->getPageId('last')))), 
-                                            $this->o_output->imgTag('last.gif', 'arrows'), 
-                                            $lang_lastPage) : 
-                                    $this->o_output->imgTag('last-gray.gif', 'arrows', $lang_atLast);
+                                            _('Last') . ' &#187;', $lang_lastPage) : '&nbsp;';
         
         return $a_navigation;
     }

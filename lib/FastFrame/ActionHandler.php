@@ -146,7 +146,6 @@ class FF_ActionHandler {
         ACTION_SELECT     => array('Action/List.php', 'FF_Action_List'),
         ACTION_DISPLAY    => array('Action/Display.php', 'FF_Action_Display'),
         ACTION_TREE       => array('Action/Tree.php', 'FF_Action_Tree'),
-        ACTION_CONTACT    => array('Action/ContactForm.php', 'FF_Action_Form_Contact'),
     );
 
     // }}}

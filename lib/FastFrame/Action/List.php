@@ -158,10 +158,10 @@ class FF_Action_List extends FF_Action_Form {
 
         $a_data = $this->o_list->generateNavigationLinks();
         $o_tableWidget->assign(array('S_table_columns' => $s_numCols, 
-                    'I_navigation_first' => $a_data['first'],
-                    'I_navigation_previous' => $a_data['previous'],
-                    'I_navigation_next' => $a_data['next'],
-                    'I_navigation_last' => $a_data['last']));
+                    'T_navigation_first' => $a_data['first'],
+                    'T_navigation_previous' => $a_data['previous'],
+                    'T_navigation_next' => $a_data['next'],
+                    'T_navigation_last' => $a_data['last']));
 
         $this->renderListData($o_tableWidget, $s_numCols);
         $this->o_output->o_tpl->append('content_middle', $o_tableWidget->fetch());
