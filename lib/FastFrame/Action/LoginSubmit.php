@@ -1,5 +1,5 @@
 <?php
-/** $Id: LoginSubmit.php,v 1.9 2003/04/09 19:55:09 jrust Exp $ */
+/** $Id: LoginSubmit.php,v 1.10 2003/04/09 20:05:58 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -106,7 +106,7 @@ class FF_Action_LoginSubmit extends FF_Action {
             if (empty($s_redirectURL)) {
                 $s_initialApp = $this->o_registry->getConfigParam('general/initial_app', 'login');
                 if ($s_initialApp != 'login') {
-                    $s_redirectURL = FastFrame::selfURL(array('app' => $s_initialApp, 'module' => ''));
+                    $s_redirectURL = FastFrame::url('index.php', array('app' => $s_initialApp));
                     FastFrame::redirect($s_redirectURL);
                 }
                 else {

@@ -1,5 +1,5 @@
 <?php
-/** $Id: Login.php,v 1.11 2003/04/09 19:55:09 jrust Exp $ */
+/** $Id: Login.php,v 1.12 2003/04/09 20:05:58 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -202,7 +202,7 @@ class FF_Action_Login extends FF_Action_Form {
             }
 
             $s_createAcct = $this->o_output->link(
-                                FastFrame::selfURL(array('app' => 'profile', 'module' => '', 'actionId' => ACTION_ADD, 'fromLogin' => 1)),
+                                FastFrame::url('index.php', array('app' => 'profile', 'actionId' => ACTION_ADD, 'fromLogin' => 1)),
                                 _('Don\'t have an account? Create one.'),
                                 array('title' => _('Create an account if you do not already have one.'))
                             );
