@@ -141,7 +141,7 @@ class FF_Menu_StaticList extends FF_Menu {
                 // Let them know there is a submenu
                 if (!$b_hitSub) {
                     $b_hitSub = true;
-                    $s_node = preg_replace('|<li>(<a.*?>)(.*?)</a>|', '<li class="parent">\\1<div style="float: left;">\\2</div><div style="float: right;">&#187;</div></a>', $s_node);
+                    $s_node = preg_replace('|<li>(<a.*?>)(.*?)</a>|', '<li class="parent">\\1<div style="cursor: pointer; float: left;">\\2</div><div style="float: right;">&#187;</div></a>', $s_node);
                 }
 
                 $s_node .= $this->_getMenuNode($a_data, $s_nextLevel);
