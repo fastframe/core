@@ -1,5 +1,5 @@
 <?php
-/** $Id: Auth.php,v 1.9 2003/02/22 02:06:10 jrust Exp $ */
+/** $Id: Auth.php,v 1.10 2003/03/19 00:00:52 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -66,7 +66,7 @@ class FastFrame_Auth {
      * Sources to use for authentication
      * @type array
      */
-    var $authSources;
+    var $authSources = array();
 
     /**
      * Source we successfully authenticated against
@@ -117,23 +117,6 @@ class FastFrame_Auth {
     function FastFrame_Auth()
     {
         FastFrame_Auth::_session_start();
-        $o_registry =& FastFrame_Registry::singleton();
-        $this->authSources = array();
-        $a_sources = $o_registry->getConfigParam('auth/sources');
-
-        // populate all of the authentication sources
-        if (is_array($a_sources)) {
-            foreach ($a_sources as $s_name => $a_source) {
-                // Get an AuthSource of the proper type
-                $o_authSource =& AuthSource::create($a_source['type'], $s_name, $a_source['params']);
-                if ($o_authSource) {
-                    array_push($this->authSources, &$o_authSource);
-                }
-            }
-        }
-        else {
-            return FastFrame::fatal('No authentication source was defined in the config file.', __FILE__, __LINE__);
-        }
     }
 
     // }}}
@@ -160,6 +143,21 @@ class FastFrame_Auth {
         $s_authType = $o_registry->getConfigParam('auth/method');
         $o_registry->popCurrentApp();
         $b_authenticated = false;
+        // populate all of the authentication sources
+        $this->authSources = array();
+        $a_sources = $o_registry->getConfigParam('auth/sources');
+        if (is_array($a_sources)) {
+            foreach ($a_sources as $s_name => $a_source) {
+                // Get an AuthSource of the proper type
+                $o_authSource =& AuthSource::create($a_source['type'], $s_name, $a_source['params']);
+                if ($o_authSource) {
+                    array_push($this->authSources, &$o_authSource);
+                }
+            }
+        }
+        else {
+            return FastFrame::fatal('No authentication source was defined in the config file.', __FILE__, __LINE__);
+        }
 
         // We need to check all of the sources in order
         foreach($this->authSources as $source) {
@@ -412,7 +410,7 @@ class FastFrame_Auth {
         if (is_null($in_logoutURL) && !$in_return) {
             $o_registry =& FastFrame_Registry::singleton();
             $s_logoutApp = $o_registry->getConfigParam('general/logout_app', $o_registry->getConfigParam('general/login_app'));
-            $s_logoutURL = FastFrame::url($o_registry->getAppFile('index.php', $s_logoutApp, '', FASTFRAME_WEBPATH), true);
+            $s_logoutURL = FastFrame::url($o_registry->getRootFile('index.php', null, FASTFRAME_WEBPATH), array('app' => $s_logoutApp), true);
         }
         else {
             $s_logoutURL = $in_logoutURL;
