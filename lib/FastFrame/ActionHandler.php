@@ -140,14 +140,13 @@ class FF_ActionHandler {
     {
         $this->_initializeErrorHandler();
         $this->o_registry =& FF_Registry::singleton();
-        
         $this->setActionId(FastFrame::getCGIParam('actionId', 'gp'));
         $this->setModuleId(FastFrame::getCGIParam('module', 'gp'));
         $this->setAppId(FastFrame::getCGIParam('app', 'gp'));
-
         if (empty($this->appId)) {
             $this->appId = $this->o_registry->getConfigParam('general/initial_app', 'login');
         }
+
         $this->o_registry->pushApp($this->appId);
 
         if (empty($this->moduleId) ) {
@@ -187,7 +186,7 @@ class FF_ActionHandler {
         $hitLastAction = false;
         while (!$hitLastAction) {
             $this->loadActions($this->appId, $this->moduleId);
-            $this->_checkAuth();
+            $this->checkAuth();
             $pth_actionFile = $this->availableActions[$this->actionId][0];
             if (file_exists($pth_actionFile)) {
                 require_once $pth_actionFile;
@@ -231,7 +230,31 @@ class FF_ActionHandler {
      */
     function loadActions($in_app, $in_module)
     {
-        $this->defaultActionId="";
+        static $a_configObjects, $s_lastApp, $s_lastModule;
+        if (!isset($a_configObjects)) {
+            $a_configObjects = array();
+        }
+
+        // no need to reload if not changing module and app 
+        if ($s_lastApp == $in_app && $s_lastModule == $in_module) {
+            return;
+        }
+
+        $s_lastApp = $in_app;
+        $s_lastModule = $in_module;
+        $s_className = 'FF_ActionHandlerConfig_' . $in_module;
+        if (!isset($a_configObjects[$s_className])) {
+            $pth_config= $this->o_registry->getAppFile("ActionHandler/$in_module.php", $in_app, 'libs'); 
+            if (file_exists($pth_config)) {
+                require_once $pth_config;
+                $a_configObjects[$s_className] =& new $s_className($this);
+            }
+            else {
+                FastFrame::fatal("The class file for Module $in_module ($pth_config) does not exist", __FILE__, __LINE__); 
+            }
+        }
+
+        $this->defaultActionId = '';
         $this->availableActions = array(
             ACTION_PROBLEM    => array('Action/Problem.php', 'FF_Action_Problem'),
             ACTION_ADD        => array('Action/Form.php', 'FF_Action_Form'),
@@ -244,22 +267,11 @@ class FF_ActionHandler {
             ACTION_LOGIN_SUBMIT=> array('Action/LoginSubmit.php', 'FF_Action_LoginSubmit'),
             ACTION_LOGOUT     => array('Action/Logout.php', 'FF_Action_Logout'),
             ACTION_DISPLAY    => array('Action/Display.php', 'FF_Action_Display'),
+            ACTION_TREE       => array('Action/Tree.php', 'FF_Action_Tree'),
         );
-
         $this->_makeActionPathsAbsolute();
-        $pth_config= $this->o_registry->getAppFile("ActionHandler/{$in_module}.php", $in_app, 'libs'); 
-        if (file_exists($pth_config)) {
-
-           require_once $pth_config;
-           $className="FF_ActionHandlerConfig_" . $in_module;
-           $this->moduleConfig = new $className($this);
-
-        }
-        else {
-            $tmp_error = "The class file for Module $in_module ($pth_config) does not exist";
-            FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
-
-        }
+        $this->moduleConfig =& $a_configObjects[$s_className];
+        $this->moduleConfig->loadConfig();
     }
 
     // }}}
@@ -414,6 +426,30 @@ class FF_ActionHandler {
     }
 
     // }}}
+    // {{{ checkAuth()
+
+    /**
+     * Initializes the auth object and makes sure that the page can proceed because the
+     * authentication passes
+     *
+     * @param bool $in_noModuleCheck (optional) Don't check the whether the module has auth?
+     *             Useful if this is being called from an ActionHandlerConfig class
+     * @access public 
+     * @return void
+     */
+    function checkAuth($in_noModuleCheck = false)
+    {
+        if (!$in_noModuleCheck && $this->moduleConfig->hasCheckAuth()) {
+            $this->moduleConfig->checkAuth();
+        } 
+        else {
+            if (!FF_Auth::checkAuth()) {
+                FF_Auth::logout();
+            }
+        }
+    }
+
+    // }}}
     // {{{ _makeActionPathsAbsolute()
 
     /**
@@ -451,28 +487,6 @@ class FF_ActionHandler {
         $o_reporter->setExcludeObjects(false);
         $o_reporter->addReporter('console', E_VERY_ALL);
         ErrorList::singleton($o_reporter, 'o_error');
-    }
-
-    // }}}
-    // {{{ _checkAuth()
-
-    /**
-     * Initializes the auth object and makes sure that the page can proceed because the
-     * authentication passes
-     *
-     * @access private
-     * @return void
-     */
-    function _checkAuth()
-    {
-        if ($this->moduleConfig->hasCheckAuth()) {
-            $this->moduleConfig->checkAuth();
-        } 
-        else {
-            if (!FF_Auth::checkAuth()) {
-                FF_Auth::logout();
-            }
-        }
     }
 
     // }}}

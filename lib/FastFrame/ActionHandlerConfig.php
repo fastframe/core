@@ -47,7 +47,7 @@ class FF_ActionHandlerConfig {
     // {{{ constructor
 
     /**
-     * Configures actions for the Action Handler
+     * Class initialization
      *
      * @access public
      * @return void
@@ -55,6 +55,20 @@ class FF_ActionHandlerConfig {
     function FF_ActionHandlerConfig(&$in_actionHandler)
     {
         $this->actionHandler =& $in_actionHandler;
+    }
+
+    // }}}
+    // {{{ loadConfig()
+
+    /**
+     * Configures actions for the Action Handler and loads the model object
+     *
+     * @access public
+     * @return void
+     */
+    function loadConfig()
+    {
+        // interface
     }
 
     // }}}
