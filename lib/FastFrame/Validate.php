@@ -1,5 +1,5 @@
 <?php
-/** $Id: Validate.php,v 1.1 2003/02/22 01:49:08 jrust Exp $ */
+/** $Id: Validate.php,v 1.2 2003/03/18 23:58:18 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -60,6 +60,13 @@ class FF_Validate {
      */
     var $isUpdate;
 
+    /**
+     * Additional data that was inputted by the user and needs to be validated
+     * but is not part of the model
+     * @type array
+     */
+    var $additionalData = array();
+
     // }}}
     // {{{ constructor
 
@@ -68,15 +75,19 @@ class FF_Validate {
      *
      * @param object $in_model The model object we will be validating
      * @param bool $in_isUpdate Is this an update of the model?
+     * @param array $in_additionalData (optional) If there is extra data needed by the
+     *              validation class, but is not part of the model (i.e. password2), then
+     *              pass it in here.
      *
      * @access public
      * @return void
      */
-    function FF_Validate(&$in_model, $in_isUpdate)
+    function FF_Validate(&$in_model, $in_isUpdate, $in_additionalData = array())
     {
         $this->o_model =& $in_model; 
         $this->isUpdate = $in_isUpdate;
         $this->o_result =& new FF_Result();
+        $this->additionalData = $in_additionalData;
     }
 
     // }}}
@@ -92,6 +103,22 @@ class FF_Validate {
     function validate()
     {
         return $this->o_result;
+    }
+
+    // }}}
+    // {{{ setAdditionalData()
+
+    /**
+     * Sets the additional data variable
+     *
+     * @param array $in_data Any additional data to put into the additionalData array
+     *
+     * @access public
+     * @return void
+     */
+    function setAdditionalData($in_data)
+    {
+        $this->additionalData = array_merge($this->additionalData, $in_data);
     }
 
     // }}}
