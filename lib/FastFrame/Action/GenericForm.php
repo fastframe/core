@@ -1,5 +1,5 @@
 <?php
-/** $Id: GenericForm.php,v 1.1 2003/02/06 18:48:10 jrust Exp $ */
+/** $Id: GenericForm.php,v 1.2 2003/02/06 22:25:12 jrust Exp $ */
 // {{{ requires
 
 require_once dirname(__FILE__) . '/GenericAction.php';
@@ -70,21 +70,23 @@ class ActionHandler_GenericForm extends ActionHandler_GenericAction {
 
     /**
      * Registers the submit row html for the form
+     *
+     * @param $in_tableObj The table object
      * 
      * @access private
      * @return void
      */
-    function registerSubmitRow()
+    function registerSubmitRow(&$in_tableObj)
     {
-        $this->o_output->touchBlock($this->tableNamespace . 'table_row');
-        $this->o_output->cycleBlock($this->tableNamespace . 'table_field_cell');
+        $this->o_output->touchBlock($in_tableObj->getTableNamespace() . 'table_row');
+        $this->o_output->cycleBlock($in_tableObj->getTableNamespace() . 'table_field_cell');
         $this->o_output->assignBlockData(
             array(
                 'T_table_field_cell' => $this->getSubmitButton(),
-                'S_table_field_cell' => 'colspan="' . $this->numColumns . '" ' .
+                'S_table_field_cell' => 'colspan="' . $in_tableObj->getNumColumns() . '" ' .
                                         'style="text-align: center;"',
             ),
-            $this->tableNamespace . 'table_field_cell'
+            $in_tableObj->getTableNamespace() . 'table_field_cell'
         );
     }
 

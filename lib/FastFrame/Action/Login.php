@@ -1,8 +1,9 @@
 <?php
-/** $Id: Login.php,v 1.2 2003/02/06 21:36:30 jrust Exp $ */
+/** $Id: Login.php,v 1.3 2003/02/06 22:25:12 jrust Exp $ */
 // {{{ requires
 
 require_once dirname(__FILE__) . '/GenericForm.php';
+require_once dirname(__FILE__) . '/../Output/Table.php';
 
 // }}}
 // {{{ class ActionHandler_Login
@@ -53,11 +54,13 @@ class ActionHandler_Login extends ActionHandler_GenericForm {
         $this->setSubmitActionId();
         $this->o_form->setConstants($this->getFormConstants());
         $this->createFormElements();
-        $this->beginTable();
-        $this->o_output->assignBlockCallback(array(&$this->o_form, 'toHtml'), array(), 'generic_table');
-        $this->processTableHeaders();
-        $this->registerSubmitRow();
-        $this->output();
+        $o_table =& new FastFrame_Output_Table();
+        $o_table->setTableHeaderText($this->getTableHeaderText());
+        $o_table->setTableHeaders($this->getTableHeaders());
+        $o_table->renderTwoColumnTable();
+        $this->o_output->assignBlockCallback(array(&$this->o_form, 'toHtml'), array(), $o_table->getTableName());
+        $this->registerSubmitRow($o_table);
+        $this->o_output->output();
     }
 
     // }}}

@@ -1,5 +1,5 @@
 <?php
-/** $Id: Problem.php,v 1.1 2003/02/06 18:48:10 jrust Exp $ */
+/** $Id: Problem.php,v 1.2 2003/02/06 22:25:12 jrust Exp $ */
 // {{{ requires
 
 require_once dirname(__FILE__) . '/GenericProblem.php';
@@ -47,7 +47,7 @@ class ActionHandler_Problem extends ActionHandler_GenericAction {
     function run()
     {
         $this->o_output->setMessage($this->getProblemMessage(), FASTFRAME_ERROR_MESSAGE);
-        $this->output();
+        $this->o_output->output();
     }
 
     // }}}

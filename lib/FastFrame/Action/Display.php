@@ -1,5 +1,5 @@
 <?php
-/** $Id: Display.php,v 1.1 2003/02/06 18:48:10 jrust Exp $ */
+/** $Id: Display.php,v 1.2 2003/02/06 22:25:12 jrust Exp $ */
 // {{{ requires
 
 require_once dirname(__FILE__) . '/GenericDisplay.php';
@@ -47,7 +47,7 @@ class ActionHandler_Display extends ActionHandler_GenericAction {
     function run()
     {
         $this->o_output->setMessage(_('Please choose an action from the menu.'), FASTFRAME_ERROR_MESSAGE);
-        $this->output();
+        $this->o_output->output();
     }
 
     // }}}

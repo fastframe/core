@@ -1,9 +1,10 @@
 <?php
-/** $Id: List.php,v 1.1 2003/02/06 18:48:10 jrust Exp $ */
+/** $Id: List.php,v 1.2 2003/02/06 22:25:12 jrust Exp $ */
 // {{{ requires
 
 require_once dirname(__FILE__) . '/GenericForm.php';
 require_once dirname(__FILE__) . '/../List.php';
+require_once dirname(__FILE__) . '/../Output/Table.php';
 
 // }}}
 // {{{ class ActionHandler_List
@@ -72,7 +73,7 @@ class ActionHandler_List extends ActionHandler_GenericForm {
         $this->registerAdditionalLinks();
         $this->o_list->registerSearchBox($this->getSingularText(), $this->getPluralText());
         $this->createListTable();
-        $this->output();
+        $this->o_output->output();
     }
 
     // }}}
@@ -128,12 +129,14 @@ class ActionHandler_List extends ActionHandler_GenericForm {
      */
     function createListTable()
     {
-        $this->numColumns = count($this->o_list->getColumnData());
-        $this->beginTable();
-        $this->o_list->generateSortFields($this->tableNamespace);
+        $o_table =& new FastFrame_Output_Table();
+        $o_table->setTableHeaderText($this->getTableHeaderText());
+        $o_table->setNumColumns(count($this->o_list->getColumnData()));
+        $o_table->beginTable();
+        $this->o_list->generateSortFields($o_table->getTableNamespace());
         $this->o_list->generateNavigationLinks();
-        $this->o_output->touchBlock($this->tableNamespace . 'switch_table_navigation');
-        $this->registerListData();
+        $this->o_output->touchBlock($o_table->getTableNamespace() . 'switch_table_navigation');
+        $this->registerListData($o_table->getTableNamespace());
     }
     
     // }}}
@@ -142,35 +145,37 @@ class ActionHandler_List extends ActionHandler_GenericForm {
     /**
      * Registers the data for the list into the table
      *
+     * @param string $in_namespace The table namespace 
+     *
      * @access public
      * @return void
      */
-    function registerListData()
+    function registerListData($in_namespace)
     {
         if ($this->o_list->getDisplayedRecords() > 0) {
             foreach ($this->dataArray as $tmp_data) {
-                $this->o_output->touchBlock($this->tableNamespace . 'table_row');
-                $this->o_output->cycleBlock($this->tableNamespace . 'table_content_cell');
+                $this->o_output->touchBlock($in_namespace . 'table_row');
+                $this->o_output->cycleBlock($in_namespace . 'table_content_cell');
                 foreach ($this->fieldMap as $tmp_fields) {
                     $tmp_displayData = $this->o_output->processCellData($this->getCellData($tmp_data, $tmp_fields));
                     $this->o_output->assignBlockData(
                         array(
                             'T_table_content_cell' => $tmp_displayData,
                         ),
-                        $this->tableNamespace . 'table_content_cell'
+                        $in_namespace . 'table_content_cell'
                     );
                 }
             }
         }
         else {
-            $this->o_output->touchBlock($this->tableNamespace . 'table_row');
-            $this->o_output->cycleBlock($this->tableNamespace . 'table_content_cell');
+            $this->o_output->touchBlock($in_namespace . 'table_row');
+            $this->o_output->cycleBlock($in_namespace . 'table_content_cell');
             $this->o_output->assignBlockData(
                 array(
                     'T_table_content_cell' => $this->getEmptySetText(),
                     'S_table_content_cell' => 'style="font-style: italic; text-align: center;" colspan="' . count($this->o_list->getColumnData()) . '"', 
                 ),
-                $s_namespace . 'table_content_cell'
+                $in_namespace . 'table_content_cell'
             );
         }
     }
