@@ -345,7 +345,8 @@ class FF_Registry {
      * Puts togehter the parts of a file to return the correct path, based on type to the
      * file.
      *
-     * @param string $in_file The file name
+     * @param mixed  $in_file The file name or an array of files that
+     *               are combined into a path.
      * @param int    $in_type (optional) The type of path
      *
      * @access public
@@ -353,27 +354,32 @@ class FF_Registry {
      */
     function getFile($in_file, $in_type = FASTFRAME_FILEPATH_PUBLIC)
     {
-        $pathParts = array();
+        $a_pathParts = array();
         // App should always be FASTFRAME_DEFAULT_APP because this method can be called
         // from getConfigParam() and we don't want an infinite loop
         switch ($in_type) {
             case FASTFRAME_WEBPATH:
-                $pathParts = array($this->getConfigParam('webserver/web_root', '', array('app' => FASTFRAME_DEFAULT_APP)), $in_file);
+                $a_pathParts = array($this->getConfigParam('webserver/web_root', '', array('app' => FASTFRAME_DEFAULT_APP)));
                 break;
             case FASTFRAME_FILEPATH_PUBLIC:
-                $pathParts = array($this->getConfigParam('webserver/file_root', '', array('app' => FASTFRAME_DEFAULT_APP)), $in_file);
+                $a_pathParts = array($this->getConfigParam('webserver/file_root', '', array('app' => FASTFRAME_DEFAULT_APP)));
                 break;
             case FASTFRAME_DATAPATH:
-                $pathParts = array($this->getConfigParam('webserver/data_root', '', array('app' => FASTFRAME_DEFAULT_APP)), $in_file);
+                $a_pathParts = array($this->getConfigParam('webserver/data_root', '', array('app' => FASTFRAME_DEFAULT_APP)));
                 break;
             case FASTFRAME_FILEPATH_RELATIVE:
-                $pathParts = array($in_file);
-                break;
             default:
                 break;
         }
         
-        return FASTFRAME_WEBPATH ? File::buildPath($pathParts, '/') : File::buildPath($pathParts);
+        if (is_array($in_file)) {
+            $a_pathParts = array_merge($a_pathParts, $in_file);
+        }
+        else {
+            $a_pathParts[] = $in_file;
+        }
+
+        return FASTFRAME_WEBPATH ? File::buildPath($a_pathParts, '/') : File::buildPath($a_pathParts);
     }
 
     // }}}
@@ -422,8 +428,7 @@ class FF_Registry {
             $s_appDir = str_replace('%app%', $s_app, $s_service);
         }
 
-        $s_filename = File::buildPath(array($this->getAppParam('root_apps'), $s_appDir, $in_filename));
-        return $this->getFile($s_filename, $in_type);
+        return $this->getFile(array($this->getAppParam('root_apps'), $s_appDir, $in_filename), $in_type);
     }
 
     // }}}
@@ -461,8 +466,7 @@ class FF_Registry {
         }
 
         // right now we have no variables in the root services
-        $s_filename = File::buildPath(array($s_service, $in_filename));
-        return $this->getFile($s_filename, $in_type);
+        return $this->getFile(array($s_service, $in_filename), $in_type);
     }
 
     // }}}
