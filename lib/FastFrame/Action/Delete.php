@@ -121,7 +121,8 @@ class FF_Action_Delete extends FF_Action {
      */
     function setProblemActionId()
     {
-        $this->o_nextAction->setNextActionId(ACTION_LIST);
+        // normally return to same page
+        $this->setSuccessActionId();
     }
 
     // }}}
