@@ -197,14 +197,13 @@ class FF_ActionHandler {
                     $hitLastAction = true;
                 }
                 else {
-                    $this->actionId = $o_nextAction->getNextActionId();
-
+                    $this->setActionId($o_nextAction->getNextActionId());
                     if ($o_nextAction->getNextAppId()) {
-                        $this->appId = $o_nextAction->getNextAppId();
+                        $this->setAppId($o_nextAction->getNextAppId());
                     }
 
                     if ($o_nextAction->getNextModuleId()) {
-                        $this->moduleId = $o_nextAction->getNextModuleId();
+                        $this->setModuleId($o_nextAction->getNextModuleId());
                     }
                 }
             }
@@ -332,6 +331,8 @@ class FF_ActionHandler {
      */
     function setAppId($in_appId)
     {
+        // get and post vars need to be set if this is changed since FastFrame::selfUrl() uses them
+        $_GET['app'] = $_POST['app'] = $in_appId;
         $this->appId = $in_appId;
     }
 
@@ -362,6 +363,8 @@ class FF_ActionHandler {
      */
     function setModuleId($in_moduleId)
     {
+        // get and post vars need to be set if this is changed since FastFrame::selfUrl() uses them
+        $_GET['module'] = $_POST['module'] = $in_moduleId;
         $this->moduleId = $in_moduleId;
     }
 
