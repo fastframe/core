@@ -1,5 +1,5 @@
 <?php
-/** $Id: Perms.php,v 1.6 2003/02/22 02:03:43 jrust Exp $ */
+/** $Id: Perms.php,v 1.7 2003/03/19 00:02:20 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -101,7 +101,7 @@ class FastFrame_Perms {
         $o_registry =& FastFrame_Registry::singleton();
 
         $a_source = $o_registry->getConfigParam('perms/source');
-        $this->permSource =& PermSource::create($a_source['type'], $s_name, $a_source['params']);
+        //$this->permSource =& PermSource::create($a_source['type'], $s_name, $a_source['params']);
     }
 
     // }}}
