@@ -1,5 +1,5 @@
 <?php
-/** $Id: Login.php,v 1.9 2003/04/02 00:14:11 jrust Exp $ */
+/** $Id: Login.php,v 1.10 2003/04/09 19:10:22 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -185,7 +185,16 @@ class FF_Action_Login extends FF_Action_Form {
      */
     function renderCreateAccountLink(&$in_tableObj)
     {
-        if ($this->o_registry->hasApp('profile') &&
+        // they must have a profile type auth source enabled in order to create an account
+        $b_hasProfileAuth = false;
+        foreach ($this->o_registry->getConfigParam('auth/sources') as $a_source) {
+            if ($a_source['type'] == 'profile') {
+                $b_hasProfileAuth = true;
+            }
+        }
+
+        if ($b_hasProfileAuth &&
+            $this->o_registry->hasApp('profile') &&
             $this->o_registry->getConfigParam('add_profile/login_link', false, array('app' => 'profile'))) {
             // see if we just created an account
             if (FastFrame::getCGIParam('fromProfile', 'g', false)) {
