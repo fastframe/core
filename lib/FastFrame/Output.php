@@ -934,6 +934,11 @@ class FF_Output extends FF_Template {
             }
         }
 
+        $s_footer = str_replace('%version%', $this->o_registry->getConfigParam('version/primary', 
+                    null, array('app' => FASTFRAME_DEFAULT_APP)), $s_footer);
+        $s_footer = str_replace('%build%', $this->o_registry->getConfigParam('version/build', 
+                    null, array('app' => FASTFRAME_DEFAULT_APP)), $s_footer);
+
         return $s_footer;
     }
 
