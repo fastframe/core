@@ -1,5 +1,5 @@
 <?php
-/** $Id: Action.php,v 1.2 2003/02/22 02:07:56 jrust Exp $ */
+/** $Id: Action.php,v 1.3 2003/03/13 18:41:35 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -60,10 +60,10 @@ class FF_Action {
     var $o_nextAction;
 
     /**
-     * The DataAccess object
+     * The primary model object 
      * @type object
      */
-    var $o_dataAccess;
+    var $o_model;
 
     /**
      * The current actionId
@@ -118,19 +118,19 @@ class FF_Action {
     }
 
     // }}}
-    // {{{ setDataAccessObject()
+    // {{{ setModelObject()
 
     /**
-     * Sets the data access object
+     * Sets the primary model object that we are working with
      *
-     * @param object $in_dao The data access object
+     * @param object $in_model The model object
      *
      * @access public
      * @return void
      */
-    function setDataAccessObject(&$in_dao)
+    function setModelObject(&$in_model)
     {
-        $this->o_dataAccess =& $in_dao;
+        $this->o_model =& $in_model;
     }
 
     // }}}
