@@ -1,5 +1,5 @@
 <?php
-/** $Id: sql.php,v 1.3 2003/01/22 02:03:28 jrust Exp $ */
+/** $Id: sql.php,v 1.4 2003/01/22 06:07:45 jrust Exp $ */
 // {{{ class  AuthSource_sql
 
 /**
@@ -85,7 +85,7 @@ class AuthSource_sql extends AuthSource {
     {
         // set up database
         $o_registry =& FastFrame_Registry::singleton();
-        require_once $o_registry->getConfigParam('data/class_location', null, array('app' => FASTFRAME_DEFAULT_APP)) . '/' . $this->dataBasename . '.php';
+        require_once File::buildPath(array($o_registry->getConfigParam('data/class_location', null, array('app' => FASTFRAME_DEFAULT_APP)), $this->dataBasename . '.php'));
         $o_registry->initDataObject($o_registry->getDataObjectOptions(array(), array('app' => FASTFRAME_DEFAULT_APP)));
         $s_className = DB_DataObject::staticAutoloadTable($this->dataBasename);
         if (!$s_className) {
