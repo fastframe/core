@@ -51,7 +51,8 @@ class FF_Menu_DOM extends FF_Menu {
             $s_domMenu = '
             <script type="text/javascript" src="' . $this->o_registry->getRootFile('domMenu.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>
             <script type="text/javascript">
-            domMenu_settings.setItem("domMenu_main", new domMenu_Hash(
+            domMenu_settings.set("domMenu_main", new Hash(
+                "expandMenuArrowUrl", "' . $this->o_output->imgTag('right-black.gif', 'arrows', array('onlyUrl' => true)) . '",
                 "subMenuWidthCorrection", -1,
                 "verticalSubMenuOffsetX", -1,
                 "verticalSubMenuOffsetY", -1,
@@ -59,7 +60,6 @@ class FF_Menu_DOM extends FF_Menu {
                 "openMousedownMenuDelay", 0,
                 "closeClickMenuDelay", 0,
                 "closeMouseoutMenuDelay", -1
-
             ));
             ' . $this->_generateMenuVars() . '
             </script>';
@@ -99,7 +99,7 @@ class FF_Menu_DOM extends FF_Menu {
         // Create javascript, and initialize level counter
         $s_js = '
         <?php $a_count = array(); $a_count[0] = 0; ?>
-        domMenu_data.setItem("domMenu_main", new domMenu_Hash(
+        domMenu_data.set("domMenu_main", new Hash(
             ' . $s_js . '
         ));';
 
@@ -130,7 +130,7 @@ class FF_Menu_DOM extends FF_Menu {
         // Create js for this node
         // The hash number has to be dynamic so perms will work
         $s_jsNode = "
-        $tmp_pad<?php echo ++\$a_count[$in_level]; ?>, new domMenu_Hash(
+        $tmp_pad<?php echo ++\$a_count[$in_level]; ?>, new Hash(
         $tmp_pad    'contents', '<?php echo addcslashes(_('{$in_data['contents']}'), '\''); ?>',
         $tmp_pad    'uri', '{$in_data['urlParams']}',
         $tmp_pad    'target', '{$in_data['target']}',
