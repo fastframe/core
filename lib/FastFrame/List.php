@@ -283,7 +283,8 @@ class FF_List {
                 // reset the form before going on to the next page
                 $o_form->addElement('select', "pageOffset[$this->listId]", null, $a_pageOptions, 
                         array('style' => 'vertical-align: middle;', 'onchange' => 'var tmp = this.selectedIndex; this.form.reset(); this.options[tmp].selected = true; if (typeof(validate_search_box) != "function" || validate_search_box()) { this.form.submit(); } else { return false; }'));
-                $s_pagination = $o_renderer->elementToHtml("pageOffset[$this->listId]");
+                // Has to be rendered later
+                $s_pagination = false; 
             }
             else {
                 $o_form->addElement('hidden', "pageOffset[$this->listId]");
@@ -297,6 +298,9 @@ class FF_List {
         }
 
         $o_form->accept($o_renderer);
+        if ($s_pagination === false) {
+            $s_pagination = $o_renderer->elementToHtml("pageOffset[$this->listId]");
+        }
 
         // }}}
         // {{{ template preparation

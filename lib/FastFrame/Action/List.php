@@ -233,13 +233,16 @@ class FF_Action_List extends FF_Action_Form {
                 $o_tableWidget->cycleBlock('table_content_cell');
                 foreach ($this->getFieldMap() as $tmp_fields) {
                     $s_attr = '';
+                    $tmp_fields['args'] = isset($tmp_fields['args']) ? $tmp_fields['args'] : array();
                     // see if the method is in the model 
                     if (isset($tmp_fields['field'])) {
-                        $tmp_displayData = $this->o_output->processCellData($this->o_model->$tmp_fields['method']());
+                        $tmp_displayData = $this->o_output->processCellData(
+                                call_user_func_array(array(&$this->o_model, $tmp_fields['method']), $tmp_fields['args']));
                     }
                     // otherwise it's a method in this class
                     else {
-                        $tmp_displayData = $this->o_output->processCellData($this->$tmp_fields['method']());
+                        $tmp_displayData = $this->o_output->processCellData(
+                                call_user_func_array(array(&$this, $tmp_fields['method']), $tmp_fields['args']));
                         // Options cell has some special attributes
                         if ($tmp_fields['method'] = 'getOptions') {
                             $s_attr = 'id="optionCell' . $i . '" style="width: 5%; white-space: nowrap;"';
@@ -405,11 +408,14 @@ class FF_Action_List extends FF_Action_Form {
      * Returns the field map array.
      *
      * The map of fields to display in the list page, their description, and the method
-     * (that exists in the model object) to run to get the data for that field from the
-     * model.  If field is false then that means the row should not be sortable but the
-     * method exists as part of the model class.  If no field is supplied then it means the
-     * method is part of this object. An example element in the array would look like:
-     * array('field' => 'username', 'description' => _('User Name'), 'method' => 'getUserName')
+     * to run to get the data for that field.  Available keys are:
+     * 'method' => Name of method to call.  If field name is empty then
+     *   the method is assumed to be part of this object (instead of the
+     *   model object)
+     * 'args' => Optional array of args to be passed to method
+     * 'field' => Field name to search & sort by.  If false then field
+     *   is not searchable/sortable.  Can also be empty.
+     * 'description' => Description of the field.
      *
      * @access public
      * @return array
