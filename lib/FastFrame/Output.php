@@ -484,12 +484,13 @@ class FF_Output extends FF_Template {
      * Returns an image tag (either the src or <img>) properly formatted and 
      * with the correct width and height attributes 
      *
-     * @param string $in_img Name of image, if an absolute path is not given we prepend ffol path 
+     * @param string $in_img Name of image, if an absolute path is not given we prepend
+     *               FastFrame path 
      * @param string $in_type (optional) The type of image.  If 'none' then we assume that
      *                        the path includes the type in it.
      * @param array  $in_options (optional) A number of options that have to do with the image tag, included 
      *                           what type of image tag this is.  The options are as follows
-     *                           width, height, type, align, style, onclick, state, onlyUrl,
+     *                           width, height, type, align, style, onclick, onlyUrl,
      *                           fullPath, title
      *
      * @access public
@@ -498,6 +499,7 @@ class FF_Output extends FF_Template {
     function imgTag($in_img = null, $in_type = 'icons', $in_options = array()) 
     {
         static $s_missingImage, $a_themePaths, $a_appPaths;
+        settype($in_options, 'array');
 
         // cache the missing image from the registry
         if (!isset($s_missingImage)) {
@@ -521,8 +523,8 @@ class FF_Output extends FF_Template {
             $in_img = $s_missingImage;
         }
 
-        $in_options['state'] = isset($in_options['state']) ? $in_options['state'] : false;
         $s_type = $in_type == 'none' ? '/' : "/$in_type/";
+        $b_isFullPath = false;
 
         // if image is an absolute path, we assume it is a webpath and check if it exists
         if (strpos($in_img, '/') === 0) {
@@ -557,44 +559,12 @@ class FF_Output extends FF_Template {
         }
         // else it's a url, then we just use it as is, no check which is costly
         else {
-            // can't change state of web image
-            $in_options['state'] = false;
-            $s_imgWebPath = $s_imgFilePath = $in_img;
+            $b_isFullPath = true;
+            $s_imgWebPath = $in_img;
         }
-
-        // change the state of the image (i.e. active, disabled, etc.)
-        if ($in_options['state'] && $in_options['state'] != 'normal') {
-            if ($in_options['state'] == 'active') {
-                // give it a red hue
-                $tmp_settings = array('brightness' => 100, 'saturation' => 150, 'hue' => 10);
-            }
-            elseif ($in_options['state'] == 'disabled') {
-                // gray it out
-                $tmp_settings = array('brightness' => 150, 'saturation' => 0, 'hue' => 100);
-            }
-            else {
-                $tmp_settings = array('brightness' => 100, 'saturation' => 0, 'hue' => 100);
-            }
-
-            // usually these are icons, so save the theme name in the cached image name
-            $parts = pathinfo($s_imgFilePath);
-            $parts = array_reverse(explode('/', $parts['dirname']));
-            $theme = $parts[0];
-            $tmp_newName = $in_options['state'].'-'.$theme.'-'.basename($s_imgFilePath); 
-            $tmp_newFilePath = $this->o_registry->getRootFile("cache/$tmp_newName", 'graphics');
-            $s_imgWebPath = $this->o_registry->getRootFile("cache/$tmp_newName", 'graphics', FASTFRAME_WEBPATH);
-            FF_Image::_modulate_image($s_imgFilePath, $tmp_newFilePath, $tmp_settings);
-            $s_imgFilePath = $tmp_newFilePath;
-            // add a special cursor style
-            $in_options['style'] = isset($in_options['style']) ? $in_options['style'] : '';
-            $in_options['style'] .= ' cursor: default;';
-        }
-
-        // cast $in_options to an array
-        settype($in_options, 'array');
 
         // get size [!] (perhaps we can allow scaling here, not done here yet) [!]
-        if (!isset($in_options['width']) || !isset($in_options['height'])) {
+        if (!$b_isFullPath && (!isset($in_options['width']) || !isset($in_options['height']))) {
             list($width, $height) = getImageSize($s_imgFilePath);
             $in_options['width']  = isset($in_options['width']) ? $in_options['width'] : $width;
             $in_options['height'] = isset($in_options['height']) ? $in_options['height'] : $height;
@@ -608,16 +578,17 @@ class FF_Output extends FF_Template {
         $in_options['align']   = isset($in_options['align']) ? " align=\"{$in_options['align']}\"" : '';
         $in_options['hspace']  = isset($in_options['hspace']) ? " hspace=\"{$in_options['hspace']}\"" : '';
         $in_options['vspace']  = isset($in_options['vspace']) ? " vspace=\"{$in_options['vspace']}\"" : '';
+        $in_options['width']  = isset($in_options['width']) ? " width=\"{$in_options['width']}\"" : '';
+        $in_options['height']  = isset($in_options['height']) ? " height=\"{$in_options['height']}\"" : '';
         $in_options['title']   = isset($in_options['title']) ? htmlspecialchars($in_options['title']) : '';
-        if (!empty($in_options['title'])) {
-            $title = 'title="'.$in_options['title'].'" alt="'.$in_options['title'].'"';
-        }
-        else {
-            $title = '';
-        }
+        $in_options['style'] = isset($in_options['style']) ? " style=\"{$in_options['style']}\"" : '';
+        $in_options['onclick'] = isset($in_options['onclick']) ? " onclick=\"{$in_options['onclick']}\"" : '';
+        $in_options['title'] = isset($in_options['title']) ? " title=\"{$in_options['title']}\" alt=\"{$in_options['title']}\"" : '';
+        $in_options['border'] = isset($in_options['border']) ? " border=\"{$in_options['border']}\"" : 'border="0"';
+
         // set status to title if status does not exist
-        $useStatus = isset($in_options['useStatus']) ? $in_options['useStatus'] : true;
-        if ($useStatus) {
+        $b_useStatus = isset($in_options['b_useStatus']) ? $in_options['b_useStatus'] : true;
+        if ($b_useStatus) {
             $status = isset($in_options['status']) ? 
                 addcslashes($in_options['status'], '\'') : 
                 addcslashes($in_options['title'], '\'');
@@ -632,11 +603,7 @@ class FF_Output extends FF_Template {
                             '://' . $this->o_registry->getConfigParam('webserver/hostname') . $s_imgWebPath;
         }
 
-        $in_options['border'] = isset($in_options['border']) ? $in_options['border'] : '0';
         $in_options['type'] = isset($in_options['type']) && $in_options['type'] == 'input' ? 'input type="img"' : 'img';
-        // only add the style if it is not ns4
-        $in_options['style'] = isset($in_options['style']) && !Net_UserAgent_Detect::isBrowser('ns4') ? " style=\"{$in_options['style']}\"" : '';
-        $in_options['onclick'] = isset($in_options['onclick']) ? " onclick=\"{$in_options['onclick']}\"" : '';
 
         if (isset($in_options['onlyUrl']) && $in_options['onlyUrl']) {
             return $s_imgWebPath;
@@ -644,20 +611,20 @@ class FF_Output extends FF_Template {
         else {
             $tag = "<{$in_options['type']}";
             $tag .= " src=\"$s_imgWebPath\"";
-            $tag .= " border=\"{$in_options['border']}\"";
-            $tag .= " width=\"{$in_options['width']}\"";
-            $tag .= " height=\"{$in_options['height']}\"";
-            if ($useStatus) {
+            if ($b_useStatus) {
                 $tag .= " onmouseover=\"$statusOver\"";
                 $tag .= " onmouseout=\"$statusOut\"";
             }
-            $tag .= "{$in_options['style']}";
-            $tag .= "{$in_options['align']}";
-            $tag .= "{$in_options['vspace']}";
-            $tag .= "{$in_options['hspace']}";
-            $tag .= "{$in_options['onclick']}";
-            $tag .= " $title";
-            $tag .= " />";
+            $tag .= $in_options['width'];
+            $tag .= $in_options['height'];
+            $tag .= $in_options['style'];
+            $tag .= $in_options['align'];
+            $tag .= $in_options['vspace'];
+            $tag .= $in_options['hspace'];
+            $tag .= $in_options['onclick'];
+            $tag .= $in_options['title'];
+            $tag .= $in_options['border'];
+            $tag .= ' />';
 
             return $tag;
         }

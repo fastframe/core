@@ -460,38 +460,41 @@ HTML;
      * Since servers have gpc_magic_quotes enabled, we need to make an easy way to
      * strip them off when we grab form data for display.  
      *
-     * @param  string $in_str_varName name of the variable
-     * @param  string $in_str_type (optional) type of variable (get, post, cookie, session)
-     * @param  string $in_mix_default (optional) default value if no value is found
-     * @param  bool $in_bol_emptyStringValid (optional) Does an empty string count as the 
-     *                                       value not being set?
+     * @param  string $in_varName name of the variable
+     * @param  string $in_type (optional) type of variable (get, post, cookie, session,
+     *                file)
+     * @param  string $in_default (optional) default value if no value is found
+     * @param  bool $in_emptyStringValid (optional) Does an empty string count as the 
+     *              value not being set?
      *
      * @access public
      * @return string Value of the variable or default value
      */
-    function getCGIParam($in_str_varname, $in_str_type = 'gpc', $in_mix_default = null, $in_bol_emptyStringValid = true)
+    function getCGIParam($in_varname, $in_type = 'gpc', $in_default = null, $in_emptyStringValid = true)
     {
         if (function_exists('version_compare')) {
-            $bol_autoGlobal = true;
+            $b_autoGlobal = true;
             $arr_types = array(
                 'c' => '$_COOKIE',
                 'p' => '$_POST',
                 'g' => '$_GET',
                 's' => '$_SESSION',
+                'f' => '$_FILES',
             );
         }
         else {
-            $bol_autoGlobal = false;
+            $b_autoGlobal = false;
             $arr_types = array(
                 'c' => '$HTTP_COOKIE_VARS',
                 'p' => '$HTTP_POST_VARS',
                 'g' => '$HTTP_GET_VARS',
                 's' => '$HTTP_SESSION_VARS',
+                'f' => '$HTTP_POST_FILES',
             );
         }
 
         // can't have single quotes in variable name
-        $tmp_str_varname = str_replace("'", '', $in_str_varname);
+        $tmp_str_varname = str_replace("'", '', $in_varname);
 
         // make a key reference for the variable array out of the variable
         if ($tmp_pos = strpos($tmp_str_varname, '[')) {
@@ -503,13 +506,13 @@ HTML;
 
         // find the variable in the requested types
         foreach ($arr_types as $tmp_str_abbr => $tmp_str_varArray) {
-            if (!$bol_autoGlobal) {
+            if (!$b_autoGlobal) {
                 eval('global ' . $tmp_str_varArray . ';');
             }
 
             $tmp_str_variable = $tmp_str_varArray . $tmp_str_varname;
-            $tmp_condition = $in_bol_emptyStringValid ? '' : ' && ' . $tmp_str_variable . ' != \'\'';
-            if (stristr($in_str_type, $tmp_str_abbr) && eval('return isset(' . $tmp_str_variable . ')' . $tmp_condition . ';')) {
+            $tmp_condition = $in_emptyStringValid ? '' : ' && ' . $tmp_str_variable . ' != \'\'';
+            if (stristr($in_type, $tmp_str_abbr) && eval('return isset(' . $tmp_str_variable . ')' . $tmp_condition . ';')) {
                 $mix_data = eval('return ' . $tmp_str_variable . ';');
                 break;
             }
@@ -520,7 +523,7 @@ HTML;
             $mix_data = FastFrame::disableMagicQuotes($mix_data);
         }
         else {
-            $mix_data = $in_mix_default;
+            $mix_data = $in_default;
         }
 
         return $mix_data;

@@ -42,10 +42,10 @@ class FF_Action_Display extends FF_Action {
     // {{{ run()
     
     /**
-     * Registers the problem message with the output class.
+     * Displays data about the model.
      *
      * @access public
-     * @return void
+     * @return object The next action object
      */
     function run()
     {

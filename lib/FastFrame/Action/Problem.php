@@ -45,7 +45,7 @@ class FF_Action_Problem extends FF_Action {
      * Registers the problem message with the output class.
      *
      * @access public
-     * @return void
+     * @return object The next action object
      */
     function run()
     {
