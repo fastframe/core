@@ -1,5 +1,5 @@
 <?php
-/** $Id: Auth.php,v 1.4 2003/01/21 01:21:33 jrust Exp $ */
+/** $Id: Auth.php,v 1.5 2003/01/22 02:02:10 jrust Exp $ */
 // {{{ constants
 
 define('FASTFRAME_AUTH_OK',         0);
@@ -42,17 +42,19 @@ require_once dirname(__FILE__) . '/Perms.php';
 // }}}
 class FastFrame_Auth {
     // {{{ properties
+
     /**
      * Sources to use for authentication
-     * @var array $authSources
+     * @type array
      */
     var $authSources;
 
     /**
      * Source we successfully authenticated against
-     * @var string $authenticatedSource
+     * @type string
      */
     var $authenticatedSource;
+
     // }}}
     // {{{ singleton()
 
@@ -91,27 +93,27 @@ class FastFrame_Auth {
      * session started up.
      *
      * @access public
-     * @return FastFrame_Auth object
+     * @return object FastFrame_Auth object
      */
     function FastFrame_Auth()
     {
         FastFrame_Auth::_session_start();
-
-        $registry =& FastFrame_Registry::singleton();
-        $this->authSources=array();
-        $a_sources=$registry->getConfigParam('auth/sources', null, 'FastFrameSESSID');
+        $o_registry =& FastFrame_Registry::singleton();
+        $this->authSources = array();
+        $a_sources = $o_registry->getConfigParam('auth/sources');
 
         // populate all of the authentication sources
-        if (is_array($a_sources)){
-            foreach ($a_sources as $s_name=>$a_source) {
+        if (is_array($a_sources)) {
+            foreach ($a_sources as $s_name => $a_source) {
                 // Get an AuthSource of the proper type
-                $o_authSource=&AuthSource::create($a_source['type'], $s_name, $a_source['params']);
-
-                if ($o_authSource)
+                $o_authSource =& AuthSource::create($a_source['type'], $s_name, $a_source['params']);
+                if ($o_authSource) {
                     array_push($this->authSources, &$o_authSource);
-
+                }
             }
-
+        }
+        else {
+            return FastFrame::fatal('No authentication source was defined in the config file.', __FILE__, __LINE__);
         }
     }
 
@@ -122,7 +124,7 @@ class FastFrame_Auth {
      * Perform the login procedure.
      *
      * @access public
-     * @return boolean determines if login was successfull
+     * @return bool determines if login was successfull
      */
     function authenticate() 
     {
@@ -175,7 +177,7 @@ class FastFrame_Auth {
      *               turn this off if we are just checking to see if we ever logged in before
      *
      * @access public
-     * @return boolean {or void logout exception}
+     * @return bool {or void logout exception}
      */
     function checkAuth($in_checkAnchor = true)
     {
@@ -372,74 +374,6 @@ class FastFrame_Auth {
     }
 
     // }}}
-    // {{{ decryptPassword()
-
-    /**
-     * Decrypts the user's password, right now using our 
-     * own homegrown system, but someday this may be something better
-     *
-     * @param string $in_pass The password to decrypt
-     *
-     * @access public 
-     * @return string The unencrypted password
-     */
-    function decryptPassword($in_pass)
-    {
-        if (($length = strlen($in_pass)) < 4) {
-            return $in_pass;
-        }
-
-        // encryption mask
-        $mask = array(2, -1, 1, -2, -1, 1, 1);
-        $maskLength = count($mask);
-
-        $newString = '';
-        for ($i = 0; $i < $length; $i++) {
-            if ($i % 2 == 1) {
-                // for every other character get the character minus the mask
-                $newString .= chr(ord($in_pass[$i]) - $mask[(($i + 1) % $maskLength)]);
-            }
-        }
-
-        return strrev($newString);
-    }
-
-    // }}}
-    // {{{ encryptPassword()
-
-    /**
-     * Encrypts the user's password, right now using our 
-     * own homegrown system, but someday this may be something better
-     *
-     * @param string $in_text The text to encrypt 
-     *
-     * @access public 
-     * @return string The encrypted password
-     */
-    function encryptPassword($in_text)
-    {
-        if (($length = strlen($in_text)) <= 2) {
-            return $in_text;
-        }
-        $text = strrev($in_text);
-
-        // encryption mask
-        $mask = array(2, -1, 1, -2, -1, 1, 1);
-        $maskLength = count($mask);
-
-        $pass = '';
-        // note: string is doubled in size
-        for ($i = 0; $i < $length; $i++) {
-            // add random letter
-            $pass .= chr(mt_rand(63, 126));
-            // change the ascii value of each char according to mask 
-            $pass .= chr(ord($text[$i]) + $mask[((($i + 1) * 2) % $maskLength)]);
-        }
-
-        return $pass;
-    }
-
-    // }}}
     // {{{ logout()
 
     /**
@@ -454,7 +388,7 @@ class FastFrame_Auth {
     function logout($in_logoutURL = null, $in_return = false) 
     {
         if (is_null($in_logoutURL) && !$in_return) {
-            $o_registry = FastFrame_Registry::singleton();
+            $o_registry =& FastFrame_Registry::singleton();
             $s_logoutApp = $o_registry->getConfigParam('general/logout_app', $o_registry->getConfigParam('general/login_app'));
             $s_logoutURL = FastFrame::url($o_registry->getAppFile('index.php', $s_logoutApp, '', FASTFRAME_WEBPATH), true);
         }
@@ -498,10 +432,10 @@ class FastFrame_Auth {
             // our functions anyhow
             ini_set('session.use_trans_sid', 0);
             // set the cacheing 
-            session_cache_limiter($registry->getConfigParam('session/cache', null, 'nocache'));
+            session_cache_limiter($registry->getConfigParam('session/cache', 'nocache'));
 
             // get the session name from the configuration or just use a default
-            session_name($registry->getConfigParam('session/name', null, 'FastFrameSESSID'));
+            session_name($registry->getConfigParam('session/name', 'FastFrameSESSID'));
             session_start();
             $isStarted = true;
         }
@@ -514,7 +448,7 @@ class FastFrame_Auth {
      * End a session.
      *
      * @access private
-     * @return boolean
+     * @return bool
      */
     function _session_end() 
     {
