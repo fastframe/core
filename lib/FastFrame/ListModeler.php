@@ -139,15 +139,15 @@ class FF_ListModeler {
     }
 
     // }}}
-    // {{{ getNextModel()
+    // {{{ loadNextModel()
 
     /**
-     * Gets the next model from the result set
+     * Loads the next model from the result set
      *
      * @access public
-     * @return mixed A model with the new data from the next set or false if at the end 
+     * @return bool False if at the end, true otherwise. 
      */
-    function &getNextModel()
+    function loadNextModel()
     {
         if (is_null($this->o_resultSet)) {
             return false;
@@ -158,7 +158,7 @@ class FF_ListModeler {
         if ($result === DB_OK) {
             $this->o_model->reset();
             $this->o_model->importFromArray($a_data);
-            return $this->o_model;
+            return true;
         }
         else {
             return false; 

@@ -210,7 +210,7 @@ class FF_Action_List extends FF_Action_Form {
     function renderListData(&$in_tableWidget)
     {
         if ($this->o_list->getDisplayedRecords() > 0) {
-            while (($this->o_model =& $this->o_listModeler->getNextModel()) !== false) {
+            while ($this->o_listModeler->loadNextModel()) {
                 $in_tableWidget->touchBlock('table_row');
                 $in_tableWidget->cycleBlock('table_content_cell');
                 foreach ($this->getFieldMap() as $tmp_fields) {
