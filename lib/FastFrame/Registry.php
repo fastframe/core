@@ -1,5 +1,5 @@
 <?php
-/** $Id: Registry.php,v 1.10 2003/01/24 23:35:47 jrust Exp $ */
+/** $Id: Registry.php,v 1.11 2003/02/06 18:56:16 jrust Exp $ */
 // {{{ constants/globals
 
 // types of filepaths that can be generated
@@ -542,73 +542,25 @@ class FastFrame_Registry {
     }
 
     // }}}
-    // {{{ initDataObject()
+    // {{{ getDataDsn()
 
     /**
-     * Initializes the data object
+     * Creates the dsn used by the PEAR DB library from the config values.
      *
-     * @param array $in_options (optional) The options to initialize the DataObject class.
-     *              If an empty array we use the getDataObjectOptions() method.  If it is
-     *              set then we assume you have the necessary variables set that
-     *              getDataObjectOptions() sets.  This allows you to use an ini file if you
-     *              wish.
-     *
-     * @access public
-     * @return void 
-     */
-    function initDataObject($in_options = array())
-    {
-        $options =& PEAR::getStaticProperty('DB_DataObject','options');
-        if (empty($in_options)) {
-            $a_config = $this->getDataObjectOptions();
-        }
-        else {
-            $a_config = $in_options;
-        }
-
-        $options = $a_config;
-    }
-
-    // }}}
-    // {{{ getDataObjectOptions()
-
-    /**
-     * Gets the variables needed for initializing the DataObject 
-     *
-     * @param array $in_options (optional) Additional options that will be added to the conf array.
      * @param array $in_credentials (optional) override of current state, such as the app
      *
-     * @see The example.ini in the DB_DataObject package
      * @access public
-     * @return array The options needed for setting up the DataObjects class 
+     * @return string The DSN
      */
-    function getDataObjectOptions($in_options = array(), $in_credentials = array())
+    function getDataDsn($in_credentials = array())
     {
         $s_app = isset($in_credentials['app']) ? $in_credentials['app'] : $this->getCurrentApp();
-
-        $a_config = array();
-        // see if we should even set up a database setup 
-        $s_type = $this->getConfigParam('data/type', null, array('app' => $s_app));
-        if (is_null($s_type)) {
-            return $a_config; 
-        }
-
-        // construct dsn
-        $a_config['database'] = $s_type . '://' .
-                                $this->getConfigParam('data/username', null, array('app' => $s_app)) . ':' .
-                                $this->getConfigParam('data/password', null, array('app' => $s_app)) . '@' .
-                                $this->getConfigParam('data/host', null, array('app' => $s_app)) . '/' .
-                                $this->getConfigParam('data/database', null, array('app' => $s_app));
-        $a_config['schema_location'] = $this->getConfigParam('data/schema_location', null, array('app' => $s_app)); 
-        $a_config['class_location'] = $this->getConfigParam('data/class_location', null, array('app' => $s_app)); 
-        $a_config['require_prefix'] = 'DataObjects/'; 
-        $a_config['class_prefix'] = 'DataObjects_'; 
-        $a_config['debug'] = $this->getConfigParam('data/debug_level', null, array('app' => $s_app));
-        $a_config['debug_ignore_updates'] = $this->getConfigParam('data/debug_ignore_updates', null, array('app' => $s_app));
-        $a_config['production'] = $this->getConfigParam('data/production', null, array('app' => $s_app));
-        $a_config = array_merge($a_config, $in_options);
-        
-        return $a_config;
+        $s_dsn = $this->getConfigParam('data/type', null, array('app' => $s_app)) . '://' .
+                 $this->getConfigParam('data/username', null, array('app' => $s_app)) . ':' .
+                 $this->getConfigParam('data/password', null, array('app' => $s_app)) . '@' .
+                 $this->getConfigParam('data/host', null, array('app' => $s_app)) . '/' .
+                 $this->getConfigParam('data/database', null, array('app' => $s_app));
+        return $s_dsn;
     }
 
     // }}}
