@@ -1,5 +1,5 @@
 <?php
-/** $Id: ActionHandler.php,v 1.4 2003/02/22 01:52:02 jrust Exp $ */
+/** $Id: ActionHandler.php,v 1.5 2003/03/13 18:41:10 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -72,10 +72,10 @@ class FF_ActionHandler {
     var $o_registry;
 
     /**
-     * The data access object
+     * The primary model object 
      * @type object
      */
-    var $o_dataAccess;
+    var $o_model;
 
     /**
      * The array of default available actions (which are turned into constants later)
@@ -147,7 +147,7 @@ class FF_ActionHandler {
                 require_once $pth_actionFile;
                 $o_action = new $this->availableActions[$this->actionId][2];
                 $o_action->setCurrentActionId($this->actionId);
-                $o_action->setDataAccessObject($this->o_dataAccess);
+                $o_action->setModelObject($this->o_model);
                 $o_nextAction =& $o_action->run();
                 if ($o_nextAction->isLastAction()) {
                     $hitLastAction = true;
