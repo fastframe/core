@@ -1,5 +1,25 @@
 <?php
-/** $Id: Perms.php,v 1.4 2003/01/23 23:00:07 jrust Exp $ */
+/** $Id: Perms.php,v 1.5 2003/02/08 00:10:54 jrust Exp $ */
+// {{{ license
+
+// +----------------------------------------------------------------------+
+// | FastFrame Application Framework                                      |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 2002-2003 The Codejanitor Group                        |
+// +----------------------------------------------------------------------+
+// | This source file is subject to the GNU Lesser Public License (LGPL), |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.fsf.org/copyleft/lesser.html                              |
+// | If you did not receive a copy of the LGPL and are unable to          |
+// | obtain it through the world-wide-web, you can get it by writing the  |
+// | Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, |
+// | MA 02111-1307, USA.                                                  |
+// +----------------------------------------------------------------------+
+// | Authors: Greg Gilbert <greg@treke.net>                               |
+// +----------------------------------------------------------------------+
+
+// }}}
 // {{{ includes
 
 require_once dirname(__FILE__) . '/Perms/PermSource.php';
@@ -7,15 +27,10 @@ require_once dirname(__FILE__) . '/Perms/PermSource.php';
 // }}}
 // {{{ class FastFrame_Perms
 /**
- *
  * A class for managing user permissions
  *
- * See the enclosed file COPYING for license information (LGPL). If you
- * did not receive this file, see http://www.fsf.org/copyleft/lesser.html.
- *
  * @author		Greg Gilbert <greg@treke.net>
- * @copyright   LGPL
- * @version		$Id: Perms.php,v 1.4 2003/01/23 23:00:07 jrust Exp $
+ * @version	    Version 1.0
  * @package		FastFrame
  * @see			User Auth
  */

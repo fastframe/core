@@ -1,12 +1,29 @@
 <?php
-/** $Id: DOM.php,v 1.2 2003/02/06 18:58:38 jrust Exp $ */
+/** $Id: DOM.php,v 1.3 2003/02/08 00:10:56 jrust Exp $ */
+// {{{ license
+
+// +----------------------------------------------------------------------+
+// | FastFrame Application Framework                                      |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 2002-2003 The Codejanitor Group                        |
+// +----------------------------------------------------------------------+
+// | This source file is subject to the GNU Lesser Public License (LGPL), |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.fsf.org/copyleft/lesser.html                              |
+// | If you did not receive a copy of the LGPL and are unable to          |
+// | obtain it through the world-wide-web, you can get it by writing the  |
+// | Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, |
+// | MA 02111-1307, USA.                                                  |
+// +----------------------------------------------------------------------+
+// | Authors: Jason Rust <jrust@codejanitor.com>                          |
+// +----------------------------------------------------------------------+
+
+// }}}
 // {{{ class FastFrame_Menu_DOM
 
 /**
  * The FastFrame_Menu_DOM:: class generates the javascript for the domMenu. 
- *
- * See the enclosed file COPYING for license information (LGPL). If you
- * did not receive this file, see http://www.fsf.org/copyleft/lesser.html.
  *
  * @see http://mojavelinux.com/forum/viewtopic.php?t=141
  * @version Revision: 1.0 

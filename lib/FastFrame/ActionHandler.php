@@ -1,5 +1,25 @@
 <?php
-/** $Id: ActionHandler.php,v 1.1 2003/02/06 18:48:10 jrust Exp $ */
+/** $Id: ActionHandler.php,v 1.2 2003/02/08 00:10:54 jrust Exp $ */
+// {{{ license
+
+// +----------------------------------------------------------------------+
+// | FastFrame Application Framework                                      |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 2002-2003 The Codejanitor Group                        |
+// +----------------------------------------------------------------------+
+// | This source file is subject to the GNU Lesser Public License (LGPL), |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.fsf.org/copyleft/lesser.html                              |
+// | If you did not receive a copy of the LGPL and are unable to          |
+// | obtain it through the world-wide-web, you can get it by writing the  |
+// | Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, |
+// | MA 02111-1307, USA.                                                  |
+// +----------------------------------------------------------------------+
+// | Authors: Jason Rust <jrust@codejanitor.com>                          |
+// +----------------------------------------------------------------------+
+
+// }}}
 // {{{ class ActionHandler 
 
 /**
@@ -12,10 +32,7 @@
  * handle any manipulation of data.  It also handles the creation of the output seen by the
  * user, be it error messages, list pages, or forms.
  *
- * See the enclosed file COPYING for license information (LGPL). If you
- * did not receive this file, see http://www.fsf.org/copyleft/lesser.html.
- *
- * @author  Jason Rust <jrust@rustyparts.com>
+ * @author  Jason Rust <jrust@codejanitor.com>
  * @version Revision: 1.0 
  * @access  public
  * @package ActionHandler 

@@ -1,5 +1,25 @@
 <?php
-/** $Id: Table.php,v 1.2 2003/02/06 22:31:46 jrust Exp $ */
+/** $Id: Table.php,v 1.3 2003/02/08 00:10:56 jrust Exp $ */
+// {{{ license
+
+// +----------------------------------------------------------------------+
+// | FastFrame Application Framework                                      |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 2002-2003 The Codejanitor Group                        |
+// +----------------------------------------------------------------------+
+// | This source file is subject to the GNU Lesser Public License (LGPL), |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.fsf.org/copyleft/lesser.html                              |
+// | If you did not receive a copy of the LGPL and are unable to          |
+// | obtain it through the world-wide-web, you can get it by writing the  |
+// | Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, |
+// | MA 02111-1307, USA.                                                  |
+// +----------------------------------------------------------------------+
+// | Authors: Jason Rust <jrust@codejanitor.com>                          |
+// +----------------------------------------------------------------------+
+
+// }}}
 // {{{ requires 
 
 require_once dirname(__FILE__) . '/../Output.php';
@@ -11,10 +31,7 @@ require_once dirname(__FILE__) . '/../Output.php';
  * The FastFrame_Output_Table:: class provides methods to create a table using
  * a combination of table headers and templates.
  *
- * See the enclosed file COPYING for license information (LGPL). If you
- * did not receive this file, see http://www.fsf.org/copyleft/lesser.html.
- *
- * @author  Jason Rust <jrust@rustyparts.com>
+ * @author  Jason Rust <jrust@codejanitor.com>
  * @version Revision: 1.0 
  * @access  public
  * @package Output 

@@ -1,5 +1,27 @@
 <?php
-/** $Id: Output.php,v 1.2 2003/02/06 22:25:44 jrust Exp $ */
+/** $Id: Output.php,v 1.3 2003/02/08 00:10:54 jrust Exp $ */
+// {{{ license
+
+// +----------------------------------------------------------------------+
+// | FastFrame Application Framework                                      |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 2002-2003 The Codejanitor Group                        |
+// +----------------------------------------------------------------------+
+// | This source file is subject to the GNU Lesser Public License (LGPL), |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.fsf.org/copyleft/lesser.html                              |
+// | If you did not receive a copy of the LGPL and are unable to          |
+// | obtain it through the world-wide-web, you can get it by writing the  |
+// | Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, |
+// | MA 02111-1307, USA.                                                  |
+// +----------------------------------------------------------------------+
+// | Authors: The Horde Team <http://www.horde.org>                       |
+// |          Jason Rust <jrust@codejanitor.com>                          |
+// |          Dan Allen <dan@mojavelinux.com>                             |
+// +----------------------------------------------------------------------+
+
+// }}}
 // {{{ requires 
 
 require_once dirname(__FILE__) . '/Template.php';
@@ -14,8 +36,8 @@ require_once dirname(__FILE__) . '/Template.php';
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.fsf.org/copyleft/lesser.html.
  *
- * @author  Horde  http://www.horde.org/
- * @author  Jason Rust <jrust@rustyparts.com>
+ * @author  The Horde Team <http://www.horde.org/>
+ * @author  Jason Rust <jrust@codejanitor.com>
  * @author  Dan Allen <dan@mojavelinux.com>
  * @version Revision: 2.0 
  * @access  public

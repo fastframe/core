@@ -1,5 +1,25 @@
 <?php
-/** $Id: Error.php,v 1.1 2003/01/03 22:42:44 jrust Exp $ */
+/** $Id: Error.php,v 1.2 2003/02/08 00:10:54 jrust Exp $ */
+// {{{ license
+
+// +----------------------------------------------------------------------+
+// | FastFrame Application Framework                                      |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 2002-2003 The Codejanitor Group                        |
+// +----------------------------------------------------------------------+
+// | This source file is subject to the GNU Lesser Public License (LGPL), |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.fsf.org/copyleft/lesser.html                              |
+// | If you did not receive a copy of the LGPL and are unable to          |
+// | obtain it through the world-wide-web, you can get it by writing the  |
+// | Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, |
+// | MA 02111-1307, USA.                                                  |
+// +----------------------------------------------------------------------+
+// | Authors: Dan Allen <dan@mojavelinux.com>                             |
+// +----------------------------------------------------------------------+
+
+// }}}
 // {{{ error codes
 
 define('FASTFRAME_OK',                 0);
@@ -13,9 +33,6 @@ define('FASTFRAME_NOT_CONFIGURED',    -3);
 /**
  * FastFrame_Error Class for Error Handling (using PEAR) of FastFrame
  * 
- * See the enclosed file COPYING for license information (LGPL). If you
- * did not receive this file, see http://www.fsf.org/copyleft/lesser.html.
- *
  * @version Revision: 2.0 
  * @author  Dan Allen <dan@mojavelinux.com>
  * @access public

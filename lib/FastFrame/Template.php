@@ -1,4 +1,24 @@
 <?php
+// {{{ license
+
+// +----------------------------------------------------------------------+
+// | FastFrame Application Framework                                      |
+// +----------------------------------------------------------------------+
+// | Copyright (c) 2002-2003 The Codejanitor Group                        |
+// +----------------------------------------------------------------------+
+// | This source file is subject to the GNU Lesser Public License (LGPL), |
+// | that is bundled with this package in the file LICENSE, and is        |
+// | available at through the world-wide-web at                           |
+// | http://www.fsf.org/copyleft/lesser.html                              |
+// | If you did not receive a copy of the LGPL and are unable to          |
+// | obtain it through the world-wide-web, you can get it by writing the  |
+// | Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, |
+// | MA 02111-1307, USA.                                                  |
+// +----------------------------------------------------------------------+
+// | Authors: Dan Allen <dan@mojavelinux.com>                             |
+// +----------------------------------------------------------------------+
+
+// }}}
 /**
  * RULES:
  * - if you branch a block from a variable, it will branch from where the variable is
@@ -36,14 +56,10 @@ define('FASTFRAME_TEMPLATE_FILE_NOT_FOUND',      -7);
 
 define('FASTFRAME_TEMPLATE_GLOBAL_BLOCK', '**global**');
 // }}}
-
 // {{{ class FastFrame_Template
 
 /**
  * A template class which allows the programmer to abstract the HTML from the programming
- *
- * See the enclosed file COPYING for license information (LGPL). If you
- * did not receive this file, see http://www.fsf.org/copyleft/lesser.html.
  *
  * @author   Dan Allen <dan@mojavelinux.com>
  * @version  Revision 1.0
