@@ -1,5 +1,5 @@
 <?php
-/** $Id: SQL.php,v 1.2 2003/01/08 00:06:55 jrust Exp $ */
+/** $Id: SQL.php,v 1.3 2003/01/09 22:45:00 jrust Exp $ */
 // {{{ class FastFrame
 
 /**
@@ -155,7 +155,7 @@ class FastFrame_SQL {
     }
 
     // }}}
-    // {{{ string   getOrderString()
+    // {{{ string  getOrderString()
 
     /**
      * Returns an order string by handling either true (ASC)/false (DESC) type notation or
