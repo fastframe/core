@@ -117,14 +117,16 @@ class FF_Menu {
     /**
      * Sets up the initial variables on class initialization.
      *
+     * @param string $in_type The type of menu we are creating
+     *
      * @access public
      * @return void
      */
-    function FF_Menu()
+    function FF_Menu($in_type)
     {
         $this->o_registry =& FF_Registry::singleton();
         $this->o_output =& FF_Output::singleton();
-        $this->_importMenuVars();
+        $this->menuType = $in_type;
     }
 
     // }}}
@@ -151,8 +153,7 @@ class FF_Menu {
             $pth_menu = dirname(__FILE__) . '/Menu/' . $in_type . '.php';
             if (file_exists($pth_menu)) { 
                 require_once $pth_menu;
-                $a_instances[$s_class] = new $s_class();
-                $a_instances[$s_class]->menuType = $in_type;
+                $a_instances[$s_class] = new $s_class($in_type);
             } 
             else {
                 FastFrame::fatal("Invalid menu type: $in_type", __FILE__, __LINE__);
@@ -188,11 +189,11 @@ class FF_Menu {
      */
     function _isMenuCached()
     {
-        if (!file_exists($this->_getCacheFileName())) {
+        if (!file_exists(($pth_file = $this->_getCacheFileName()))) {
             return false;
         }
         else {
-            $s_cacheMTime = filemtime($this->_getCacheFileName());
+            $s_cacheMTime = filemtime($pth_file);
         }
 
         // Changing an app setting, such as whether it is enabled can change the menu
@@ -207,16 +208,7 @@ class FF_Menu {
                 continue;
             }
                 
-            // Get the profile specific application menu
-            if ($this->o_registry->getAppParam('profile', null, array('app'=>$s_app))) {
-                $s_menuFile = sprintf('menu.%s.php', $this->o_registry->getAppParam('profile',null, array('app'=>$s_app)));
-            }
-            else {
-                $s_menuFile = 'menu.php';
-            }
-
-            $pth_menu = $this->o_registry->getAppFile($s_menuFile, $s_app, 'config');
-
+            $pth_menu = $this->o_registry->getAppFile($this->_getMenuFilename($s_app), $s_app, 'config');
             if (file_exists($pth_menu) && (filemtime($pth_menu) > $s_cacheMTime)) {
                 return false;
             }
@@ -244,8 +236,7 @@ class FF_Menu {
             return PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_WARNING, $s_cacheDir, 'FF_Error', true);
         }
         
-        $s_cacheFile = $this->_getCacheFileName(); 
-        $fp = fopen($s_cacheFile, 'w');
+        $fp = fopen($this->_getCacheFileName(), 'w');
         fwrite($fp, $in_data);
         fclose($fp);
     }
@@ -265,9 +256,9 @@ class FF_Menu {
         require_once dirname(__FILE__) . '/Perms.php';
         $o_perms =& FF_Perms::factory();
         $o_registry =& FF_Registry::singleton();
-        $s_cacheFile = $this->_getCacheFileName(); 
+        $o_output =& FF_Output::singleton();
         ob_start();
-        require_once $s_cacheFile;
+        require_once $this->_getCacheFileName();
         $s_data = ob_get_contents();
         ob_end_clean();
         return $s_data;
@@ -284,12 +275,31 @@ class FF_Menu {
      */
     function _getCacheFileName()
     {
-        static $pth_file;
-        if (!isset($pth_file)) {
-            $pth_file = $this->o_registry->getRootFile('menu/' . $this->menuType . '.php', 'cache');
-        }
+        return $this->o_registry->getRootFile('menu/' . $this->menuType . '.php', 'cache');
+    }
 
-        return $pth_file;
+    // }}}
+    // {{{ _getMenuFilename()
+
+    /**
+     * Gets the menu filename for the specified app based on if the specified app has a
+     * profile or not.
+     *
+     * @param string $in_app The app to get the menu filename for
+     *
+     * @access private
+     * @return string The menu filename
+     */
+    function _getMenuFilename($in_app)
+    {
+        // Get the profile specific application menu
+        if ($this->o_registry->getAppParam('profile', false, array('app' => $in_app))) {
+            return sprintf('menu.%s.php', 
+                    $this->o_registry->getAppParam('profile', null, array('app' => $in_app)));
+        }
+        else {
+            return 'menu.php';
+        }
     }
 
     // }}}
@@ -305,28 +315,20 @@ class FF_Menu {
     function _importMenuVars()
     {
         $this->menuVariables = array();
-        // loop through the apps and grab the menu vars for each registered app
+        // Loop through the apps and grab the menu vars for each registered app
         foreach ($this->o_registry->getApps() as $s_app) {
-            // make sure this app is enabled 
+            // Make sure this app is enabled 
             if ($this->o_registry->getAppParam('status', 'disabled', array('app' => $s_app)) != 'enabled') {
                 continue;
             }
                 
-            // include any additional action IDs this app has
+            // Include any additional action IDs this app has
             $pth_actions = $this->o_registry->getAppFile('ActionHandler/actions.php', $s_app, 'libs');
             if (file_exists($pth_actions)) {
                 require_once $pth_actions;
             }
 
-            // Get the profile specific application menu
-            if ($this->o_registry->getAppParam('profile', null, array('app'=>$s_app))) {
-                $s_menuFile=sprintf('menu.%s.php', $this->o_registry->getAppParam('profile',null, array('app'=>$s_app)));
-            }
-            else {
-                $s_menuFile='menu.php';
-            }
-
-            $pth_menu = $this->o_registry->getAppFile($s_menuFile, $s_app, 'config');
+            $pth_menu = $this->o_registry->getAppFile($this->_getMenuFilename($s_app), $s_app, 'config');
             if (file_exists($pth_menu)) {
                 $a_appMenu = null; 
                 require $pth_menu;
@@ -416,7 +418,7 @@ class FF_Menu {
      */
     function _replaceAppPlaceholder($in_app, $in_data)
     {
-        // since the placeholder is used in the url, the placeholder can be urlencoded 
+        // Since the placeholder is used in the url, the placeholder can be urlencoded 
         static $s_holder;
         if (!isset($s_holder)) {
             $s_holder = urlencode($this->currentAppPlaceholder);
@@ -436,11 +438,12 @@ class FF_Menu {
      * or an empty string. 
      *
      * @param mixed $in_url The url or query vars
+     * @param bool $in_sessionInTags Should the session_id be put in php tags?
      *
      * @access private
      * @return string A url to this app or an outside page 
      */
-    function _getLinkUrl($in_url)
+    function _getLinkUrl($in_url, $in_sessionInTags)
     {
         if (is_array($in_url)) {
             if (!isset($in_url['app'])) {
@@ -448,13 +451,47 @@ class FF_Menu {
             }
 
             $s_url = FastFrame::url('index.php', $in_url);
-            // can't have the current session id in the url
-            $s_url = str_replace(session_id(), '<?php echo session_id(); ?>', $s_url);
+            // Can't have the current session id in the url
+            if ($in_sessionInTags) {
+                $s_url = str_replace(session_id(), '<?php echo session_id(); ?>', $s_url);
+            }
+            else {
+                $s_url = str_replace(session_id(), '\' . session_id() . \'', $s_url);
+            }
+
             return $s_url;
         }
         else {
             return $in_url;
         }
+    }
+
+    // }}}
+    // {{{ _formatMenuNodeData()
+
+    /**
+     * Takes an array of menu data for an individual node and formats the parameters and
+     * then returns the array with the formatted data. 
+     *
+     * @param array $in_data The node data
+     * @param bool $in_sessionInTags Should the session_id be put in php tags?
+     *
+     * @access private 
+     * @return array An array of the data properly formatted.
+     */
+    function _formatMenuNodeData($in_data, $in_sessionInTags)
+    {
+        $in_data['contents'] = isset($in_data['contents']) ? 
+            addcslashes($in_data['contents'], '\'') : '';
+        $in_data['statusText'] = isset($in_data['statusText']) ? 
+            $in_data['statusText'] : $in_data['contents'];
+        $in_data['icon'] = isset($in_data['icon']) ? 
+            addcslashes($this->o_output->imgTag($in_data['icon'], 'none', array('fullPath' => true)), '\'') . ' ' : '';
+        $in_data['target'] = isset($in_data['target']) ? $in_data['target'] : '_self';
+        $in_data['urlParams'] = isset($in_data['urlParams']) ? 
+            $this->_getLinkUrl($in_data['urlParams'], $in_sessionInTags) : '';
+
+        return $in_data;
     }
 
     // }}}

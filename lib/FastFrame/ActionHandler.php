@@ -163,7 +163,7 @@ class FF_ActionHandler {
         // Always set the locale to a guaranteed language first so that a custom language
         // (i.e. en_BIP) will work
         FF_Locale::setLang('en_US');
-        $this->o_registry->setLocale(FASTFRAME_DEFAULT_APP);
+        $this->o_registry->setLocale();
         $this->setActionId(FastFrame::getCGIParam('actionId', 'gp'));
         $this->setModuleId(FastFrame::getCGIParam('module', 'gp'));
         $this->setAppId(FastFrame::getCGIParam('app', 'gp'));

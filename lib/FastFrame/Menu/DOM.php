@@ -34,20 +34,6 @@
 
 // }}}
 class FF_Menu_DOM extends FF_Menu {
-    // {{{ constructor()
-
-    /**
-     * Sets up the initial variables on class initialization.
-     *
-     * @access public
-     * @return void
-     */
-    function FF_Menu_DOM()
-    {
-        FF_Menu::FF_Menu();
-    }
-
-    // }}}
     // {{{ renderMenu()
 
     /**
@@ -60,7 +46,8 @@ class FF_Menu_DOM extends FF_Menu {
     function renderMenu()
     {
         if (!$this->_isMenuCached()) {
-            // create all the javascript needed for the menu 
+            $this->_importMenuVars();
+            // Create all the javascript needed for the menu 
             $s_domMenu = '
             <script type="text/javascript" src="' . $this->o_registry->getRootFile('domMenu.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>
             <script type="text/javascript">
@@ -79,19 +66,14 @@ class FF_Menu_DOM extends FF_Menu {
             $this->_saveMenuToCache($s_domMenu);
         }
 
-        // turn on menu
+        // Turn on menu
         $this->o_output->touchBlock('switch_menu');
         $s_domMenu = $this->_getCachedMenu();
-        // because we don't know which node will be the last because of perms
-        // we have to take off the last comma from the last node of each set
-        $s_domMenu = preg_replace("/,(\s+)\)/", '\\1)', $s_domMenu);
-        // load menu js
-        $this->o_output->assignBlockData(
-            array(
-                'T_javascript' => $s_domMenu,
-            ),
-            'javascript'
-        );
+        // Because we don't know which node will be the last because of perms
+        // We have to take off the last comma from the last node of each set
+        $s_domMenu = preg_replace('/,(\s+)\)/', '\\1)', $s_domMenu);
+        // Load menu js
+        $this->o_output->assignBlockData(array('T_javascript' => $s_domMenu), 'javascript');
     }
 
     // }}}
@@ -114,7 +96,7 @@ class FF_Menu_DOM extends FF_Menu {
             }
         }
 
-        // create javascript, and initialize level counter
+        // Create javascript, and initialize level counter
         $s_js = '
         <?php $a_count = array(); $a_count[0] = 0; ?>
         domMenu_data.setItem("domMenu_main", new domMenu_Hash(
@@ -141,38 +123,25 @@ class FF_Menu_DOM extends FF_Menu {
      */
     function _getMenuNode($in_data, $in_level)
     {
-        static $s_padNum;
-        if (!isset($s_padNum)) {
-            $s_padNum = 0;
-        }
+        $in_data = $this->_formatMenuNodeData($in_data, true);
+        $in_data['contents'] = $in_data['icon'] . $in_data['statusText'];
+        $tmp_pad = str_repeat(' ', $in_level * 2);
 
-        // increase padding by one level
-        $s_padNum += 4;
-        // we assume we are being passed an array that has the contents for this node,
-        // then we check if there are any other nodes to recurse into
-        $tmp_contents = isset($in_data['contents']) ? addcslashes($in_data['contents'], '\'') : '';
-        $tmp_status = isset($in_data['statusText']) ? $in_data['statusText'] : $tmp_contents;
-        $tmp_icon = isset($in_data['icon']) ? addcslashes($this->o_output->imgTag($in_data['icon'], 'none', array('fullPath' => true)), '\'') . ' ' : '';
-        $tmp_contents = $tmp_icon . $tmp_status;
-        $tmp_target = isset($in_data['target']) ? $in_data['target'] : '_self';
-        $tmp_uri = isset($in_data['urlParams']) ? $this->_getLinkUrl($in_data['urlParams']) : '';
-        $tmp_pad = str_repeat(' ', $s_padNum);
-
-        // create js for this node
-        // the hash number has to be dynamic so perms will work
+        // Create js for this node
+        // The hash number has to be dynamic so perms will work
         $s_jsNode = "
         $tmp_pad<?php echo ++\$a_count[$in_level]; ?>, new domMenu_Hash(
-        $tmp_pad    'contents', '<?php echo addcslashes(_('$tmp_contents'), '\''); ?>',
-        $tmp_pad    'uri', '$tmp_uri',
-        $tmp_pad    'target', '$tmp_target',
-        $tmp_pad    'statusText', '<?php echo addcslashes(_('$tmp_status'), '\''); ?>'";
+        $tmp_pad    'contents', '<?php echo addcslashes(_('{$in_data['contents']}'), '\''); ?>',
+        $tmp_pad    'uri', '{$in_data['urlParams']}',
+        $tmp_pad    'target', '{$in_data['target']}',
+        $tmp_pad    'statusText', '<?php echo addcslashes(_('{$in_data['statusText']}'), '\''); ?>'";
 
-        // recurse sub-elements
+        // Recurse sub-elements
         $s_nextLevel = $in_level + 1;
         $s_initCounter = false;
         foreach ($in_data as $s_key => $a_data) {
             if (is_int($s_key) && is_array($a_data)) {
-                // see if we need to init counter for this level
+                // See if we need to init counter for this level
                 if (!$s_initCounter) {
                     $s_jsNode .= ",
                     $tmp_pad<?php \$a_count[$s_nextLevel] = 0; ?>";
@@ -188,7 +157,6 @@ class FF_Menu_DOM extends FF_Menu {
 
         $s_jsNode = $this->_processPerms($in_data, $s_jsNode);
         $s_jsNode = $this->_processApps($in_data, $s_jsNode);
-        $s_padNum -= 4;
         return $s_jsNode;
     }
 

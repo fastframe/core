@@ -209,7 +209,7 @@ class FF_Output extends FF_Template {
         );
 
         $this->_renderPageType();
-        $this->_renderMenu();
+        $this->_renderMenus();
         $this->prender();
     }
 
@@ -285,7 +285,8 @@ class FF_Output extends FF_Template {
             // set some variables
             $o_cssWidget->assignBlockData(
                 array(
-                    'THEME_DIR' => $this->o_registry->getRootFile($this->theme, 'themes', FASTFRAME_WEBPATH)
+                    'THEME_DIR' => $this->o_registry->getRootFile($this->theme, 'themes', FASTFRAME_WEBPATH),
+                    'ROOT_GRAPHICS_DIR' => $this->o_registry->getRootFile('', 'graphics', FASTFRAME_WEBPATH),
                 ),
                 $this->getGlobalBlockName()
             );
@@ -892,19 +893,28 @@ class FF_Output extends FF_Template {
     }
 
     // }}}
-    // {{{ _renderMenu()
+    // {{{ _renderMenus()
 
     /**
-     * Renders the menu
+     * Renders the main menu and the quicklinks menu
      *
      * @access private
      * @return void
      */
-    function _renderMenu()
+    function _renderMenus()
     {
         if ($this->menuType != 'none') {
             require_once dirname(__FILE__) . '/Menu.php';
+            // Render the main menu
             $o_menu =& FF_Menu::factory($this->menuType);
+            if (FF_Error::isError($o_menu)) {
+                FastFrame::fatal($o_menu, __FILE__, __LINE__); 
+            }
+            
+            $o_menu->renderMenu();
+
+            // Render the QuickLinks menu
+            $o_menu =& FF_Menu::factory('QuickLinks');
             if (FF_Error::isError($o_menu)) {
                 FastFrame::fatal($o_menu, __FILE__, __LINE__); 
             }
