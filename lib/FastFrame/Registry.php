@@ -1,5 +1,5 @@
 <?php
-/** $Id: Registry.php,v 1.2 2003/01/08 00:07:37 jrust Exp $ */
+/** $Id: Registry.php,v 1.3 2003/01/09 22:44:36 jrust Exp $ */
 // {{{ constants/globals
 
 // types of filepaths that can be generated
@@ -351,7 +351,7 @@ class FastFrame_Registry {
      * @return string path for the app file
      * @example getAppFile('view.inc.php', 'login', FASTFRAME_APP_TEMPLATES);
      */
-    function getAppFile($in_filename, $in_app, $in_service = '', $in_type = FASTFRAME_FILEPATH_PUBLIC)
+    function getAppFile($in_filename, $in_app = null, $in_service = '', $in_type = FASTFRAME_FILEPATH_PUBLIC)
     {
         // this is how we handle the root path to the app 
         if (FastFrame::isEmpty($in_service)) {
@@ -360,6 +360,8 @@ class FastFrame_Registry {
         elseif (is_null($s_service = $this->getAppParam('app_' . $in_service))) {
             return null;
         }
+
+        $s_app = !is_null($in_app) ? $in_app : $this->getCurrentApp();
 
         // if they want the data, there is only one option available 
         // for $in_type so we will set it here manually
