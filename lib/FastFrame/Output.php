@@ -147,7 +147,8 @@ class FF_Output extends FF_Template {
      */
     function load($in_theme)
     {
-        $this->theme = FastFrame::getCGIParam('printerFriendly', 'gp', false) ? 'basic_grey' : $in_theme;
+        $this->theme = FastFrame::getCGIParam('printerFriendly', 'gp', false) ? 
+            $this->o_registry->getConfigParam('general/print_theme') : $in_theme;
         $s_directory = $this->o_registry->getRootFile($this->theme, 'themes');
         // See if theme has its own main template
         if (!is_readable($s_directory . '/overall.tpl')) {
@@ -822,6 +823,20 @@ class FF_Output extends FF_Template {
     function setMenuType($in_type)
     {
         $this->menuType = $in_type;
+    }
+
+    // }}}
+    // {{{ getTheme()
+
+    /**
+     * Gets currently loaded theme.
+     *
+     * @access public
+     * @return string The current theme.
+     */
+    function getTheme()
+    {
+        return $this->theme;
     }
 
     // }}}

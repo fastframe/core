@@ -102,6 +102,11 @@ class FF_Action_LoginSubmit extends FF_Action {
 
             FF_Auth::setCredential('userId', $s_userId); 
             FF_Auth::setCredential('theme', $s_theme); 
+            if ($this->o_output->getTheme() != $s_theme) {
+                $this->o_output->reset();
+                $this->o_output->load($s_theme);
+            }
+
             // login is successful proceed to initial app or where we came from
             $s_redirectURL = FastFrame::getCGIParam('loginRedirect', 'gp', false);
             if (empty($s_redirectURL)) {
