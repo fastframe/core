@@ -216,7 +216,7 @@ class FF_Action_List extends FF_Action_Form {
                     // Cells with buttons have  special attributes
                     foreach ($a_buttonCells as $s_method ) {
                         if ($tmp_fields['method'] == $s_method ) {
-                            $s_attr = 'id="optionCell" style="white-space: nowrap; width: 20px;"';
+                            $s_attr = 'id="optionCell" style="white-space: nowrap; width: 1%;"';
                             $tmp_fields['object'] =& $this;
                         }
                     }
