@@ -330,6 +330,23 @@ class FF_List {
                     $this->o_output->getGlobalBlockName());
         }
 
+        if ($a_listVars['searchBoxType'] != SEARCH_BOX_NORMAL) {
+            $tmp_help = _('Find items in the list by entering a search term in the box to the right.  If you want to only search a particular field then select it from the drop down list.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy');
+            $s_searchField = $a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED ?
+                sprintf(_('in %s'), $o_renderer->elementToHtml("searchField[$this->listId]")) : '';
+            $s_findText = $this->o_output->getHelpLink($tmp_help, _('Search Help')) . ' ' . 
+                _('Find') . ' ' . $o_renderer->elementToHtml("searchString[$this->listId]") . ' ' . 
+                $s_searchField . ' ' . $o_renderer->elementToHtml('query_submit') . ' ' . 
+                $o_renderer->elementToHtml('listall_submit');
+        }
+
+
+        if ($a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
+            $o_searchWidget->assignBlockData(
+                    array('T_search_find' => $s_findText),
+                    $this->o_output->getGlobalBlockName());
+        }
+
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
             $s_limitText = sprintf(_('%1$s rows per page %2$s'), 
                     $o_renderer->elementToHtml("displayLimit[$this->listId]"), 
@@ -339,23 +356,10 @@ class FF_List {
                           $o_renderer->elementToHtml("sortField[$this->listId]") . ' ' .
                           $o_renderer->elementToHtml('sort_submit');
 
-            $o_searchWidget->assignBlockData(array(
-                        'T_search_limit' => $s_limitText, 'T_search_sort' => $s_sortText), 
-                    $this->o_output->getGlobalBlockName());
-        }
-
-        if ($a_listVars['searchBoxType'] != SEARCH_BOX_NORMAL) {
-            $tmp_help = _('Find items in the list by entering a search term in the box to the right.  If you want to only search a particular field then select it from the drop down list.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy');
-            $s_searchField = $a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED ?
-                sprintf(_('in %s'), $o_renderer->elementToHtml("searchField[$this->listId]")) : '';
-            $s_findText = $this->o_output->getHelpLink($tmp_help, _('Search Help')) . ' ' . 
-                _('Find') . ' ' . $o_renderer->elementToHtml("searchString[$this->listId]") . ' ' . 
-                $s_searchField . ' ' . $o_renderer->elementToHtml('query_submit') . ' ' . 
-                $o_renderer->elementToHtml('listall_submit');
-
             $o_searchWidget->assignBlockData(
-                    array('T_search_find' => $s_findText),
-                    $this->o_output->getGlobalBlockName());
+                    array('T_search_limit' => $s_limitText, 'T_search_sort' => $s_sortText, 
+                        'T_search_find' => $s_findText), 
+                    'advanced_list');
         }
 
         $o_searchWidget->assignBlockCallback(array(&$o_renderer, 'toHtml'));

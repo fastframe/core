@@ -514,87 +514,11 @@ class FF_Action_List extends FF_Action_Form {
      */
     function _renderHighlightJs()
     {
-        ob_start();
-        ?>
-        <script language="JavaScript" type="text/javascript">
-        <!--
-        // {{{ initHighlight()
-
-        /** initializes the rows of the list to be highlighted */
-        function initHighlight()
-        {
-            if (document.getElementById) {
-                var x = document.getElementById('listTable').getElementsByTagName('tr');
-                var y = document.getElementById('listTable').getElementsByTagName('td');
-            }
-            else if (document.all) {
-                var x = document.all['listTable'].all.tags('tr');
-                var y = document.all['listTable'].all.tags('td');
-            }
-            else {
-                return;
-            }
-
-            for (var i = 0; i < x.length; i++) {
-                if (x[i].className == 'primaryRow' || x[i].className == 'secondaryRow') {
-                    x[i].onmouseover = highlightRow;
-                    x[i].onmouseout = unhighlightRow;
-                }
-            }
-
-            // All option cells should not do the highlighting since they have other links in them
-            for (var i = 0; i < y.length; i++) {
-                if (y[i].id.indexOf('optionCell') == 0) {
-                    // Konqueror seems to do event capturing instead of event bubbling, so
-                    // the option buttons end up not working
-                    if (!isKonq) {
-                        y[i].onmouseover = stopPropagation; 
-                        y[i].onclick = stopPropagation; 
-                    }
-                }
-            }
-        }
-
-        // }}}
-        // {{{ highlightRow()
-
-        /** highlight a row, and records old class */
-        function highlightRow()
-        {
-            this.oldClass = this.className;
-            var newCursor = document.all ? 'hand' : 'pointer';
-            this.className = 'highlightRow';
-            this.style.cursor = newCursor;
-        }
-
-        // }}}
-        // {{{ unhighlightRow()
-
-        /** unhighlights a row */
-        function unhighlightRow()
-        {
-            this.className = this.oldClass ? this.oldClass : this.className; 
-            this.style.cursor = 'default';
-        }
-
-        // }}}
-        // {{{ stopPropagation()
-
-        /** stops propagation of all events past the element */
-        function stopPropagation(e)
-        {
-            if (!e) var e = window.event;
-            e.cancelBubble = true;
-            if (e.stopPropagation) e.stopPropagation();
-        }
-
-        // }}}
-        addOnload(initHighlight);
-        //-->
-        </script>
-        <?php
-        $this->o_output->assignBlockData(array('T_javascript' => ob_get_contents()), 'javascript');
-        ob_end_clean();
+        $this->o_output->assignBlockData(
+            array('T_javascript' => '<script language="JavaScript" type="text/javascript" src="' . 
+                $this->o_registry->getRootFile('highlightRow.js', 'javascript', FASTFRAME_WEBPATH) . 
+                '"></script>' . "\n"),
+            'javascript');
     }
 
     // }}}
