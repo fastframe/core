@@ -1,5 +1,5 @@
 <?php
-/** $Id: ListModeler.php,v 1.2 2003/04/04 23:10:17 jrust Exp $ */
+/** $Id: ListModeler.php,v 1.3 2003/04/08 21:17:40 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -62,7 +62,7 @@ class FF_Model_ListModeler {
      * @type object
      */
     var $o_resultSet = null;
-    
+
     // }}}
     // {{{ constructor
 
@@ -80,7 +80,6 @@ class FF_Model_ListModeler {
         $this->o_list =& $in_listObject;
         $this->o_model =& $in_modelObject;
         $this->o_dataAccess =& $this->o_model->getDataAccessObject();
-        $this->_performSearch();
     }
 
     // }}}
@@ -159,6 +158,35 @@ class FF_Model_ListModeler {
     }
 
     // }}}
+    // {{{ performSearch()
+
+    /**
+     * Performs the search on the database and prepares the variables for iterating through
+     * the result set.
+     *
+     * @access public 
+     * @return True if the search is successful, false otherwise 
+     */
+    function performSearch()
+    {
+        $result =& $this->o_dataAccess->getListData(
+            $this->_getWhereCondition(), 
+            $this->o_list->getSortField(),
+            $this->_getOrderByDirection($this->o_list->getSortOrder()),
+            $this->o_list->getRecordOffset(),
+            $this->o_list->getDisplayLimit() 
+        );
+
+        if (!DB::isError($result)) {
+            $this->o_resultSet =& $result;
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    // }}}
     // {{{ _getWhereCondition()
 
     /**
@@ -172,7 +200,28 @@ class FF_Model_ListModeler {
     function _getWhereCondition()
     {
         $s_searchField = $this->o_list->getSearchField();
-        $s_searchCondition = '%field% LIKE ' . $this->o_dataAccess->o_data->quote('%' . $this->o_list->getSearchString() . '%');
+        $s_searchString = $this->o_list->getSearchString();
+        // handle dates (formats of mm/dd/yyyy and mm-dd-yyyy).
+        // to search between two days: date1 - date2
+        if (preg_match(':^(\d{1,2})[-/](\d{1,2})[-/](\d{4})( ?- ?(\d{1,2})[-/](\d{1,2})[-/](\d{4}))?:', 
+                        $s_searchString, 
+                        $a_parts)) {
+            $s_startDate = $a_parts[3] . sprintf('%02d', $a_parts[1]) . sprintf('%02d', $a_parts[2]) . '000000';
+            // they specified an end date
+            if (isset($a_parts[4])) {
+                $s_endDate = $a_parts[7] . sprintf('%02d', $a_parts[5]) . sprintf('%02d', $a_parts[6]) . '235959';
+            }
+            // if they did not specify an end date, then it is the end of the day
+            else {
+                $s_endDate = substr($s_startDate, 0, 8) . '235959';
+            }
+
+            $s_searchCondition = '`%field%` BETWEEN ' . $s_startDate . ' AND ' . $s_endDate; 
+        }
+        else {
+            $s_searchCondition = '`%field%` LIKE ' . $this->o_dataAccess->o_data->quote('%' . $this->o_list->getSearchString() . '%');
+        }
+
         if (!empty($s_searchField)) {
             $tmp_fields = array();
             if ($s_searchField == $this->o_list->getAllFieldsKey()) {
@@ -213,31 +262,6 @@ class FF_Model_ListModeler {
         }
         else {
             return (int) $in_order ? 'ASC' : 'DESC';
-        }
-    }
-
-    // }}}
-    // {{{ _performSearch()
-
-    /**
-     * Performs the search on the database and prepares the variables for iterating through
-     * the result set.
-     *
-     * @access private 
-     * @return void 
-     */
-    function _performSearch()
-    {
-        $result =& $this->o_dataAccess->getListData(
-            $this->_getWhereCondition(), 
-            $this->o_list->getSortField(),
-            $this->_getOrderByDirection($this->o_list->getSortOrder()),
-            $this->o_list->getRecordOffset(),
-            $this->o_list->getDisplayLimit() 
-        );
-
-        if (!DB::isError($result)) {
-            $this->o_resultSet =& $result;
         }
     }
 
