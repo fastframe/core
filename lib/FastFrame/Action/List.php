@@ -545,8 +545,12 @@ class FF_Action_List extends FF_Action_Form {
             // All option cells should not do the highlighting since they have other links in them
             for (var i = 0; i < y.length; i++) {
                 if (y[i].id.indexOf('optionCell') == 0) {
-                    y[i].onmouseover = stopPropagation; 
-                    y[i].onclick = stopPropagation; 
+                    // Konqueror seems to do event capturing instead of event bubbling, so
+                    // the option buttons end up not working
+                    if (!isKonq) {
+                        y[i].onmouseover = stopPropagation; 
+                        y[i].onclick = stopPropagation; 
+                    }
                 }
             }
         }
