@@ -159,13 +159,13 @@ class FF_Output extends FF_Template {
         parent::FF_Template($s_directory);
         parent::load('overall.tpl', 'file');
 
-        if (FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
-            // no menu for print
-            $this->setMenuType('none');
-        }
-        else {
-            // initialize menu to default type
-            $this->setMenuType($this->o_registry->getConfigParam('menu/type'));
+        // Initialize menu to default type
+        $this->setMenuType($this->o_registry->getConfigParam('menu/type'));
+
+        if (FastFrame::getCGIParam('printerFriendly', 'gp', false) ||
+            FastFrame::getCGIParam('isPopup', 'gp', false)) {
+            // Set a different page type
+            $this->setPageType('popup');
         }
         
         // include some common js, needs to be at top before any of their functions are used
@@ -203,18 +203,8 @@ class FF_Output extends FF_Template {
             $this->getGlobalBlockName()
         );
 
-        // set up menu
-        if ($this->menuType != 'none') {
-            require_once dirname(__FILE__) . '/Menu.php';
-            $o_menu =& FF_Menu::factory($this->menuType);
-            if (FF_Error::isError($o_menu)) {
-                FastFrame::fatal($o_menu, __FILE__, __LINE__); 
-            }
-            
-            $o_menu->renderMenu();
-        }
-
         $this->_renderPageType();
+        $this->_renderMenu();
         $this->prender();
     }
 
@@ -858,6 +848,7 @@ class FF_Output extends FF_Template {
         switch ($this->pageType) {
             case 'popup':
                 // a minimal page
+                $this->setMenuType('none');
             break;
             case 'smallTable':
                 // override canvas width
@@ -887,6 +878,28 @@ class FF_Output extends FF_Template {
             break;
             default:
             break;
+        }
+    }
+
+    // }}}
+    // {{{ _renderMenu()
+
+    /**
+     * Renders the menu
+     *
+     * @access private
+     * @return void
+     */
+    function _renderMenu()
+    {
+        if ($this->menuType != 'none') {
+            require_once dirname(__FILE__) . '/Menu.php';
+            $o_menu =& FF_Menu::factory($this->menuType);
+            if (FF_Error::isError($o_menu)) {
+                FastFrame::fatal($o_menu, __FILE__, __LINE__); 
+            }
+            
+            $o_menu->renderMenu();
         }
     }
 

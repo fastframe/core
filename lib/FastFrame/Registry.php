@@ -236,8 +236,6 @@ class FF_Registry {
      */
     function pushApp($in_app)
     {
-        static $b_sessionStarted;
-
         // we always push the app onto the app stack so it can be popped later
         $s_currentApp = $this->getCurrentApp();
         settype($this->appStack, 'array');
@@ -245,25 +243,6 @@ class FF_Registry {
 
         // if we are changing apps then we need to import config
         if ($in_app != $s_currentApp) {
-            // if this is a login site and we have  not started a session, 
-            // then we need to do so now
-            if (!$this->useGuestFramework() && !isset($b_sessionStarted)) {
-                $b_sessionStarted = true; 
-                // don't use cookies to do the session
-                if ($this->getConfigParam('session/append')) {
-                    ini_alter('session.use_cookies', 0);
-                }
-                else {
-                    // let the domain set itself, since it will default to the current domain
-                    ini_alter('session.use_cookies', 1);
-                    session_set_cookie_params(0, File::buildPath(array($this->getConfigParam('webserver/web_root'))));
-                }
-
-                // use a common session name for all apps
-                session_name(urlencode($this->getConfigParam('session/name'))); 
-                @session_start();
-            }
-
             // import the config for this application
             $this->importConfig($in_app);
 

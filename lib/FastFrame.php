@@ -92,8 +92,8 @@ class FastFrame {
 
         // see if we need to make this a full query string
         if ($in_full && !preg_match(':^https?\://:', $in_url)) {
-            $url = ($o_registry->getConfigParam('server/use_ssl') ? 'https' : 'http') . 
-                   '://' . $o_registry->getConfigParam('server/hostname') . $url;
+            $url = ($o_registry->getConfigParam('webserver/use_ssl') ? 'https' : 'http') . 
+                   '://' . $o_registry->getConfigParam('webserver/hostname') . $url;
         }
 
         // getVars will be a name=>value pair hash of get variables
@@ -180,20 +180,23 @@ class FastFrame {
      */
     function selfURL()
     {
-        // get the arguments passed in
+        // Get the arguments passed in
         $argv = func_get_args();
 
-        // add on the module, app, and actionId to the beginning
+        // Add on the module, app, and actionId to the beginning
         $o_actionHandler =& FF_ActionHandler::singleton();
-        array_unshift($argv, 
-                array(
+        array_unshift($argv, array(
                     'app' => $o_actionHandler->getAppId(), 
                     'module' => $o_actionHandler->getModuleId(),
                     'actionId' => $o_actionHandler->getActionId())); 
 
-        // add on the url to the beginning
+        // Add on isPopup if it is set
+        if (FastFrame::getCGIParam('isPopup', 'gp', false)) {
+            array_unshift($argv, array('isPopup' => 1));
+        }
+
+        // Add on the url to the beginning
         array_unshift($argv, $_SERVER['PHP_SELF']);
-        
         return call_user_func_array(array('FastFrame', 'url'), $argv);
     }
 

@@ -159,11 +159,11 @@ class FF_ActionHandler {
     {
         $this->_initializeErrorHandler();
         $this->o_registry =& FF_Registry::singleton();
+        FF_Auth::sessionStart();
         $this->setActionId(FastFrame::getCGIParam('actionId', 'gp'));
         $this->setModuleId(FastFrame::getCGIParam('module', 'gp'));
         $this->setAppId(FastFrame::getCGIParam('app', 'gp'));
         $this->_makeDefaultPathsAbsolute();
-        FF_Auth::sessionStart();
         $this->_checkProfile();
         $o_output =& FF_Output::singleton();
         $s_theme = FF_Auth::getCredential('theme');

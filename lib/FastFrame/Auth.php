@@ -387,16 +387,25 @@ class FF_Auth {
         
         if (!isset($isStarted)) {
             $o_registry =& FF_Registry::singleton();
-            // force usage of querystring for storing session ID
-            ini_set('session.use_cookies', 0);
-            // don't transparently track session ID, since we do it in all
-            // our functions anyhow
+            // Don't use cookies to do the session if it will be appended to the URL
+            if ($o_registry->getConfigParam('session/append')) {
+                ini_alter('session.use_cookies', 0);
+            }
+            else {
+                ini_alter('session.use_cookies', 1);
+                session_set_cookie_params(0, $o_registry->getConfigParam('webserver/web_root'),
+                        $o_registry->getConfigParam('webserver/hostname'));
+            }
+
+            // Use a common session name for all apps
+            session_name(urlencode($o_registry->getConfigParam('session/name'))); 
+            // Don't transparently track session ID, since we handle it.
             ini_set('session.use_trans_sid', 0);
             // set the cacheing 
             session_cache_limiter($o_registry->getConfigParam('session/cache', 'nocache'));
 
             // get the session name from the configuration or just use a default
-            session_name($o_registry->getConfigParam('session/name', 'FastFrameSESSID'));
+            session_name($o_registry->getConfigParam('session/name', 'FF_SESSID'));
             session_start();
             $isStarted = true;
         }
