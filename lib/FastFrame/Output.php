@@ -321,7 +321,7 @@ class FF_Output extends FF_Template {
      * @param  string $in_text content for the link tag
      * @param  array  $in_options A number of options that have to do with the a tag.  The 
      *                            options are as follows:
-     *                            status, title, tooltipType, class, target, onclick, style, confirm
+     *                            status, title, class, target, onclick, style, confirm
      *
      * @access public
      * @return string Entire <a> tag plus attributes
@@ -342,7 +342,7 @@ class FF_Output extends FF_Template {
      * @param  string $in_url The full URL to be linked to
      * @param  array  $in_options A number of options that have to do with the a tag.  The 
      *                            options are as follows:
-     *                            status, title, tooltipType, class, target, onclick, style, confirm
+     *                            status, title, class, target, onclick, style, confirm
      *
      * @return string The start <a> tag plus attributes
      */
@@ -454,10 +454,33 @@ class FF_Output extends FF_Template {
     }
 
     // }}}
+    // {{{ getHelpLink()
+
+    /**
+     * Returns a help tool tip with the help icon.
+     *
+     * @param string $in_text The help text.
+     * @param string $in_title (optional) The title.
+     *
+     * @access public
+     * @return string A link with a tooltip wrapped around the help icon.
+     */
+    function getHelpLink($in_text, $in_title = null)
+    {
+        $in_title = is_null($in_title) ? _('Help') : $in_title;
+        $s_help = $this->link(
+                'javascript: void(0);', 
+                $this->imgTag('help.gif', 'actions', array('align' => 'top')),
+                array('title' => $in_text, 'caption' => $in_title, 'status' => $in_title, 
+                    'sticky' => 'onclick', 'greasy' => false));
+        return $s_help;
+    }
+
+    // }}}
     // {{{ imgTag()
 
     /**
-     * Returns an image tag (either <input type="image"> or <img>) properly formatted and 
+     * Returns an image tag (either the src or <img>) properly formatted and 
      * with the correct width and height attributes 
      *
      * @param string $in_img Name of image, if an absolute path is not given we prepend ffol path 
@@ -939,8 +962,14 @@ class FF_Output extends FF_Template {
         // The way this will work, we default to use onmouseover as greasy...unless the user
         // sticky option is onmouseover, onmouseover will be used to ensure the status bar is
         // written so as to hide the link url
-        if (!empty($in_options['greasy'])) {
-            $a_events[$in_options['greasy']] = 'greasy';
+        if (isset($in_options['greasy'])) {
+            // If greasy was set to false then turn it off for onmouseover
+            if ($in_options['greasy'] === false) {
+                $a_events['onmouseover'] = '';
+            }
+            elseif (!empty($in_options['greasy'])) {
+                $a_events[$in_options['greasy']] = 'greasy';
+            }
         }
 
         if (!empty($in_options['sticky'])) {

@@ -59,8 +59,6 @@ class FastFrame {
      */
     function url($in_url)
     {
-        // just need to add to get rid of duplicate '/'
-
         $o_registry =& FF_Registry::singleton();
 
         // merge all the get variable arrays
