@@ -308,7 +308,7 @@ class FF_DataAccess {
      *
      * @param string $in_where The where condition
      * @param string $in_orderByField The order by field
-     * @param string $in_orderByDir The order by direction 
+     * @param bool $in_orderByDir The order by direction (true => ASC, false => DESC)
      * @param int $in_offset The offset to start at
      * @param int $in_limit The limit of records
      * @param string $in_fields (optional) The fields to select (default is all fields)
@@ -323,7 +323,7 @@ class FF_DataAccess {
                               $this->table,
                               $in_where,
                               $in_orderByField,
-                              $in_orderByDir);
+                              $this->_getOrderByDirection($in_orderByDir));
         $s_query = $this->o_data->modifyLimitQuery($s_query, $in_offset, $in_limit);
         return $this->o_data->query($s_query);
     }
@@ -455,6 +455,28 @@ class FF_DataAccess {
     function getNextId()
     {
         return $this->o_data->nextId($this->table);
+    }
+
+    // }}}
+    // {{{ _getOrderByDirection()
+
+    /**
+     * Returns an order string by handling either true (ASC)/false (DESC) type notation or
+     * regular ASC/DESC strings.
+     *
+     * @param mixed $in_order The order
+     *
+     * @access private 
+     * @return string Either ASC or DESC
+     */
+    function _getOrderByDirection($in_order)
+    {
+        if ($in_order === 'ASC' || $in_order === 'DESC') {
+            return $in_order;
+        }
+        else {
+            return (bool) $in_order ? 'ASC' : 'DESC';
+        }
     }
 
     // }}}

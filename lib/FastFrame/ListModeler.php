@@ -180,7 +180,7 @@ class FF_ListModeler {
         $result =& $this->o_dataAccess->getListData(
             $this->_getListFilter(),
             $this->o_list->getSortField(),
-            $this->_getOrderByDirection($this->o_list->getSortOrder()),
+            $this->o_list->getSortOrder(),
             $this->o_list->getRecordOffset(),
             $this->o_list->getDisplayLimit() 
         );
@@ -191,29 +191,6 @@ class FF_ListModeler {
         }
         else {
             return false;
-        }
-    }
-
-    // }}}
-    // {{{ _getOrderByDirection()
-
-    /**
-     * Returns an order string by handling either true (ASC)/false (DESC) type notation or
-     * regular ASC/DESC strings.
-     *
-     * @param mixed $in_order The order
-     *
-     * @access private 
-     * @return string Either ASC or DESC
-     */
-    function _getOrderByDirection($in_order)
-    {
-        $in_order = strtoupper($in_order);
-        if ($in_order == 'ASC' || $in_order == 'DESC') {
-            return $in_order;
-        }
-        else {
-            return (int) $in_order ? 'ASC' : 'DESC';
         }
     }
 

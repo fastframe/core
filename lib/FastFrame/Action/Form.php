@@ -234,8 +234,8 @@ class FF_Action_Form extends FF_Action {
     {
         if ($this->isUpdate()) {
             $s_id = FastFrame::getCGIParam('objectId', 'gp');
-            $b_result = $this->o_model->fillById($s_id);
-            if (!$b_result) {
+            $this->o_model->reset();
+            if (!$this->o_model->fillById($s_id)) {
                 $this->o_output->setMessage(
                     sprintf(_('Could not find the specified %s'), $this->getSingularText()),
                     FASTFRAME_ERROR_MESSAGE
