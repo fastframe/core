@@ -30,6 +30,7 @@ require_once dirname(__FILE__) . '/../FastFrame.php';
 require_once dirname(__FILE__) . '/ErrorHandler.php';
 require_once dirname(__FILE__) . '/Registry.php';
 require_once dirname(__FILE__) . '/Request.php';
+require_once dirname(__FILE__) . '/ActionHandler.php';
 
 // }}}
 // {{{ class FF_CLI
