@@ -99,10 +99,8 @@ class FF_Action_List extends FF_Action_Form {
         }
         else {
             $s_link = $this->o_output->link(
-                        FastFrame::selfURL($this->o_list->getAllListVariables()),
-                        _('Return To List'), 
-                        array('title' => _('Return To List'))
-                        );
+                    FastFrame::selfURL($this->o_list->getAllListVariables()), 
+                    _('Return To List'));
             $this->o_output->assignBlockData(array('T_page_link' => $s_link), 'page_link');
         }
 

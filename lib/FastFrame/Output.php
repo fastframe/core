@@ -159,12 +159,17 @@ class FF_Output extends FF_Template {
         parent::FF_Template($s_directory);
         parent::load('overall.tpl', 'file');
 
+
         // Initialize menu to default type
         $this->setMenuType($this->o_registry->getConfigParam('menu/type'));
 
-        if (FastFrame::getCGIParam('printerFriendly', 'gp', false) ||
-            FastFrame::getCGIParam('isPopup', 'gp', false)) {
-            // Set a different page type
+        // If it's printer friendly we have no menu
+        if (FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
+            $this->setMenuType('none');
+        }
+
+        // Set popup type 
+        if (FastFrame::getCGIParam('isPopup', 'gp', false)) {
             $this->setPageType('popup');
         }
         
@@ -320,6 +325,11 @@ class FF_Output extends FF_Template {
      */
     function link($in_url, $in_text, $in_options = array())
     {
+        // Title should be the text if it's not set and isn't an image tag
+        if (!isset($in_options['title']) && strpos($in_text, '<img') === false) {
+            $in_options['title'] = $in_text;
+        }
+
         return FF_Output::linkStart($in_url, $in_options) . $in_text . FF_Output::linkEnd();
     }
 

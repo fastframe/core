@@ -262,15 +262,11 @@ class FF_Action_Tree extends FF_Action {
         if ($in_hasChildren) {
             $s_expand = $in_isOpen ? 0 : 1;
             $s_branch = $this->o_output->link(
-                            FastFrame::selfURL(
-                                array(
-                                    'nodeId' => $this->o_model->getId(), 
-                                    'expand' => $s_expand,
-                                    'actionId' => $this->currentActionId,
-                                )
-                            ),
-                            $s_branch
-                        );
+                    FastFrame::selfURL(array(
+                            'nodeId' => $this->o_model->getId(), 
+                            'expand' => $s_expand,
+                            'actionId' => $this->currentActionId)), 
+                    $s_branch);
         }
 
         $s_html .= $s_branch;

@@ -284,10 +284,9 @@ class FF_List {
                     );
 
         $s_printLink = $this->o_output->link(
-            FastFrame::selfURL($this->persistentData, $this->getAllListVariables(), array('printerFriendly' => 1)),
-            _('Printer Friendly'),
-            _('Printer Friendly')
-        );
+                FastFrame::selfURL($this->persistentData, $this->getAllListVariables(), 
+                    array('printerFriendly' => 1)), 
+                _('Printer Friendly'));
 
         $o_searchWidget->assignBlockData(
             array(
@@ -364,31 +363,34 @@ class FF_List {
         $a_navigation = array();
         $a_navigation['first']    = $this->getPageOffset() > 1 ? 
                                     $this->o_output->link(
-                                        FastFrame::selfURL($a_urlVars, array('pageOffset' => $this->getPageID('first'))), 
-                                        $this->o_output->imgTag('first.gif', 'arrows'), 
-                                        $lang_firstPage
-                                    ) : 
+                                            FastFrame::selfURL($a_urlVars, array(
+                                                    'pageOffset' => $this->getPageID('first'))), 
+                                            $this->o_output->imgTag('first.gif', 'arrows'), 
+                                            $lang_firstPage) : 
                                     $this->o_output->imgTag('first-gray.gif', 'arrows', $lang_atFirst);
+
         $a_navigation['previous'] = $this->getPageOffset() > 1 ?
                                     $this->o_output->link(
-                                        FastFrame::selfURL($a_urlVars, array('pageOffset' => $this->getPageID('previous'))), 
-                                        $this->o_output->imgTag('prev.gif', 'arrows'), 
-                                        $lang_prevPage
-                                    ) : 
+                                            FastFrame::selfURL($a_urlVars, array(
+                                                    'pageOffset' => $this->getPageID('previous'))), 
+                                            $this->o_output->imgTag('prev.gif', 'arrows'), 
+                                            $lang_prevPage) : 
                                     $this->o_output->imgTag('prev-gray.gif', 'arrows', $lang_atFirst);
+
         $a_navigation['next']     = $this->getPageOffset() < $this->getPageID('last') ? 
                                     $this->o_output->link(
-                                        FastFrame::selfURL($a_urlVars, array('pageOffset' => $this->getPageID('next'))), 
-                                        $this->o_output->imgTag('next.gif', 'arrows'), 
-                                        $lang_nextPage
-                                    ) : 
+                                            FastFrame::selfURL($a_urlVars, array(
+                                                    'pageOffset' => $this->getPageID('next'))), 
+                                            $this->o_output->imgTag('next.gif', 'arrows'), 
+                                            $lang_nextPage) : 
                                     $this->o_output->imgTag('next-gray.gif', 'arrows', $lang_atLast);
+
         $a_navigation['last']     = $this->getPageOffset() < $this->getPageID('last') ? 
                                     $this->o_output->link(
-                                        FastFrame::selfURL($a_urlVars, array('pageOffset' => $this->getPageID('last'))), 
-                                        $this->o_output->imgTag('last.gif', 'arrows'), 
-                                        $lang_lastPage
-                                    ) : 
+                                            FastFrame::selfURL($a_urlVars, array(
+                                                    'pageOffset' => $this->getPageID('last'))), 
+                                            $this->o_output->imgTag('last.gif', 'arrows'), 
+                                            $lang_lastPage) : 
                                     $this->o_output->imgTag('last-gray.gif', 'arrows', $lang_atLast);
         
         return $a_navigation;

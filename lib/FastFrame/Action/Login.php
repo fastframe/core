@@ -205,10 +205,11 @@ class FF_Action_Login extends FF_Action_Form {
             }
 
             $s_createAcct = $this->o_output->link(
-                                FastFrame::url('index.php', array('app' => 'profile', 'actionId' => ACTION_ADD, 'fromLogin' => 1)),
-                                _('Don\'t have an account? Create one.'),
-                                array('title' => _('Create an account if you do not already have one.'))
-                            );
+                    FastFrame::url('index.php', array(
+                            'app' => 'profile', 'actionId' => ACTION_ADD, 'fromLogin' => 1)), 
+                    _('Don\'t have an account? Create one.'),
+                    array('title' => _('Create an account if you do not already have one.')));
+
             $in_tableWidget->touchBlock('table_row');
             $in_tableWidget->cycleBlock('table_field_cell');
             $in_tableWidget->assignBlockData(

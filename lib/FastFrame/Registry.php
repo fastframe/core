@@ -553,29 +553,6 @@ class FF_Registry {
     }
 
     // }}}
-    // {{{ getAppRoot()
-
-    /**
-     * Get the relative base of the application
-     *
-     * This function requires that in each file for your application you
-     * define the constant *_ROOT where * is the name of the application.
-     * This function is more of a convenience function for getting the current
-     * base without having to hardcode in the name of the application.
-     *
-     * @param  array $in_credentials (optional) overrides for the current state
-     *
-     * @access public
-     * @return string path to the base of the application
-     */
-    function getAppRoot($in_credentials = array())
-    {
-        $app = isset($in_credentials['app']) ? $in_credentials['app'] : $this->getCurrentApp();
-
-        return ($base = constant(strtoupper($app) . '_ROOT')) ? $base : '.';
-    }
-
-    // }}}
     // {{{ getRootLocale()
    
     /**
