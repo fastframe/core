@@ -373,7 +373,7 @@ class FF_Output extends FF_Template {
 
         if (!empty($a_options['confirm'])) {
             $s_confirm = strtr(htmlspecialchars(addcslashes($a_options['confirm'], '\'')), "\n\r", '  ');
-            $a_options['onclick'] .= ' if (window.confirm(\'' . $s_confirm . '\')) { return true; } else { return false; }';
+            $a_options['onclick'] .= ' return window.confirm(\'' . $s_confirm . '\');';
         }
 
         $a_events = $this->_prepare_tooltip(

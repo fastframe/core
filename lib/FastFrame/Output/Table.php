@@ -28,8 +28,8 @@ require_once dirname(__FILE__) . '/../Output.php';
 // {{{ class FF_Output_Table
 
 /**
- * The FF_Output_Table:: class provides methods to create a table using
- * a combination of table headers and templates.
+ * The FF_Output_Table:: class extends the template class to provide
+ * methods for creating a table using a combination of table templates.
  *
  * @author  Jason Rust <jrust@codejanitor.com>
  * @version Revision: 1.0 
@@ -38,7 +38,7 @@ require_once dirname(__FILE__) . '/../Output.php';
  */
 
 // }}}
-class FF_Output_Table {
+class FF_Output_Table extends FF_Template {
     // {{{ properties
 
     /**
@@ -64,6 +64,12 @@ class FF_Output_Table {
      * @var string
      */
     var $tableHeaderText = 'Information';
+
+    /**
+     * Alternating row colors?
+     * @var bool
+     */
+    var $alternateRowColors = false;
 
     /**
      * The table headers.
@@ -141,8 +147,10 @@ class FF_Output_Table {
         // make the cells even in width
         $this->o_output->assignBlockData(array('T_css' => $tmp_css), 'css'); 
         $this->beginTable();
+        $i = 0;
         foreach ($this->tableHeaders as $tmp_header) {
-            $this->o_widget->touchBlock('table_row');
+            $this->o_widget->assignBlockData(array('S_table_row' => 
+                        'class="' . $this->getRowClass($i++) . '"'), 'table_row');
             $this->o_widget->cycleBlock('table_field_cell');
             $this->o_widget->cycleBlock('table_content_cell');
             $tmp_style = isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : '';
@@ -207,8 +215,10 @@ class FF_Output_Table {
             }
         }
 
+        $i = 0;
         foreach ($this->tableHeaders as $tmp_headers) {
-            $this->o_widget->touchBlock('table_row');
+            $this->o_widget->assignBlockData(array('S_table_row' => 
+                        'class="' . $this->getRowClass($i++) . '"'), 'table_row');
             $this->o_widget->cycleBlock('table_field_cell');
             $this->o_widget->cycleBlock('table_content_cell');
             foreach ($tmp_headers as $tmp_header) {
@@ -222,6 +232,23 @@ class FF_Output_Table {
                 );
             }
         }
+    }
+
+    // }}}
+    // {{{ setAlternateRowColors()
+
+    /**
+     * Sets whether or not this table should try and use alternating row
+     * colors.
+     *
+     * @param bool $in_alternate Alternate row colors?
+     *
+     * @access public
+     * @return void
+     */
+    function setAlternateRowColors($in_alternate)
+    {
+        $this->alternateRowColors = $in_alternate;
     }
 
     // }}}
@@ -256,6 +283,23 @@ class FF_Output_Table {
     function setTableHeaderText($in_text)
     {
         $this->tableHeaderText = $in_text; 
+    }
+
+    // }}}
+    // {{{ getRowClass()
+
+    /**
+     * Gets the row class based on the count variable passed in and the
+     * value of alternateRowColors
+     *
+     * @param int $in_count The row count variable
+     *
+     * @access public
+     * @return string The class name for the row
+     */
+    function getRowClass($in_count)
+    {
+        return ($this->alternateRowColors && ($in_count % 2)) ? 'secondaryRow' : 'primaryRow';
     }
 
     // }}}

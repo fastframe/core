@@ -157,7 +157,11 @@ class FF_Action_List extends FF_Action_Form {
         $o_table->setTableHeaderText($this->getTableHeaderText());
         $o_table->setNumColumns(count($this->o_list->getColumnData()));
         $o_table->beginTable();
+        $o_table->setAlternateRowColors(true);
         $o_tableWidget =& $o_table->getWidgetObject();
+        // Needed for the highlight row javascript
+        $o_tableWidget->assignBlockData(array('S_table' => 'id="listTable"'), 
+                $this->o_output->getGlobalBlockName());
         $o_tableWidget->touchBlock('table_row');
         $o_tableWidget->cycleBlock('table_field_cell');
         $o_tableWidget->cycleBlock('table_content_cell');
@@ -178,7 +182,7 @@ class FF_Action_List extends FF_Action_Form {
             $o_tableWidget->assignBlockData(array('T_end_data' => $o_navWidget->render()), $this->o_output->getGlobalBlockName());
         }
 
-        $this->renderListData($o_tableWidget);
+        $this->renderListData($o_table);
         $this->o_output->assignBlockData(array('W_content_middle' => $o_tableWidget->render()), 'content_middle');
     }
     
@@ -202,18 +206,33 @@ class FF_Action_List extends FF_Action_Form {
     /**
      * Registers the data for the list into the table
      *
-     * @param object $in_tableWidget The table widget 
+     * @param object $in_tableObj The table object 
      *
      * @access public
      * @return void
      */
-    function renderListData(&$in_tableWidget)
+    function renderListData(&$in_tableObj)
     {
+        $o_tableWidget =& $in_tableObj->getWidgetObject();
         if ($this->o_list->getMatchedRecords() > 0) {
+            $i = 0;
+            $b_highlightRows = false;
+            if (!is_null($this->getHighlightedRowUrl())) {
+                $this->_renderHighlightJs();
+                $b_highlightRows = true;
+            }
+
             while ($this->o_listModeler->loadNextModel()) {
-                $in_tableWidget->touchBlock('table_row');
-                $in_tableWidget->cycleBlock('table_content_cell');
+                $tmp_extraJs = '';
+                if ($b_highlightRows) {
+                    $tmp_extraJs = ' onclick="window.location.href=\'' . $this->getHighlightedRowUrl() . '\';"';
+                }
+
+                $o_tableWidget->assignBlockData(array('S_table_row' => 
+                            'class="' . $in_tableObj->getRowClass($i++) . '"' . $tmp_extraJs), 'table_row');
+                $o_tableWidget->cycleBlock('table_content_cell');
                 foreach ($this->getFieldMap() as $tmp_fields) {
+                    $s_attr = '';
                     // see if the method is in the model 
                     if (isset($tmp_fields['field'])) {
                         $tmp_displayData = $this->o_output->processCellData($this->o_model->$tmp_fields['method']());
@@ -221,16 +240,22 @@ class FF_Action_List extends FF_Action_Form {
                     // otherwise it's a method in this class
                     else {
                         $tmp_displayData = $this->o_output->processCellData($this->$tmp_fields['method']());
+                        // Options cell has some special attributes
+                        if ($tmp_fields['method'] = 'getOptions') {
+                            $s_attr = 'id="optionCell' . $i . '" style="width: 5%; white-space: nowrap;"';
+                        }
                     }
 
-                    $in_tableWidget->assignBlockData(array('T_table_content_cell' => $tmp_displayData), 'table_content_cell');
+                    $o_tableWidget->assignBlockData(array(
+                                'T_table_content_cell' => $tmp_displayData,
+                                'S_table_content_cell' => $s_attr), 'table_content_cell');
                 }
             }
         }
         else {
-            $in_tableWidget->touchBlock('table_row');
-            $in_tableWidget->cycleBlock('table_content_cell');
-            $in_tableWidget->assignBlockData(
+            $o_tableWidget->assignBlockData(array('S_table_row' => 'class="primaryRow"'), 'table_row');
+            $o_tableWidget->cycleBlock('table_content_cell');
+            $o_tableWidget->assignBlockData(
                 array(
                     'T_table_content_cell' => $this->getNoResultText(),
                     'S_table_content_cell' => 'style="font-style: italic; text-align: center;" colspan="' . count($this->o_list->getColumnData()) . '"', 
@@ -297,6 +322,22 @@ class FF_Action_List extends FF_Action_Form {
     function getPersistentData()
     {
         return array('actionId' => $this->currentActionId);
+    }
+
+    // }}}
+    // {{{ getHighlightedRowUrl()
+
+    /**
+     * Gets the url to go to if the user clicks on the highlighted row
+     * (the row becomes highlighted when they go over it).  If nothing
+     * is returned then row highlighting is not turned on.
+     *
+     * @access public
+     * @return string The url to go to for the highlighted row.
+     */
+    function getHighlightedRowUrl()
+    {
+        // interface
     }
 
     // }}}
@@ -460,6 +501,96 @@ class FF_Action_List extends FF_Action_Form {
     function setNextAction()
     {
         // normally this is the last action
+    }
+
+    // }}}
+    // {{{ _renderHighlightJs()
+
+    /**
+     * Renders the highlight row javascript.
+     *
+     * @access private
+     * @return void
+     */
+    function _renderHighlightJs()
+    {
+        ob_start();
+        ?>
+        <script language="JavaScript" type="text/javascript">
+        <!--
+        // {{{ initHighlight()
+
+        /** initializes the rows of the list to be highlighted */
+        function initHighlight()
+        {
+            if (document.getElementById) {
+                var x = document.getElementById('listTable').getElementsByTagName('tr');
+                var y = document.getElementById('listTable').getElementsByTagName('td');
+            }
+            else if (document.all) {
+                var x = document.all['listTable'].all.tags('tr');
+                var y = document.all['listTable'].all.tags('td');
+            }
+            else {
+                return;
+            }
+
+            for (var i = 0; i < x.length; i++) {
+                if (x[i].className == 'primaryRow' || x[i].className == 'secondaryRow') {
+                    x[i].onmouseover = highlightRow;
+                    x[i].onmouseout = unhighlightRow;
+                }
+            }
+
+            // All option cells should not do the highlighting since they have other links in them
+            for (var i = 0; i < y.length; i++) {
+                if (y[i].id.indexOf('optionCell') == 0) {
+                    y[i].onmouseover = stopPropagation; 
+                    y[i].onclick = stopPropagation; 
+                }
+            }
+        }
+
+        // }}}
+        // {{{ highlightRow()
+
+        /** highlight a row, and records old class */
+        function highlightRow()
+        {
+            this.oldClass = this.className;
+            var newCursor = document.all ? 'hand' : 'pointer';
+            this.className = 'highlightRow';
+            this.style.cursor = newCursor;
+        }
+
+        // }}}
+        // {{{ unhighlightRow()
+
+        /** unhighlights a row */
+        function unhighlightRow()
+        {
+            this.className = this.oldClass ? this.oldClass : this.className; 
+            this.style.cursor = 'default';
+        }
+
+        // }}}
+        // {{{ stopPropagation()
+
+        /** stops propagation of all events past the element */
+        function stopPropagation(e)
+        {
+            if (!e) var e = window.event;
+            e.cancelBubble = true;
+            if (e.stopPropagation) e.stopPropagation();
+        }
+
+        // }}}
+        addOnload(initHighlight);
+        //-->
+        </script>
+        <?php
+        $this->o_output->assignBlockData(array('T_javascript' => ob_get_contents()), 'javascript');
+        ob_end_clean();
     }
 
     // }}}
