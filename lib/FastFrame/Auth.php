@@ -328,7 +328,7 @@ class FF_Auth {
                 $o_result->addMessage(_('You have been logged out because you have tried to access a protected application.'));
             break;
             case FASTFRAME_AUTH_NO_ANCHOR:
-                $o_result->addMessage(_('You have been logged out because your session anchor could not be verified.  Ensure that you have cookies enabled.'));
+                $o_result->addMessage(_('Ensure that you have cookies enabled.  You have been logged out because your session anchor could not be verified.'));
             break;
             default:
                 $o_result->addMessage(_('You have been successfully logged out.'));
