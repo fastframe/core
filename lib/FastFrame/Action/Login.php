@@ -1,5 +1,5 @@
 <?php
-/** $Id: Login.php,v 1.4 2003/02/08 00:10:55 jrust Exp $ */
+/** $Id: Login.php,v 1.5 2003/02/12 20:51:26 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -22,8 +22,7 @@
 // }}}
 // {{{ requires
 
-require_once dirname(__FILE__) . '/GenericForm.php';
-require_once dirname(__FILE__) . '/../Output/Table.php';
+require_once dirname(__FILE__) . '/Form.php';
 
 // }}}
 // {{{ class ActionHandler_Login
@@ -38,7 +37,7 @@ require_once dirname(__FILE__) . '/../Output/Table.php';
  */
 
 // }}}
-class ActionHandler_Login extends ActionHandler_GenericForm {
+class ActionHandler_Login extends ActionHandler_Form {
     // {{{ constructor
 
     /**
@@ -49,7 +48,7 @@ class ActionHandler_Login extends ActionHandler_GenericForm {
      */
     function ActionHandler_Login()
     {
-        ActionHandler_GenericForm::ActionHandler_GenericForm();
+        ActionHandler_Form::ActionHandler_Form();
     }
 
     // }}}
@@ -67,17 +66,17 @@ class ActionHandler_Login extends ActionHandler_GenericForm {
         $this->o_output->setPageType('smallTable');
         $this->o_output->setPageName($this->getPageName());
         $this->setDefaultMessage();
-        $this->registerLoginJavascript();
+        $this->renderLoginJavascript();
         $this->setSubmitActionId();
-        $this->o_form->setConstants($this->getFormConstants());
+        $a_constants = $this->getFormConstants();
+        if ($a_constants === false) {
+            return;
+        }
+
+        $this->o_form->setConstants($a_constants);
         $this->createFormElements();
-        $o_table =& new FastFrame_Output_Table();
-        $o_table->setTableHeaderText($this->getTableHeaderText());
-        $o_table->setTableHeaders($this->getTableHeaders());
-        $o_table->renderTwoColumnTable();
-        $this->o_output->assignBlockCallback(array(&$this->o_form, 'toHtml'), array(), $o_table->getTableName());
-        $this->registerSubmitRow($o_table);
-        $this->o_output->output();
+        $this->renderFormTable();
+        $this->o_output->output($this->o_application->getMessages());
     }
 
     // }}}
@@ -97,13 +96,13 @@ class ActionHandler_Login extends ActionHandler_GenericForm {
         $this->o_form->addElement('hidden', 'loginRedirect');
         $this->o_form->addElement('text', 'username', null, array('maxlength' => 25, 'style' => 'width: 100px;'));
         $this->o_form->addElement('password', 'password', null, array('maxlength' => 25, 'style' => 'width: 100px;'));
-        $this->o_form->addElement('submit', 'submit', _('Submit'));
+        $this->o_form->addElement('submit', 'submit', _('Login'));
         $this->o_form->addRule('username', _('Username cannot be blank.'), 'required', null, 'client');
         $this->o_form->addRule('password', _('Password cannot be blank.'), 'required', null, 'client');
     }
 
     // }}}
-    // {{{ registerLoginJavascript()
+    // {{{ renderLoginJavascript()
     
     /**
      * Registers the javascript for the login page to focus the element onload and capture
@@ -112,7 +111,7 @@ class ActionHandler_Login extends ActionHandler_GenericForm {
      * @access public
      * @return void
      */
-    function registerLoginJavascript()
+    function renderLoginJavascript()
     {
         ob_start();
         ?>
@@ -252,20 +251,6 @@ class ActionHandler_Login extends ActionHandler_GenericForm {
     function getTableHeaderText()
     {
         return _('Login');
-    }
-
-    // }}}
-    // {{{ getSubmitButton()
-
-    /**
-     * Gets the submit button
-     *
-     * @access public
-     * @return string The html form element
-     */
-    function getSubmitButton()
-    {
-        return $this->o_form->renderElement('submit', true);
     }
 
     // }}}
