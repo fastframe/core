@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.9 2003/02/10 22:13:02 jrust Exp $ */
+/** $Id: List.php,v 1.10 2003/02/12 20:55:37 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -126,6 +126,12 @@ class FastFrame_List {
      */
     var $displayLimit;
 
+    /**
+     * Any persistent data which should be passed as hidden fields (i.e. actionId) 
+     * @type array
+     */
+    var $persistentData = array();
+
     // }}}
     // {{{ constructor
 
@@ -135,6 +141,8 @@ class FastFrame_List {
      * @param string $in_defaultSortField The default field to sort on
      * @param int $in_defaultSortOrder The default sort order (1 = ASC, 0 = DESC)
      * @param int $in_defaultDisplayLimit The default display limit
+     * @param array $in_persistentData (optional) Persistent data in the form of 'name' =>
+     *              'value' that should be passed on, such as the actionId
      * @param array $in_columnData (optional) A multidimensional array with the primary keys 
      *              in the order the columns are to be displayed.  
      *              e.g. $colVars[0] = array('name' => 'Col 1', 'sort' => 'field1');
@@ -148,6 +156,7 @@ class FastFrame_List {
     function FastFrame_List($in_defaultSortField, 
                             $in_defaultSortOrder, 
                             $in_defaultDisplayLimit, 
+                            $in_persistentData = array(), 
                             $in_columnData = null)
     {
         $this->o_output =& FastFrame_Output::singleton();
@@ -158,6 +167,7 @@ class FastFrame_List {
         }
 
         // set all the fields with their default values
+        $this->persistentData = $in_persistentData;
         $this->setSortField($in_defaultSortField);
         $this->setSortOrder($in_defaultSortOrder);
         $this->setSearchString();
@@ -168,11 +178,11 @@ class FastFrame_List {
     }
 
     // }}}
-    // {{{ registerSearchBox()
+    // {{{ renderSearchBox()
 
     /**
      * Create a search/navigation box that can be used to search a list or navigate it by
-     * page.  Then register the generated form with the template. 
+     * page.  Then render the generated form with the template. 
      *
      * @param  string  $in_singularLang Singular description of the data 
      * @param  string  $in_pluralLang Plural description of the data 
@@ -180,7 +190,7 @@ class FastFrame_List {
      * @access public
      * @return string table for the search box
      */
-    function registerSearchBox($in_singularLang, $in_pluralLang)
+    function renderSearchBox($in_singularLang, $in_pluralLang)
     {
         // {{{ variable preparation
 
@@ -239,13 +249,12 @@ class FastFrame_List {
 
         // common elements on all pages
         $o_form->addElement('checkbox', 'advancedList', null, _('Advanced List'), array('onclick' => 'if (this.checked) { this.form.submit(); } else if (validate_search_box()) { document.search_box.searchString.value = \'\'; this.form.submit(); } else { return false; }'));
-        $o_form->addElement('hidden','actionId');
 
         // common rules
         $o_form->addRule('displayLimit', _('Limit must be an integer'), 'nonzero', null, 'client', true); 
 
         // add as hidden elements any persistent data
-        foreach (FastFrame::getPersistentData() as $s_key => $s_val) {
+        foreach ($this->persistentData as $s_key => $s_val) {
             $o_form->addElement('hidden', $s_key, $s_val);
         }
 
@@ -385,13 +394,13 @@ class FastFrame_List {
      * Generates first, previous, next, and last links with images for navigation through
      * the multiple pages of data.
      *
-     * @param bool $in_register (optional) Register the links in the template?  Otherwise we
+     * @param bool $in_renderLinks (optional) Render the links in the template?  Otherwise we
      *                          just return an array of the links.
      *
      * @access public
-     * @return mixed Void if registering, otherwise an array of the navigation links. 
+     * @return mixed Void if rendering, otherwise an array of the navigation links. 
      */
-    function generateNavigationLinks($in_register = true)
+    function generateNavigationLinks($in_renderLinks = true)
     {
         // language constructs used for navigation
         $lang_firstPage = array('title' => _('First'),    'status' => _('Jump to First Page'));
@@ -401,7 +410,7 @@ class FastFrame_List {
         $lang_atFirst   = array('title' => _('Disabled'), 'status' => _('Already at First Page'));
         $lang_atLast    = array('title' => _('Disabled'), 'status' => _('Already at Last Page'));
       
-        $a_urlVars = array_merge(FastFrame::getPersistentData(), $this->getAllListVariables());
+        $a_urlVars = array_merge($this->persistentData, $this->getAllListVariables());
         // set up the four actions
         $a_navigation = array();
         $a_navigation['first']    = $this->getPageOffset() > 1 ? 
@@ -433,7 +442,7 @@ class FastFrame_List {
                                     ) : 
                                     $this->o_output->imgTag('last-gray.gif', 'arrows', $lang_atLast);
         
-        if ($in_register) {
+        if ($in_renderLinks) {
             $this->o_output->assignBlockData(
                 array(
                     'I_navigation_first'    => $a_navigation['first'],
@@ -457,12 +466,12 @@ class FastFrame_List {
      * Generate a set of column headers which are HTML'd to have images and links so they
      * can be clicked on to sort the page.
      *
-     * @param string $in_tableNamespace (optional) The namespace for the table to register
+     * @param string $in_tableNamespace (optional) The namespace for the table to render
      *               the cells to.  If not passed in then we just return the array of sort
      *               fields.  It is up to you to branch the block, and assign
      *               global table variables such as S_TABLE_COLUMNS
      *
-     * @return mixed Either nothing (we register the cells) or an array of the sort fields 
+     * @return mixed Either nothing (we render the cells) or an array of the sort fields 
      */
     function generateSortFields($in_tableNamespace = null)
     {
@@ -479,7 +488,7 @@ class FastFrame_List {
                 }
 
                 // modify the two get variables for this sort
-                $a_listVars = array_merge(FastFrame::getPersistentData(), $this->getAllListVariables(), array('sortField' => $a_colData['sort'], 'sortOrder' => $tmp_sort));
+                $a_listVars = array_merge($this->persistentData, $this->getAllListVariables(), array('sortField' => $a_colData['sort'], 'sortOrder' => $tmp_sort));
 
                 $tmp_title = sprintf(
                                 _('Sort %1$s (%2$s)'), 
@@ -511,7 +520,7 @@ class FastFrame_List {
             }
         }
 
-        // now register the sort fields if that was specified
+        // now render the sort fields if that was specified
         if (!is_null($in_tableNamespace)) {
             $this->o_output->touchBlock($in_tableNamespace . 'table_row');
             $this->o_output->cycleBlock($in_tableNamespace . 'table_field_cell');
