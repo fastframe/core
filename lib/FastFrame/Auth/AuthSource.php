@@ -1,5 +1,5 @@
 <?php
-/** $Id: AuthSource.php,v 1.4 2003/02/08 00:10:55 jrust Exp $ */
+/** $Id: AuthSource.php,v 1.5 2003/04/02 00:02:51 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -20,29 +20,47 @@
 // +----------------------------------------------------------------------+
 
 // }}}
-// {{{ class  AuthSource
+// {{{ class  FF_AuthSource
 
 /**
  * Abstract class describing a source to authenticate against
  *
- * See the enclosed file COPYING for license information (LGPL). If you
- * did not receive this file, see http://www.fsf.org/copyleft/lesser.html.
- *
  * @version Revision: 1.0 
  * @author  Greg Gilbert <greg@treke.net>
  * @access  public
- * @package FastFrame
+ * @package Auth 
  */
 
 // }}}
-class AuthSource {
+class FF_AuthSource {
     // {{{ properties
 
     /**
-     * A unique name to identify an authenticated source
+     * A unique name to identify this source
      * @type string
      */
-    var $_sourceName;
+    var $name;
+
+    /**
+     * The server name this source authenticates against
+     * @type string
+     */
+    var $serverName;
+
+    /**
+     * Whether the password value is writable.  If so the source must implement the
+     * updatePassword() method
+     * @type bool
+     */
+    var $passwordWritable = false;
+
+    /**
+     * Whether the username value is writable.  If so the source must implement the
+     * updateUserName() method
+     * @type bool
+     */
+    var $usernameWritable = false;
+
 
     // }}}
     // {{{ constructor
@@ -50,21 +68,19 @@ class AuthSource {
     /**
      * Initialize the AuthSource class
      *
-     * Create an instance of the AuthSource class.  
-     *
      * @param string $in_name The name of this auth source
      * @param array $in_params Additional parameters needed for authenticating
      *
      * @access public
-     * @return AuthSource object
+     * @return void 
      */
-    function AuthSource($in_name, $in_params)
+    function FF_AuthSource($in_name, $in_params)
     {
-        $this->_sourceName = $in_name;
+        $this->name = $in_name;
     }
 
     // }}}
-    // {{{ create()
+    // {{{ factory()
 
     /**
      * Creates an instance of a specific source
@@ -74,29 +90,28 @@ class AuthSource {
      * If we don't have a source that can authenticate, a source that always fails is 
      * returned
      *
+     * @param string $in_type The type of auth source to instantiate
+     * @param string $in_name The name to give to the auth source
+     * @param array $in_params Any extra params the auth source needs
+     *
      * @access public
      * @return object Subclass of AuthSource for the specified type, or AuthSource if none is found 
      */
-    function &create($in_type, $in_name, $in_params)
+    function &factory($in_type, $in_name, $in_params)
     {
-        $s_authFile = dirname(__FILE__) . '/' . $in_type . '.php';
-        if (empty($in_type)) {
-            return FastFrame::fatal('No authentication type defined.', __FILE__, __LINE__);
-        }
-        elseif (!@file_exists($s_authFile)) {
+        $pth_authFile = dirname(__FILE__) . '/' . $in_type . '.php';
+        if (!file_exists($pth_authFile)) {
             return FastFrame::fatal("$in_type is an invalid authentication type.", __FILE__, __LINE__);
         }
-        else {
-            include_once $s_authFile;
-        }
 
-        $s_authClass = 'AuthSource_' . $in_type;
+        require_once $pth_authFile;
+        $s_authClass = 'FF_AuthSource_' . $in_type;
 				
         if (class_exists($s_authClass)) {
             $o_auth =& new $s_authClass($in_name, $in_params);
         }
         else {
-            $o_auth =& new AuthSource($in_name, $in_params);
+            $o_auth =& new FF_AuthSource($in_name, $in_params);
         }
 
         return $o_auth; 
@@ -125,14 +140,88 @@ class AuthSource {
     /**
      * Return the name of this object
      *
-     * Returns the name given to this object.
-     *
      * @access public
-     * @return string name given to this object by the programmer
+     * @return string name given to this object
      */
     function getName()
     {
-        return $this->_sourceName;
+        return $this->name;
+    }
+
+    // }}}
+    // {{{ getServerName()
+
+    /**
+     * Gets the server that this source authenticates against
+     *
+     * @access public
+     * @return string The server name
+     */
+    function getServerName()
+    {
+        return $this->serverName;
+    }
+
+    // }}}
+    // {{{ isPasswordWritable()
+
+    /**
+     * Determines if the password is writable.  Used in determining if it can be updated.
+     *
+     * @access public
+     * @return bool True if the password is writable.
+     */
+    function isPasswordWritable()
+    {
+        return $this->passwordWritable;
+    }
+
+    // }}}
+    // {{{ isUserNameWritable()
+
+    /**
+     * Determines if the username is writable.  Used in determining if it can be updated.
+     *
+     * @access public
+     * @return bool True if the username is writable.
+     */
+    function isUserNameWritable()
+    {
+        return $this->usernameWritable;
+    }
+
+    // }}}
+    // {{{ updatePassword()
+
+    /**
+     * Changes the password on the auth source
+     *
+     * @param int $in_userId The userId for the user being changed 
+     * @param string $in_newPassword The new password
+     *
+     * @access public
+     * @return object The result object
+     */
+    function updatePassword($in_userId, $in_newPassword)
+    {
+        // interface
+    }
+
+    // }}}
+    // {{{ updateUserName()
+
+    /**
+     * Changes the username on the auth source
+     *
+     * @param int $in_userId The userId for the user being changed 
+     * @param string $in_newUserName The new username
+     *
+     * @access public
+     * @return object The result object
+     */
+    function updateUserName($in_userId, $in_newUserName)
+    {
+        // interface
     }
 
     // }}}
