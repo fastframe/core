@@ -581,7 +581,9 @@ class FF_Registry {
 
         $a_apps = array();
         foreach ($this->apps as $s_app => $a_vals) {
-            $a_apps[] = $s_app;
+            if (isset($a_vals['status']) && $a_vals['status'] != 'disabled') {
+                $a_apps[] = $s_app;
+            }
         }
 
         return $a_apps;
