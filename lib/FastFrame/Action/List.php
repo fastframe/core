@@ -215,11 +215,13 @@ class FF_Action_List extends FF_Action_Form {
                 $b_highlightRows = true;
             }
 
+            $a_map = $this->getFieldMap();
+            $s_attrib = $this->getRowAttributes();
             while ($this->o_listModeler->loadNextModel()) {
                 $tmp_extraJs = $b_highlightRows ? 
                     ' onclick="window.location.href=\'' . $this->getHighlightedRowUrl() . '\';"' : '';
                 $a_cells = array();
-                foreach ($this->getFieldMap() as $tmp_fields) {
+                foreach ($a_map as $tmp_fields) {
                     $s_attr = isset($tmp_fields['attr']) ? $tmp_fields['attr'] : '';
                     $tmp_fields['args'] = isset($tmp_fields['args']) ? $tmp_fields['args'] : array();
                     // Options cell has some special attributes
@@ -243,7 +245,7 @@ class FF_Action_List extends FF_Action_Form {
 
                 $in_tableWidget->append('rows', array(
                             'S_table_row' => 'class="' . $this->o_output->toggleRow($i++) . '" ' .
-                                $this->getRowAttributes() . $tmp_extraJs,
+                                $s_attrib . $tmp_extraJs,
                             'cells' => $a_cells));
             }
         }
