@@ -47,6 +47,12 @@ class FF_AuthSource_imap extends FF_AuthSource {
      */
     var $serverOptions;
 
+	/**
+	 * A hostname or something else to append to the username
+	 * @var string
+	 */
+	var $usernameAppend;
+
     // }}}
     // {{{ constructor
 
@@ -68,6 +74,7 @@ class FF_AuthSource_imap extends FF_AuthSource {
         $this->serverName = $in_params['hostname'];
         $this->serverOptions = isset($in_params['options']) ? '/' . $in_params['options'] : '';
         $this->serverPort = isset($in_params['port']) ? $in_params['port'] : 143;
+        $this->usernameAppend = isset($in_params['username_append']) ? $in_params['username_append'] : '';
     }
 
     // }}}
@@ -87,7 +94,7 @@ class FF_AuthSource_imap extends FF_AuthSource {
     function authenticate($in_username, $in_password)
     {
         $s_imapString = '{' . $this->serverName . ':' . $this->serverPort . $this->serverOptions . '}';
-        if (($result = @imap_open($s_imapString, $in_username, $in_password))) {
+        if (($result = @imap_open($s_imapString, $in_username . $this->usernameAppend, $in_password))) {
             @imap_close($result);
             return true;
         }
