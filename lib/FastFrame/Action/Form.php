@@ -106,7 +106,7 @@ class FF_Action_Form extends FF_Action {
     {
         FF_Action::FF_Action($in_model);
         $this->o_form =& new HTML_QuickForm($this->formName, $this->formMethod, $this->getFormAction(), $this->formTarget);
-        $this->o_renderer =& new HTML_QuickForm_Renderer_QuickHtml($this->o_form);
+        $this->o_renderer =& new HTML_QuickForm_Renderer_QuickHtml();
     }
 
     // }}}
@@ -136,6 +136,7 @@ class FF_Action_Form extends FF_Action {
         $this->o_form->setConstants($this->getFormConstants());
         $this->o_form->setDefaults($this->getFormDefaults());
         $this->createFormElements();
+        $this->o_form->accept($this->o_renderer);
         $o_table =& $this->renderFormTable();
         $o_tableWidget =& $o_table->getWidgetObject();
         $this->o_output->assignBlockData(array('W_content_middle' => $o_tableWidget->render()), 'content_middle');
@@ -199,7 +200,6 @@ class FF_Action_Form extends FF_Action {
         $o_table->renderTwoColumnTable();
         $o_tableWidget =& $o_table->getWidgetObject();
         $this->renderSubmitRow($o_tableWidget, $o_table->getNumColumns());
-        $this->o_form->accept($this->o_renderer);
         $o_tableWidget->assignBlockCallback(array(&$this->o_renderer, 'toHtml'));
         return $o_table;
     }

@@ -188,7 +188,7 @@ class FF_List {
 
         $a_listVars = $this->getAllListVariables();
         $o_form =& new HTML_QuickForm('search_box', 'POST', FastFrame::selfURL(), '_self');
-        $o_renderer =& new HTML_QuickForm_Renderer_QuickHtml($o_form);
+        $o_renderer =& new HTML_QuickForm_Renderer_QuickHtml();
         $o_form->setConstants(array_merge($this->persistentData, $a_listVars));
         
         // Need to set page offset to one when we search or change limit
@@ -296,6 +296,8 @@ class FF_List {
             $o_form->addElement('hidden', $s_key, $s_val);
         }
 
+        $o_form->accept($o_renderer);
+
         // }}}
         // {{{ template preparation
 
@@ -356,7 +358,6 @@ class FF_List {
                     $this->o_output->getGlobalBlockName());
         }
 
-        $o_form->accept($o_renderer);
         $o_searchWidget->assignBlockCallback(array(&$o_renderer, 'toHtml'));
         return $o_searchWidget->render();
 
