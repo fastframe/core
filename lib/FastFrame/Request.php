@@ -43,8 +43,7 @@ class FF_Request {
      * @param  string $in_varName The name of the variable.
      * @param  mixed $in_val The value to set.
      * @param  string $in_type The type of variable (g (get), p
-     *         (post), c (cookie), s (session), f (file)).  Default is
-     *         'gpc'.
+     *         (post), c (cookie), s (session), f (file)).
      *
      * @access public
      * @return void
