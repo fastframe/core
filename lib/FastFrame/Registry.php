@@ -1,5 +1,5 @@
 <?php
-/** $Id: Registry.php,v 1.9 2003/01/23 22:58:25 jrust Exp $ */
+/** $Id: Registry.php,v 1.10 2003/01/24 23:35:47 jrust Exp $ */
 // {{{ constants/globals
 
 // types of filepaths that can be generated
@@ -604,6 +604,7 @@ class FastFrame_Registry {
         $a_config['require_prefix'] = 'DataObjects/'; 
         $a_config['class_prefix'] = 'DataObjects_'; 
         $a_config['debug'] = $this->getConfigParam('data/debug_level', null, array('app' => $s_app));
+        $a_config['debug_ignore_updates'] = $this->getConfigParam('data/debug_ignore_updates', null, array('app' => $s_app));
         $a_config['production'] = $this->getConfigParam('data/production', null, array('app' => $s_app));
         $a_config = array_merge($a_config, $in_options);
         
