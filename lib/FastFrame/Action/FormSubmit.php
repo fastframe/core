@@ -75,7 +75,7 @@ class FF_Action_FormSubmit extends FF_Action {
             $this->o_output->setMessage($o_result->getMessages(), FASTFRAME_WARNING_MESSAGE);
         }
 
-        $o_result =& $this->o_model->save($this->isUpdate());
+        $o_result =& $this->save();
         if ($o_result->isSuccess()) {
             // This makes sure the objectId is set if this was an add
             $_GET['objectId'] = $_POST['objectId'] = $this->o_model->getId();
@@ -95,6 +95,20 @@ class FF_Action_FormSubmit extends FF_Action {
         }
 
         return $this->o_nextAction;
+    }
+
+    // }}}
+    // {{{ save()
+
+    /**
+     * Instructs the model to save itself.
+     *
+     * @access public
+     * @return object The result object
+     */
+    function &save()
+    {
+        return $this->o_model->save($this->isUpdate());
     }
 
     // }}}
