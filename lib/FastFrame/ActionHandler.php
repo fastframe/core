@@ -142,6 +142,7 @@ class FF_ActionHandler {
         ACTION_EDIT_SUBMIT=> array('Action/FormSubmit.php', 'FF_Action_FormSubmit'),
         ACTION_DELETE     => array('Action/Delete.php', 'FF_Action_Delete'),
         ACTION_LIST       => array('Action/List.php', 'FF_Action_List'),
+        ACTION_SELECT     => array('Action/List.php', 'FF_Action_List'),
         ACTION_DISPLAY    => array('Action/Display.php', 'FF_Action_Display'),
         ACTION_TREE       => array('Action/Tree.php', 'FF_Action_Tree'),
     );

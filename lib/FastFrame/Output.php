@@ -376,7 +376,7 @@ class FF_Output extends FF_Template {
             $a_options['onclick'] .= ' if (window.confirm(\'' . $s_confirm . '\')) { return true; } else { return false; }';
         }
 
-        $events = $this->_prepare_tooltip(
+        $a_events = $this->_prepare_tooltip(
             array(
                 'caption'      => $a_options['caption'],
                 'content'      => $a_options['title'],
@@ -391,9 +391,9 @@ class FF_Output extends FF_Template {
         $s_tag = '<a ';
         // in some cases we don't want href, because IE evaluates that before the onclick
         $s_tag .= !empty($in_url) ? 'href="' . $in_url . '"' : '';
-        $s_tag .= $events['onmouseover'] != '' ? ' onmouseover="' . $events['onmouseover'] . '"' : '';
-        $s_tag .= $events['onmousemove'] != '' ? ' onmousemove="' . $events['onmousemove'] . '"' : '';
-        $s_tag .= $events['onclick'] != '' ? ' onclick="' . $events['onclick'] . '"' : '';
+        $s_tag .= $a_events['onmouseover'] != '' ? ' onmouseover="' . $a_events['onmouseover'] . '"' : '';
+        $s_tag .= $a_events['onmousemove'] != '' ? ' onmousemove="' . $a_events['onmousemove'] . '"' : '';
+        $s_tag .= $a_events['onclick'] != '' ? ' onclick="' . $a_events['onclick'] . '"' : '';
         $s_tag .= !empty($a_options['class']) ? ' class="' . $a_options['class'] . '"' : '';
         $s_tag .= !empty($a_options['style']) ? ' style="' . $a_options['style'] . '"' : '';
         $s_tag .= !empty($a_options['target']) ? ' target="' . $a_options['target'] . '"' : '';
@@ -468,12 +468,9 @@ class FF_Output extends FF_Template {
     function getHelpLink($in_text, $in_title = null)
     {
         $in_title = is_null($in_title) ? _('Help') : $in_title;
-        $s_help = $this->link(
-                'javascript: void(0);', 
-                $this->imgTag('help.gif', 'actions', array('align' => 'top')),
-                array('title' => $in_text, 'caption' => $in_title, 'status' => $in_title, 
-                    'sticky' => 'onclick', 'greasy' => false));
-        return $s_help;
+        return $this->imgTag('help.gif', 'actions', array('align' => 'top', 'title' => $in_text, 
+                    'caption' => $in_title, 'status' => $in_title, 'sticky' => 'onclick', 
+                    'greasy' => false, 'style' => 'cursor: pointer;'));
     }
 
     // }}}
@@ -483,17 +480,19 @@ class FF_Output extends FF_Template {
      * Returns an image tag (either the src or <img>) properly formatted and 
      * with the correct width and height attributes 
      *
-     * @param string $in_img Name of image, if an absolute path is not given we prepend
-     *               FastFrame path 
-     * @param string $in_type (optional) The type of image.  If 'none' then we assume that
-     *                        the path includes the type in it.
-     * @param array  $in_options (optional) A number of options that have to do with the image tag, included 
-     *                           what type of image tag this is.  The options are as follows
-     *                           width, height, type, align, style, onclick, onlyUrl,
-     *                           fullPath, title
+     * @param string $in_img Name of image, if an absolute path is not
+     *               given we prepend FastFrame path 
+     * @param string $in_type (optional) The type of image.  If 'none'
+     *               then we assume that the path includes the type in it.
+     * @param array  $in_options (optional) A number of options that
+     *               have to do with the image tag, included what type
+     *               of image tag this is.  The options are as follows
+     *               width, height, type, align, style, onclick,
+     *               onlyUrl, fullPath, title, status, caption, greasy,
+     *               sticky, name
      *
      * @access public
-     * @return string image tag
+     * @return string The image tag
      */
     function imgTag($in_img = null, $in_type = 'icons', $in_options = array()) 
     {
@@ -562,7 +561,7 @@ class FF_Output extends FF_Template {
             $s_imgWebPath = $in_img;
         }
 
-        // get size [!] (perhaps we can allow scaling here, not done here yet) [!]
+        // Get size [!] (perhaps we can allow scaling here, not done here yet) [!]
         if (!$b_isFullPath && (!isset($in_options['width']) || !isset($in_options['height']))) {
             list($width, $height) = getImageSize($s_imgFilePath);
             $in_options['width']  = isset($in_options['width']) ? $in_options['width'] : $width;
@@ -573,28 +572,6 @@ class FF_Output extends FF_Template {
             $in_options['align'] = 'middle';
         }
 
-        // set status to title if status does not exist
-        $b_useStatus = isset($in_options['b_useStatus']) ? $in_options['b_useStatus'] : true;
-        $in_options['title']   = isset($in_options['title']) ? htmlspecialchars($in_options['title']) : '';
-        if ($b_useStatus) {
-            $status = isset($in_options['status']) ? 
-                addcslashes($in_options['status'], '\'') : 
-                addcslashes($in_options['title'], '\'');
-            $statusOver = 'window.status=\'' . $status . '\';';
-            $statusOut = 'window.status=\'\';';
-        }
-
-        // Prepare the options from the options array
-        $in_options['align']   = isset($in_options['align']) ? " align=\"{$in_options['align']}\"" : '';
-        $in_options['hspace']  = isset($in_options['hspace']) ? " hspace=\"{$in_options['hspace']}\"" : '';
-        $in_options['vspace']  = isset($in_options['vspace']) ? " vspace=\"{$in_options['vspace']}\"" : '';
-        $in_options['width']  = isset($in_options['width']) ? " width=\"{$in_options['width']}\"" : '';
-        $in_options['height']  = isset($in_options['height']) ? " height=\"{$in_options['height']}\"" : '';
-        $in_options['style'] = isset($in_options['style']) ? " style=\"{$in_options['style']}\"" : '';
-        $in_options['onclick'] = isset($in_options['onclick']) ? " onclick=\"{$in_options['onclick']}\"" : '';
-        $in_options['title'] = !empty($in_options['title']) ? " title=\"{$in_options['title']}\" alt=\"{$in_options['title']}\"" : '';
-        $in_options['border'] = isset($in_options['border']) ? " border=\"{$in_options['border']}\"" : 'border="0"';
-
         if (isset($in_options['fullPath']) && 
             $in_options['fullPath'] &&
             !preg_match(';^(http://|ftp://);', $s_imgWebPath)) {
@@ -602,30 +579,38 @@ class FF_Output extends FF_Template {
                             '://' . $this->o_registry->getConfigParam('webserver/hostname') . $s_imgWebPath;
         }
 
-        $in_options['type'] = isset($in_options['type']) && $in_options['type'] == 'input' ? 'input type="img"' : 'img';
+        $in_options['type'] = isset($in_options['type']) && $in_options['type'] == 'input' ? 'input type="image"' : 'img';
 
         if (isset($in_options['onlyUrl']) && $in_options['onlyUrl']) {
             return $s_imgWebPath;
         }
         else {
-            $tag = "<{$in_options['type']}";
-            $tag .= " src=\"$s_imgWebPath\"";
-            if ($b_useStatus) {
-                $tag .= " onmouseover=\"$statusOver\"";
-                $tag .= " onmouseout=\"$statusOut\"";
-            }
-            $tag .= $in_options['width'];
-            $tag .= $in_options['height'];
-            $tag .= $in_options['style'];
-            $tag .= $in_options['align'];
-            $tag .= $in_options['vspace'];
-            $tag .= $in_options['hspace'];
-            $tag .= $in_options['onclick'];
-            $tag .= $in_options['title'];
-            $tag .= $in_options['border'];
-            $tag .= ' />';
+            $a_events = $this->_prepare_tooltip(array(
+                    'caption'      => isset($in_options['caption']) ? $in_options['caption'] : '',
+                    'content'      => isset($in_options['title']) ? $in_options['title'] : '',
+                    'status'       => isset($in_options['status']) ? $in_options['status'] : '',
+                    'sticky'       => isset($in_options['sticky']) ? $in_options['sticky'] : '',
+                    'greasy'       => isset($in_options['greasy']) ? $in_options['greasy'] : '',
+                    'onclick'       => isset($in_options['onclick']) ? $in_options['onclick'] : '',
+                )
+            );
+            $s_tag = "<{$in_options['type']}";
+            $s_tag .= " src=\"$s_imgWebPath\"";
+            $s_tag .= $a_events['onmouseover'] != '' ? ' onmouseover="' . $a_events['onmouseover'] . '"' : '';
+            $s_tag .= $a_events['onmousemove'] != '' ? ' onmousemove="' . $a_events['onmousemove'] . '"' : '';
+            $s_tag .= $a_events['onclick'] != '' ? ' onclick="' . $a_events['onclick'] . '"' : '';
+            $s_tag .= isset($in_options['name']) ? " name=\"{$in_options['name']}\"" : '';
+            $s_tag .= isset($in_options['align']) ? " align=\"{$in_options['align']}\"" : '';
+            $s_tag .= isset($in_options['hspace']) ? " hspace=\"{$in_options['hspace']}\"" : '';
+            $s_tag .= isset($in_options['vspace']) ? " vspace=\"{$in_options['vspace']}\"" : '';
+            $s_tag .= isset($in_options['width']) ? " width=\"{$in_options['width']}\"" : '';
+            $s_tag .= isset($in_options['height']) ? " height=\"{$in_options['height']}\"" : '';
+            $s_tag .= isset($in_options['style']) ? " style=\"{$in_options['style']}\"" : '';
+            $s_tag .= isset($in_options['onclick']) ? " onclick=\"{$in_options['onclick']}\"" : '';
+            $s_tag .= isset($in_options['border']) ? " border=\"{$in_options['border']}\"" : 'border="0"';
+            $s_tag .= ' />';
 
-            return $tag;
+            return $s_tag;
         }
     }
 
