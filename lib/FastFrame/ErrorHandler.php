@@ -128,7 +128,7 @@ class FF_ErrorHandler {
             'variable' => '<div style="margin: 5px 5px 0 5px; font-weight: bold;">==> Variable scope report</div>
 <div style="margin: 0px 5px 5px 5px;">%variable%</div>',
             'backtraceHeader' => '<div style="margin: 5px 5px 0 5px; font-weight: bold;">==> Backtrace</div>',
-            'backtrace' => '<div style="margin: 0px 5px 5px 5px;"><b>%num%</b>. Function %func% called on line %line% from %file%</div>',
+            'backtrace' => '<div style="margin: 0px 5px 5px 5px;"><b>%num%</b>. Function %func% called in %file% on line %line%</div>',
             'details' => '<div style="margin: 5px 5px 0 5px; font-weight: bold;">==> Source report from %file% around line %line% (%ctxStart% - %ctxEnd%)</div>
 <div style="margin: 0 5px 5px 5px; background-color: #eee; border: 1px dashed #000;">%source%</div>');
 
@@ -413,7 +413,7 @@ class FF_ErrorHandler {
      */
     function _getDetails($in_error)
     {
-        $s_message = $this->templates['details'];
+        $s_message = "\n" . $this->templates['details'];
         $s_message = str_replace('%file%', $in_error['file'], $s_message);
         $s_message = str_replace('%line%', $in_error['line'], $s_message);
         $s_message = str_replace('%ctxStart%', $in_error['context']['start'], $s_message);
