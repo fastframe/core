@@ -1,5 +1,5 @@
 <?php
-/** $Id: Login.php,v 1.5 2003/02/12 20:51:26 jrust Exp $ */
+/** $Id: Login.php,v 1.6 2003/02/14 23:42:49 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -197,7 +197,7 @@ class ActionHandler_Login extends ActionHandler_Form {
     }
 
     // }}}
-    // {{{ getTableHeaders()
+    // {{{ getTableData()
 
     /**
      * Gets the headers that we make a basic table out of.  Has the form of 'data' => the
@@ -207,7 +207,7 @@ class ActionHandler_Login extends ActionHandler_Form {
      * @access public
      * @return array
      */
-    function getTableHeaders()
+    function getTableData()
     {
         $a_headers = array();
         $a_headers[] = array(

@@ -1,5 +1,5 @@
 <?php
-/** $Id: Form.php,v 1.1 2003/02/12 20:49:11 jrust Exp $ */
+/** $Id: Form.php,v 1.2 2003/02/14 23:42:49 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -148,7 +148,7 @@ class ActionHandler_Form extends ActionHandler_Action {
         require_once dirname(__FILE__) . '/../Output/Table.php';
         $o_table =& new FastFrame_Output_Table();
         $o_table->setTableHeaderText($this->getTableHeaderText());
-        $o_table->setTableHeaders($this->getTableHeaders());
+        $o_table->setTableHeaders($this->getTableData());
         $o_table->renderTwoColumnTable();
         $this->o_output->assignBlockCallback(array(&$this->o_form, 'toHtml'), array(), $o_table->getTableName());
         $this->renderSubmitRow($o_table);
@@ -284,17 +284,17 @@ class ActionHandler_Form extends ActionHandler_Action {
     }
 
     // }}}
-    // {{{ getTableHeaders()
+    // {{{ getTableData()
 
     /**
-     * Gets the headers that we make a basic table out of.  Has the form of 'data' => the
+     * Gets the array that we make a basic table out of.  Has the form of 'data' => the
      * cell data, 'title' => the cell description, 'titleStyles'/'dataStyles' => any
      * attributes to apply to the title and data cells respectively.
      *
      * @access public
      * @return array
      */
-    function getTableHeaders()
+    function getTableData()
     {
         // interface
     }
