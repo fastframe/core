@@ -72,7 +72,7 @@ class FF_Auth {
     function authenticate($in_username, $in_password) 
     {
         // if we are already logged in, just return true immediately
-        if (FF_Auth::checkAuth(false)) {
+        if (FF_Auth::checkAuth()) {
             return true;
         }
 
@@ -115,16 +115,22 @@ class FF_Auth {
      *
      * Checks if there is a session with valid the valid authentication
      * information. This includes checking for the session cookie anchor
-     * to make sure this session did not leak to another browser.
+     * to make sure this session did not leak to another browser.  If
+     * the cookie is not found they are logged out safely.
      *
-     * @param  bool  $in_checkAnchor (optional) check for session cookie anchor...we would
-     *               turn this off if we are just checking to see if we ever logged in before
+     * @param bool $in_full Do a full check, including the idle time,
+     *             exipire time, and session anchor?  This only needs to
+     *             be done once a page load, so normally we don't do it.
      *
      * @access public
      * @return bool {or void logout exception}
      */
-    function checkAuth($in_checkAnchor = true)
+    function checkAuth($in_full = false)
     {
+        if (!$in_full) {
+            return FF_Request::getParam('__auth__[\'registered\']', 's', false);
+        }
+
         if (FF_Request::getParam('__auth__', 's', false) !== false) {
             $o_registry =& FF_Registry::singleton();
             if (FF_Request::getParam('__auth__[\'timestamp\']', 's', false) &&
@@ -153,14 +159,14 @@ class FF_Auth {
         }
 
         /** 
-         * If they don't have this cookie it means they either they deleted it or they sent
-         * the link to someone. In either case we just want to redirect them to a safe
-         * logout page, but not clear the session, since that would end the session for the
+         * If they don't have this cookie it means they either they
+         * deleted it or they sent the link to someone. In either case
+         * we just want to redirect them to a safe logout page, but not
+         * clear the session, since that would end the session for the
          * real user.
          */
-        if ($in_checkAnchor && !FF_Request::getParam(FF_Auth::_getSessionAnchor(), 'c')) {
+        if (!FF_Request::getParam(FF_Auth::_getSessionAnchor(), 'c')) {
             FF_Auth::logout(null, false, true);
-            return false;
         }
 
         return true;

@@ -36,12 +36,14 @@ require_once dirname(__FILE__) . '/Output.php';
  * $a_appMenu[0] = array(
  *    // The description of the element (required).
  *    'contents' => _('Top Level Description'),
- *    // Array of url parameters (optional).  %currentApp% is a placeholder that will be
- *    // replaced with the app name, and can be used in any of the settings.  You must have
- *    // at least 'actionId'.  Optional parameters are 'module' and 'app' which can specify a
+ *    // Array of url parameters (optional).  %currentApp% is a
+ *    // placeholder that will be replaced with the app name, and can be
+ *    // used in any of the settings.  You must have at least 'actionId'.
+ *    // Optional parameters are 'module' and 'app' which can specify a
  *    // specific module or application different than the current one.
- *    // If you don't want the element to be a link, leave this element out.  If you want to
- *    // make a straight link to somewhere else make the argument a string instead of an array.
+ *    // If you don't want the element to be a link, leave this element
+ *    // out.  If you want to make a straight link to somewhere else make
+ *    // the argument a string instead of an array.
  *    'urlParams' => array('app' => '%currentApp%', 'actionId' => LOGOUT_SUBMIT),
  *    // Optional window target.  Defaults to _self
  *    'target' => '_self',
@@ -49,13 +51,17 @@ require_once dirname(__FILE__) . '/Output.php';
  *    'statusText' => _('Status Text'),
  *    // Optional path to an icon. 
  *    'icon' => 'actions/logout.gif',
- *    // Optional permissions to apply to this node.  If a string then it is a single perm 
- *    // for this app.  If an array then it is treated as a list of perm(s) to check.  If an
- *    // element has 'app' as the key then that app name is passed to the hasPerm() method
- *    // instead of the current app name.
+ *    // Optional permissions to apply to this node.  If a string then
+ *    // it is a single perm for this app.  If an array then it is treated
+ *    // as a list of perm(s) to check.  If an element has 'app' as the key
+ *    // then that app name is passed to the hasPerm() method instead of
+ *    // the current app name.
  *    'perms' => 'has_groups_app',
- *    // If you only want a link to show up when the user in the application the link refers
- *    // to, then you can set:
+ *    // If the link should be shown to guest users (i.e. not logged in)
+ *    // you can set this to true.
+ *    'guest_visible' => true,
+ *    // If you only want a link to show up when the user in the
+ *    // application the link refers to, then you can set:
  *    'app_private' => true,
  *    0 => array(
  *         // first element in menu, same structure as above.
@@ -68,8 +74,9 @@ require_once dirname(__FILE__) . '/Output.php';
  *    ),
  *);
  *
- * The order of each application's items is based on the order it is listed in the root
- * apps.php file in relation to the other registered apps.
+ * The order of each application's items is based on the order it is
+ * listed in the root apps.php file in relation to the other registered
+ * apps.
  *
  * @version Revision: 1.0 
  * @author  Jason Rust <jason@codejanitor.com>
@@ -348,8 +355,10 @@ class FF_Menu {
     // {{{ _processPerms()
 
     /**
-     * Processes any permissions the node may have by wrapping a permissions call around the
-     * node if permissions have been specified.
+     * Processes any permissions the node may have by wrapping a
+     * permissions call around the node if permissions have been
+     * specified.  Also processes the guest_visible key since that is a
+     * basic form of permissions.
      *
      * @param array $in_data The data for the node
      * @param string $in_node The node to wrap the perms around
@@ -359,6 +368,11 @@ class FF_Menu {
      */
     function _processPerms($in_data, $in_node)
     {
+        $a_ifStatements = array();
+        if (empty($in_data['guest_visible'])) {
+            $a_ifStatements[] = 'FF_Auth::checkAuth()';
+        }
+
         if (isset($in_data['perms'])) {
             $s_permsCall = '$o_perms->hasPerm(';
             if (is_array($in_data['perms'])) {
@@ -374,7 +388,11 @@ class FF_Menu {
             }
 
             $s_permsCall .= ')';
-            $in_node = "\n<?php if ($s_permsCall) { ?>\n$in_node\n<?php } ?>\n";
+            $a_ifStatements[] = $s_permsCall;
+        }
+
+        if (count($a_ifStatements) != 0) {
+            $in_node = "\n<?php if (" . implode(' && ', $a_ifStatements) . ") { ?>\n$in_node\n<?php } ?>\n";
         }
 
         return $in_node;

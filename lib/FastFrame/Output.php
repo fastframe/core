@@ -218,7 +218,6 @@ class FF_Output extends FF_Template {
                 'COPYWRITE' => 'Copywrite &#169; 2002-2003 The CodeJanitor Group',
                 'CONTENT_ENCODING' => $this->o_registry->getConfigParam('general/charset', 'ISO-8559-1'),
                 'U_SHORTCUT_ICON' => $this->o_registry->getConfigParam('general/favicon'),
-                'CANVAS_WIDTH' => '100%',
                 'PAGE_TITLE' => $this->getPageTitle(),
             ),
             $this->getGlobalBlockName()
@@ -486,119 +485,73 @@ class FF_Output extends FF_Template {
      */
     function getHelpLink($in_text, $in_title = null)
     {
-        $in_title = is_null($in_title) ? _('Help') : $in_title;
-        return $this->imgTag('help.gif', 'actions', array('align' => 'top', 'title' => $in_text, 
-                    'caption' => $in_title, 'status' => $in_title, 'sticky' => 'onclick', 
-                    'greasy' => false, 'style' => 'cursor: pointer;'));
+        if ($this->o_registry->getConfigParam('user/use_help', false)) {
+            $in_title = is_null($in_title) ? _('Help') : $in_title;
+            return $this->imgTag('help.gif', 'actions', array('align' => 'top', 'title' => $in_text, 
+                        'caption' => $in_title, 'status' => $in_title, 'sticky' => 'onclick', 
+                        'greasy' => false, 'style' => 'cursor: pointer;'));
+        }
+        else {
+            return '';
+        }
     }
 
     // }}}
     // {{{ imgTag()
 
     /**
-     * Returns an image tag (either the src or <img>) properly formatted and 
-     * with the correct width and height attributes 
+     * Returns an image tag (either the src or <img>) properly
+     * formatted.
      *
      * @param string $in_img Name of image, if an absolute path is not
      *               given we prepend FastFrame path 
      * @param string $in_type (optional) The type of image.  If 'none'
      *               then we assume that the path includes the type in it.
      * @param array  $in_options (optional) A number of options that
-     *               have to do with the image tag, included what type
+     *               have to do with the image, included what type
      *               of image tag this is.  The options are as follows
      *               width, height, type, align, style, onclick, id,
      *               onlyUrl, fullPath, title, status, caption, greasy,
-     *               sticky, name
+     *               sticky, name, app (if the image is in a specific
+     *               application)
      *
      * @access public
      * @return string The image tag
      */
-    function imgTag($in_img = null, $in_type = 'icons', $in_options = array()) 
+    function imgTag($in_img, $in_type = 'icons', $in_options = array()) 
     {
-        static $s_missingImage, $a_themePaths, $a_appPaths;
-        settype($in_options, 'array');
-
-        // cache the missing image from the registry
-        if (!isset($s_missingImage)) {
-            $s_missingImage = $this->o_registry->getConfigParam('image/missing');
-        }
-
-        if (!isset($a_themePaths)) {
-            $a_themePaths = array();
-            $tmp_theme = $this->theme;
-            $a_themePaths['web'] = $this->o_registry->getRootFile($tmp_theme . '/graphics', 'themes', FASTFRAME_WEBPATH);
-            $a_themePaths['file'] = $this->o_registry->getRootFile($tmp_theme . '/graphics', 'themes');
-        }
-
-        if (!isset($a_appPaths)) {
-            $a_appPaths = array();
-            $a_appPaths['web'] = $this->o_registry->getAppFile('', null, 'graphics', FASTFRAME_WEBPATH);
-            $a_appPaths['file'] = $this->o_registry->getAppFile('', null, 'graphics');
-        }
-
-        if (empty($in_img) || is_null($in_img)) {
-            $in_img = $s_missingImage;
-        }
-
-        $s_type = $in_type == 'none' ? '/' : "/$in_type/";
         $b_isFullPath = false;
-
-        // if image is an absolute path, we assume it is a webpath and check if it exists
+        // If image is an absolute path, we assume it is the full webpath
         if (strpos($in_img, '/') === 0) {
-            if (!file_exists($s_imgFilePath = $this->o_registry->getConfigParam('webserver/file_root') . $in_img)) {
-                $s_imgWebPath = $this->o_registry->getRootFile($s_missingImage, 'graphics', FASTFRAME_WEBPATH);
-                $s_imgFilePath = $this->o_registry->getRootFile($s_missingImage, 'graphics');
-            }
-            else {
-                $s_imgWebPath = $in_img;
-            }
+            $s_imgWebPath = $in_img;
         }
-        // see if it's a relative path to the image
-        elseif (!preg_match(';^(http://|ftp://);', $in_img)) {
-            $tmp_img = $s_type . $in_img;
-            // see if it's in the theme directory
-            if (file_exists(($s_imgFilePath = $a_themePaths['file'] . $tmp_img))) {
-                $s_imgWebPath = $a_themePaths['web'] . $tmp_img;
-            }
-            // see if it's in the app directory
-            elseif (file_exists(($s_imgFilePath = $a_appPaths['file'] . $tmp_img))) {
-                $s_imgWebPath = $a_appPaths['web'] . $tmp_img;
-            }
-            // check in root graphics dir
-            elseif (file_exists($s_imgFilePath = $this->o_registry->getRootFile($tmp_img, 'graphics'))) {
-                $s_imgWebPath = $this->o_registry->getRootFile($tmp_img, 'graphics', FASTFRAME_WEBPATH);
-            }
-            // image not found
-            else {
-                $s_imgWebPath = $this->o_registry->getRootFile($s_missingImage, 'graphics', FASTFRAME_WEBPATH);
-                $s_imgFilePath = $this->o_registry->getRootFile($s_missingImage, 'graphics');
-            }
-        }
-        // else it's a url, then we just use it as is, no check which is costly
-        else {
+        // See if it's a url, then we just use it as is
+        elseif (strpos($in_img, 'http://') === 0) {
             $b_isFullPath = true;
             $s_imgWebPath = $in_img;
         }
-
-        // Get size [!] (perhaps we can allow scaling here, not done here yet) [!]
-        if (!$b_isFullPath && (!isset($in_options['width']) || !isset($in_options['height']))) {
-            list($width, $height) = getImageSize($s_imgFilePath);
-            $in_options['width']  = isset($in_options['width']) ? $in_options['width'] : $width;
-            $in_options['height'] = isset($in_options['height']) ? $in_options['height'] : $height;
+        // Else it's a relative path and we have to search for the image
+        else {
+            $s_type = $in_type == 'none' || is_null($in_type) ? '/' : "/$in_type/";
+            $tmp_img = $s_type . $in_img;
+            // See if an app was specified
+            if (isset($in_options['app'])) {
+                $s_imgWebPath = $this->o_registry->getAppFile($tmp_img, $in_options['app'], 'graphics', FASTFRAME_WEBPATH);
+            }
+            // See if it's in the theme directory
+            elseif (file_exists($this->themeDir . '/graphics' . $tmp_img)) {
+                $s_imgWebPath = $this->o_registry->rootPathToWebPath($this->themeDir) . '/graphics' . $tmp_img;
+            }
+            else {
+                $s_imgWebPath = $this->o_registry->getRootFile($tmp_img, 'graphics', FASTFRAME_WEBPATH);
+            }
         }
 
-        if (!isset($in_options['align'])) {
-            $in_options['align'] = 'middle';
-        }
-
-        if (isset($in_options['fullPath']) && 
-            $in_options['fullPath'] &&
-            !preg_match(';^(http://|ftp://);', $s_imgWebPath)) {
+        // See if we need to add on hostname
+        if (!empty($in_options['fullPath']) && strpos($s_imgWebPath, 'http://') !== 0) {
             $s_imgWebPath = ($this->o_registry->getConfigParam('server/use_ssl') ? 'https' : 'http') . 
                             '://' . $this->o_registry->getConfigParam('webserver/hostname') . $s_imgWebPath;
         }
-
-        $in_options['type'] = isset($in_options['type']) && $in_options['type'] == 'input' ? 'input type="image"' : 'img';
 
         if (isset($in_options['onlyUrl']) && $in_options['onlyUrl']) {
             return $s_imgWebPath;
@@ -613,21 +566,22 @@ class FF_Output extends FF_Template {
                     'onclick'       => isset($in_options['onclick']) ? $in_options['onclick'] : '',
                 )
             );
-            $s_tag = "<{$in_options['type']}";
+            $s_tag = '<';
+            $s_tag .= isset($in_options['type']) && $in_options['type'] == 'input' ? 
+                'input type="image"' : 'img';
             $s_tag .= " src=\"$s_imgWebPath\"";
             $s_tag .= $a_events['onmouseover'] != '' ? ' onmouseover="' . $a_events['onmouseover'] . '"' : '';
             $s_tag .= $a_events['onmousemove'] != '' ? ' onmousemove="' . $a_events['onmousemove'] . '"' : '';
             $s_tag .= $a_events['onclick'] != '' ? ' onclick="' . $a_events['onclick'] . '"' : '';
             $s_tag .= isset($in_options['id']) ? " id=\"{$in_options['id']}\"" : '';
             $s_tag .= isset($in_options['name']) ? " name=\"{$in_options['name']}\"" : '';
-            $s_tag .= isset($in_options['align']) ? " align=\"{$in_options['align']}\"" : '';
             $s_tag .= isset($in_options['hspace']) ? " hspace=\"{$in_options['hspace']}\"" : '';
             $s_tag .= isset($in_options['vspace']) ? " vspace=\"{$in_options['vspace']}\"" : '';
             $s_tag .= isset($in_options['width']) ? " width=\"{$in_options['width']}\"" : '';
             $s_tag .= isset($in_options['height']) ? " height=\"{$in_options['height']}\"" : '';
             $s_tag .= isset($in_options['style']) ? " style=\"{$in_options['style']}\"" : '';
-            $s_tag .= isset($in_options['onclick']) ? " onclick=\"{$in_options['onclick']}\"" : '';
-            $s_tag .= isset($in_options['border']) ? " border=\"{$in_options['border']}\"" : 'border="0"';
+            $s_tag .= isset($in_options['align']) ? " align=\"{$in_options['align']}\"" : ' align="middle"';
+            $s_tag .= isset($in_options['border']) ? " border=\"{$in_options['border']}\"" : ' border="0"';
             $s_tag .= ' />';
 
             return $s_tag;
@@ -813,21 +767,6 @@ class FF_Output extends FF_Template {
                 // a minimal page
                 $this->setMenuType('none');
             break;
-            case 'smallTable':
-                // override canvas width
-                $this->assignBlockData(array('CANVAS_WIDTH' => '450px'), $this->getGlobalBlockName());
-
-                // move it down slightly
-                $this->assignBlockData(array('T_css' => '<style type="text/css">table.canvas { margin-top: 100px; } </style>'), 'css');
-
-                if ($s_header = $this->_getHeaderText()) {
-                    $this->assignBlockData(array('T_banner_top' => $s_header), 'switch_banner_top');
-                }
-
-                if ($s_footer = $this->_getFooterText()) {
-                    $this->assignBlockData(array('T_banner_bottom' => $s_footer), 'switch_banner_bottom');
-                }
-            break;
             case 'normal':
                 if ($s_header = $this->_getHeaderText()) {
                     $this->assignBlockData(array('T_banner_top' => $s_header), 'switch_banner_top');
@@ -953,15 +892,13 @@ class FF_Output extends FF_Template {
      */
     function _prepare_tooltip($in_options = array())
     {
-        settype($in_options, 'array');
-        settype($in_options['content'], 'string');
         $a_events = array(
             'onmouseover' => '',
             'onmousemove' => '',
             'onclick'     => '',
         );
 
-        if ($in_options['content'] == '' || Net_UserAgent_Detect::isBrowser('ns4')) {
+        if ($in_options['content'] == '') {
             if (!empty($in_options['onclick'])) {
                 $a_events['onclick'] = $in_options['onclick'];
             }
@@ -969,8 +906,6 @@ class FF_Output extends FF_Template {
             return $a_events;
         }
 
-        settype($in_options['caption'], 'string');
-        settype($in_options['status'], 'string');
         $a_events['onmouseover'] = 'greasy';
         
         $s_content = strtr(htmlentities(addcslashes($in_options['content'], '\'')), "\n\r", '  ');

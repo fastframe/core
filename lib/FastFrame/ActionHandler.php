@@ -216,8 +216,8 @@ class FF_ActionHandler {
         $hitLastAction = false;
         while (!$hitLastAction) {
             $this->loadActions();
-            $this->checkAuth();
             $this->_checkActionId();
+            $this->checkAuth();
             $pth_actionFile = $this->availableActions[$this->actionId][0];
             if (file_exists($pth_actionFile)) {
                 require_once $pth_actionFile;
@@ -466,7 +466,7 @@ class FF_ActionHandler {
             $this->moduleConfig->checkAuth();
         } 
         else {
-            if (!FF_Auth::checkAuth()) {
+            if (!FF_Auth::checkAuth(true)) {
                 // If there was no app specified then they have arrived newly at the
                 // site.  We don't want to bounce them to the initial app only to have
                 // them bounce back to the login page.  So we send them straight to it.
@@ -474,6 +474,7 @@ class FF_ActionHandler {
                     $this->setAppId($this->o_registry->getConfigParam('general/login_app'));
                     $this->setModuleId($this->o_registry->getConfigParam('general/initial_module', null, array('app' => $this->appId)));
                     $this->loadActions();
+                    $this->setActionId($this->defaultActionId);
                 }
                 else {
                     FF_Auth::logout();
