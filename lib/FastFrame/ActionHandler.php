@@ -169,8 +169,8 @@ class FF_ActionHandler {
         
         if (FF_Request::getParam('actionId', 'g') == ACTION_HOME &&
             is_array($a_init = FF_Auth::getCredential('initPage'))) {
-            $this->setActionId($a_init['actionId']);
-            $this->setModuleId($a_init['module']);
+            $this->setActionId(@$a_init['actionId']);
+            $this->setModuleId(@$a_init['module']);
             $this->setAppId($a_init['app']);
         }
         elseif (FF_Request::getParam('app', 'pg', false) === false) {
