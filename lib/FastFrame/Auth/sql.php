@@ -1,5 +1,5 @@
 <?php
-/** $Id: sql.php,v 1.4 2003/01/22 06:07:45 jrust Exp $ */
+/** $Id: sql.php,v 1.5 2003/01/22 21:00:29 jrust Exp $ */
 // {{{ class  AuthSource_sql
 
 /**
@@ -93,7 +93,7 @@ class AuthSource_sql extends AuthSource {
         }
 
         $o_data = new $s_className;
-        $o_db =& $o_registry->getDataConnection($o_data);
+        $o_db =& $o_data->getDatabaseConnection();
 
         // hash/encrypt the password if needed
         switch ($this->encryptionType) {

@@ -1,5 +1,5 @@
 <?php
-/** $Id: Registry.php,v 1.7 2003/01/22 02:04:10 jrust Exp $ */
+/** $Id: Registry.php,v 1.8 2003/01/22 21:00:28 jrust Exp $ */
 // {{{ constants/globals
 
 // types of filepaths that can be generated
@@ -608,23 +608,6 @@ class FastFrame_Registry {
         $a_config = array_merge($a_config, $in_options);
         
         return $a_config;
-    }
-
-    // }}}
-    // {{{ getDataConnection()
-
-    /**
-     * Gets the data connection which has been set up by DataObject. 
-     *
-     * @param object $in_obj_data The data object
-     *
-     * @access public
-     * @return object The database connection
-     */
-    function &getDataConnection(&$in_obj_data)
-    {
-        $in_obj_data->_connect();
-        return $GLOBALS['_DB_DATAOBJECT']['CONNECTIONS'][$in_obj_data->_database_dsn_md5];
     }
 
     // }}}

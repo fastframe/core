@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.3 2003/01/21 01:18:33 jrust Exp $ */
+/** $Id: List.php,v 1.4 2003/01/22 21:00:28 jrust Exp $ */
 // {{{ class FastFrame_List
 
 /**
@@ -1127,8 +1127,7 @@ class FastFrame_List {
      * fields and strings and is suitable for grabbing the fields that should be present in
      * this list.
      *
-     * @param object $in_db The DataObject database object (returned from
-     *                      FastFrame_Registry::getDataConnection())
+     * @param object $in_db The DataObject database object
      *
      * @access public
      * @return string A WHERE condition 
@@ -1171,7 +1170,7 @@ class FastFrame_List {
      */
     function getData(&$in_obj_data)
     {
-        $in_obj_data->whereAdd($this->getWhereCondition(FastFrame_Registry::getDataConnection($in_obj_data)));
+        $in_obj_data->whereAdd($this->getWhereCondition($in_obj_data->getDatabaseConnection()));
         $in_obj_data->limit($this->getRecordOffset(), $this->getDisplayLimit());
         $in_obj_data->orderBy($this->getSortField() . ' ' . FastFrame_SQL::getOrderString($this->getSortOrder()));
         $a_data = array();
