@@ -69,7 +69,9 @@ class FF_Action_List extends FF_Action_Form {
             return $this->o_nextAction;
         }
 
+
         $this->initList();
+	
         if (!$this->queryData()) {
             return $this->o_nextAction;
         }
@@ -214,7 +216,7 @@ class FF_Action_List extends FF_Action_Form {
                 $this->_renderHighlightJs();
                 $b_highlightRows = true;
             }
-
+            $a_buttonCells = $this->getButtonCells();
             $a_map = $this->getFieldMap();
             $s_attrib = $this->getRowAttributes();
             while ($this->o_listModeler->loadNextModel()) {
@@ -224,11 +226,14 @@ class FF_Action_List extends FF_Action_Form {
                 foreach ($a_map as $tmp_fields) {
                     $s_attr = isset($tmp_fields['attr']) ? $tmp_fields['attr'] : '';
                     $tmp_fields['args'] = isset($tmp_fields['args']) ? $tmp_fields['args'] : array();
-                    // Options cell has some special attributes
-                    if ($tmp_fields['method'] == 'getOptions') {
-                        $s_attr = 'id="optionCell' . $i . '" style="width: 5%; white-space: nowrap;"';
-                        $tmp_fields['object'] =& $this;
+                    // Cells with buttons have  special attributes
+                    foreach ($a_buttonCells as $s_method ) {
+                        if ($tmp_fields['method'] == $s_method ) {
+                            $s_attr = 'id="optionCell' . $i . '" style="width: 5%; white-space: nowrap;"';
+                            $tmp_fields['object'] =& $this;
+                        }
                     }
+                    
 
                     if (isset($tmp_fields['object'])) {
                         $tmp_displayData = $this->o_output->processCellData(
@@ -335,6 +340,20 @@ class FF_Action_List extends FF_Action_Form {
         return array('actionId' => $this->currentActionId);
     }
 
+    // }}}
+    // {{{ getButtonCells()
+    
+    /**
+     * Gets an array of cells that have clickable buttons in them
+     *
+     * @access public
+     * @return array An array of values with the method names of cells that will render buttons
+     */
+    
+    function getButtonCells()
+    {
+        return array('getOptions');
+    }
     // }}}
     // {{{ getHighlightedRowUrl()
 
