@@ -895,8 +895,10 @@ class FF_Output {
     function _renderMenus()
     {
         if ($this->menuType != 'none') {
-            // Non-javascript enabled browsers must use StaticList
-            if (!Net_UserAgent_Detect::hasFeature('javascript')) {
+            // Non-javascript enabled browsers must use StaticList, and
+            // IE5 on mac just dies with the dom menu
+            if (!Net_UserAgent_Detect::hasFeature('javascript') ||
+                (Net_UserAgent_Detect::isOS('mac') && Net_UserAgent_Detect::isIE())) {
                 $this->setMenuType('StaticList');
             }
 
