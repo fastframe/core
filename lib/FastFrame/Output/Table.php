@@ -1,5 +1,5 @@
 <?php
-/** $Id: Table.php,v 1.4 2003/03/19 00:36:01 jrust Exp $ */
+/** $Id: Table.php,v 1.5 2003/03/21 23:43:35 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -146,6 +146,51 @@ class FF_Output_Table {
                 ),
                 $this->tableNamespace . 'table_field_cell'
             );
+            $tmp_style = isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : '';
+            $this->o_output->assignBlockData(
+                array(
+                    'T_table_content_cell' => $tmp_header['data'], 
+                    'S_table_content_cell' => $tmp_style,
+                ),
+                $this->tableNamespace . 'table_content_cell'
+            );
+        }
+    }
+
+    // }}}
+    // {{{ renderTwoRowTable()
+
+    /**
+     * Processes the table headers by registering the appropriate html.  Creates a
+     * multi-column two row table of
+     * title    |   title
+     * data     |   data
+     *
+     * @access public
+     * @return void 
+     */
+    function renderTwoRowTable()
+    {
+        $this->setNumColumns(count($this->tableHeaders));
+        $this->beginTable();
+        $this->o_output->touchBlock($this->tableNamespace . 'table_row');
+        $this->o_output->cycleBlock($this->tableNamespace . 'table_field_cell');
+        $this->o_output->cycleBlock($this->tableNamespace . 'table_content_cell');
+        foreach ($this->tableHeaders as $tmp_header) {
+            $tmp_style = isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : '';
+            $this->o_output->assignBlockData(
+                array(
+                    'T_table_field_cell' => $tmp_header['title'],
+                    'S_table_field_cell' => $tmp_style,
+                ),
+                $this->tableNamespace . 'table_field_cell'
+            );
+        }
+
+        $this->o_output->touchBlock($this->tableNamespace . 'table_row');
+        $this->o_output->cycleBlock($this->tableNamespace . 'table_field_cell');
+        $this->o_output->cycleBlock($this->tableNamespace . 'table_content_cell');
+        foreach ($this->tableHeaders as $tmp_header) {
             $tmp_style = isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : '';
             $this->o_output->assignBlockData(
                 array(
