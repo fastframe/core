@@ -161,20 +161,16 @@ class FastFrame {
      *
      * This function represents empty() in its true form.  If the variable contains absolutely
      * no data, or is just an empty array, then the boolean value 'true' is returned.  If it
-     * has a value of 0 or contains only spaces or endlines (and the strict is not-set) then it
-     * returns false.  This is unlike the php-function empty() which just returns if the variable
-     * would evaluate as true or false.
+     * has a value of 0 then it returns false.
      *
      * @param  mixed $in_var variable to be evaluated
-     * @param  bool  $in_countWhiteSpace (optional) count whitespace as valid contents
      *
      * @access public
      * @return bool whether the variable has contents or not
      */
-    function isEmpty($in_var, $in_countWhiteSpace = true)
+    function isEmpty($in_var)
     {
-        $var = $in_countWhiteSpace || is_array($in_var) ? $in_var : trim($in_var);
-        return (!isset($var) || (is_array($var) && empty($var)) || $var === '') ? true : false;
+        return (empty($in_var) && strlen($in_var) == 0);
     }
 
     // }}}

@@ -69,7 +69,7 @@ class FF_Menu_StaticList extends FF_Menu {
         // Remove empty lists
         $s_menu = preg_replace('/<ul class="' . $this->cssClass . '">\s+<\/ul>/', '', $s_menu);
         // Turn on menu
-        if (!FastFrame::isEmpty($s_menu, false)) {
+        if (!FastFrame::isEmpty($s_menu)) {
             $this->o_output->o_tpl->append($this->tmplVar, $s_menu);
         }
     }

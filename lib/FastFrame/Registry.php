@@ -461,18 +461,11 @@ class FF_Registry {
             $this->importConfig($in_app);
         }
 
-        $in_paramPath = str_replace('/', '\'][\'', $in_paramPath);
-        $s_varName = '$this->config[\'' . $in_app . '\'][\'' . $in_paramPath . '\']';
-        if (eval('return isset(' . $s_varName . ');')) {
-            $result = eval('return ' . $s_varName . ';'); 
-        } 
-        else {
-            // First check the default app for the setting before returning default val
-            $s_varName = '$this->config[\'' . FASTFRAME_DEFAULT_APP . '\'][\'' . $in_paramPath . '\']';
-            $result = eval('return isset(' . $s_varName . ');') ? eval('return ' . $s_varName . ';') : $in_default;
-        }
-
-        return $result;
+        list($tmp1, $tmp2) = explode('/', $in_paramPath);
+        return !empty($this->config[$in_app][$tmp1][$tmp2]) ? 
+            $this->config[$in_app][$tmp1][$tmp2] :
+            (!empty($this->config[FASTFRAME_DEFAULT_APP][$tmp1][$tmp2]) ?
+             $this->config[FASTFRAME_DEFAULT_APP][$tmp1][$tmp2] : $in_default);
     }
 
     // }}}

@@ -83,9 +83,9 @@ class FF_Auth {
         // populate all of the authentication sources
         $a_sources = $o_registry->getConfigParam('auth/sources');
         if (is_array($a_sources)) {
-            foreach ($a_sources as $s_name => $a_source) {
+            foreach ($a_sources as $a_source) {
                 // Get an AuthSource of the proper type
-                $o_authSource =& FF_Auth::getAuthSourceObject($s_name);
+                $o_authSource =& FF_Auth::getAuthSourceObject($a_source['name']);
                 if ($o_authSource->authenticate($in_username, $in_password)) {
                     $a_credentials['authSource'] = $o_authSource->getName();
                     $b_authenticated = true;
@@ -316,13 +316,12 @@ class FF_Auth {
     {
         if (is_null($in_logoutURL) && !$in_return) {
             $o_registry =& FF_Registry::singleton();
-            $s_logoutApp = $o_registry->getConfigParam('general/logout_app');
             // Get the request url without the session.  Not using selfURL() because it calls
             // action handler which can make an infinite loop.
             $s_redirectURL = preg_replace('/[?&]' . session_name() . '=[^?&]*/', '', $_SERVER['REQUEST_URI']);
             $s_logoutURL = FastFrame::url(
                     $o_registry->getRootFile('index.php', null, FASTFRAME_WEBPATH), 
-                    array('app' => $s_logoutApp, 'loginRedirect' => $s_redirectURL, session_name() => false), true);
+                    array('app' => 'login', 'loginRedirect' => $s_redirectURL, session_name() => false), true);
         }
         else {
             $s_logoutURL = $in_logoutURL;
@@ -365,11 +364,13 @@ class FF_Auth {
 
         if (!isset($a_authSources[$in_name])) {
             $o_registry =& FF_Registry::singleton();
-            $a_authSources[$in_name] =& FF_AuthSource::factory(
-                                            $o_registry->getConfigParam("auth/sources/$in_name/type"), 
-                                            $in_name, 
-                                            $o_registry->getConfigParam("auth/sources/$in_name/params", array())
-                                        );
+            foreach ($o_registry->getConfigParam('auth/sources') as $a_source) {
+                if ($a_source['name'] == $in_name) {
+                    $a_params = isset($a_source['params']) ? $a_source['params'] : array();
+                    $a_authSources[$in_name] =& FF_AuthSource::factory($a_source['type'], $in_name, $a_params);
+                    break;
+                }
+            }
         }
 
         return $a_authSources[$in_name];

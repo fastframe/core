@@ -53,6 +53,7 @@ define('ACTION_SELECT',         'select');
 define('ACTION_DISPLAY',        'display');
 define('ACTION_RELOAD',         'reload');
 define('ACTION_TREE',           'tree');
+define('ACTION_CONTACT',        'contact');
 
 // }}}
 // {{{ class FF_ActionHandler 
@@ -145,6 +146,7 @@ class FF_ActionHandler {
         ACTION_SELECT     => array('Action/List.php', 'FF_Action_List'),
         ACTION_DISPLAY    => array('Action/Display.php', 'FF_Action_Display'),
         ACTION_TREE       => array('Action/Tree.php', 'FF_Action_Tree'),
+        ACTION_CONTACT    => array('Action/ContactForm.php', 'FF_Action_Form_Contact'),
     );
 
     // }}}
@@ -475,11 +477,12 @@ class FF_ActionHandler {
     // {{{ checkAuth()
 
     /**
-     * Initializes the auth object and makes sure that the page can proceed because the
-     * authentication passes
+     * Makes sure that the page can proceed because the user is logged
+     * in or it is a guest app.
      *
-     * @param bool $in_noModuleCheck (optional) Don't check the whether the module has auth?
-     *             Useful if this is being called from an ActionHandlerConfig class
+     * @param bool $in_noModuleCheck (optional) Don't check the whether
+     *        the module has auth?  Useful if this is being called from
+     *        an ActionHandlerConfig class
      *
      * @access public 
      * @return void
@@ -491,11 +494,14 @@ class FF_ActionHandler {
         } 
         else {
             if (!FF_Auth::checkAuth(true)) {
+                if ($this->o_registry->getAppParam('allow_guests', false)) {
+                    return true;
+                }
                 // If there was no app specified then they have arrived newly at the
                 // site.  We don't want to bounce them to the initial app only to have
                 // them bounce back to the login page.  So we send them straight to it.
-                if (FF_Request::getParam('app', 'gp', false) === false) {
-                    $this->setAppId($this->o_registry->getConfigParam('general/login_app'));
+                elseif (FF_Request::getParam('app', 'gp', false) === false) {
+                    $this->setAppId('login');
                     $this->setModuleId($this->o_registry->getConfigParam('general/initial_module', null, $this->appId));
                     $this->loadActions();
                     $this->setActionId($this->defaultActionId);

@@ -106,7 +106,7 @@ class FF_ActionHandlerConfig {
 
     /**
      * Initializes the auth object and makes sure that the page can proceed because the
-     * authentication passes. Used to override the ActionHandler::_checkAuth() function 
+     * authentication passes. Used to override the ActionHandler::checkAuth() function 
      *
      * @access public
      * @return void
