@@ -173,6 +173,10 @@ class FF_Action_Download extends FF_Action {
 
         // }}}
         $a_pth = pathinfo(strtolower($in_filename));
+        if (!isset($a_pth['extension'])) {
+            $a_pth['extension'] = 'xxx';
+        }
+
         return isset($a_mime[$a_pth['extension']]) ? $a_mime[$a_pth['extension']] : $a_mime['xxx'];
     }
 
