@@ -1,5 +1,5 @@
 <?php
-/** $Id: Model.php,v 1.2 2003/03/13 18:39:03 jrust Exp $ */
+/** $Id: Model.php,v 1.3 2003/03/15 01:24:46 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -49,6 +49,12 @@ class FF_Model {
      * @type object
      */
     var $o_dataAccess;
+
+    /**
+     * The primary id field
+     * @type int
+     */
+    var $id;
 
     // }}}
     // {{{ constructor
