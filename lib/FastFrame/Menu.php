@@ -1,5 +1,5 @@
 <?php
-/** $Id: Menu.php,v 1.7 2003/04/01 23:59:15 jrust Exp $ */
+/** $Id: Menu.php,v 1.8 2003/04/08 21:52:01 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -132,30 +132,25 @@ class FF_Menu {
      *                        and we will look for Menu/$type.php to load the file.
      *
      * @access public
-     * @return object The newly created concrete Menu instance, or PEAR error on an error.
+     * @return object The newly created concrete Menu instance
      */
     function &factory($in_type)
     {
         static $a_instances;
-
         if (!isset($a_instances)) {
             $a_instances = array();
         }
 
-        $s_type = strtolower($in_type);
-        $s_class = 'ff_menu_' . strtolower($in_type);
+        $s_class = 'FF_Menu_' . $in_type;
         if (!isset($a_instances[$s_class])) {
             $pth_menu = dirname(__FILE__) . '/Menu/' . $in_type . '.php';
             if (file_exists($pth_menu)) { 
                 require_once $pth_menu;
-            } 
-
-            if (class_exists($s_class)) {
                 $a_instances[$s_class] = new $s_class();
                 $a_instances[$s_class]->menuType = $in_type;
             } 
             else {
-                return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "Class definition of $s_class not found.", 'FF_Error', true);
+                FastFrame::fatal("Invalid menu type: $in_type", __FILE__, __LINE__);
             }
         }
 
