@@ -200,7 +200,7 @@ class FF_SystemTest {
             'pear_html_bbcodeparser' => array(
                 'method' => '_checkPEARHTMLBBCodeParser',
                 'name' => 'PEAR HTML_BBCodeParser',
-                'errorMsg' => _('You do not have the PEAR HTML_BBCodeParser module installed.  It is required for the alum_website application.'),
+                'errorMsg' => _('You do not have the PEAR HTML_BBCodeParser module installed.  It is required for the portal and alum_website application.'),
                 'successMsg' => _('You have the PEAR HTML_BBCodeParser module.')),
             'cachedir' => array(
                 'method' => '_checkCacheDir',
