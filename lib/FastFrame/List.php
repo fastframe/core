@@ -151,6 +151,7 @@ class FF_List {
      * @param string $in_sortField The default field to sort on
      * @param int $in_sortOrder The default sort order (1 = ASC, 0 = DESC)
      * @param int $in_displayLimit The default display limit
+     * @param bool $in_showListAll Toggle showing or hiding the listall button
      *
      * @access public
      * @return void
@@ -179,6 +180,7 @@ class FF_List {
         $this->setSearchBoxType();
         $this->setPageOffset();
         $this->setDisplayLimit($in_displayLimit);
+        $this->listAll=true;
     }
 
     // }}}
@@ -241,9 +243,11 @@ class FF_List {
                     array('size' => 15, 'style' => 'vertical-align: middle;', 'onfocus' => 'this.value = ""'));
             $o_form->addElement('submit', 'query_submit', _('Search'), 
                     array('style' => 'vertical-align: bottom;'));
-            $o_form->addElement('submit', 'listall_submit', _('List All'), 
+            if ($this->listAll) {
+                $o_form->addElement('submit', 'listall_submit', _('List All'), 
                     array('onclick' => "document.search_box['searchString[$this->listId]'].value = '';", 
                         'style' => 'vertical-align: bottom;'));
+            }
         }
         else {
             $o_form->addElement('hidden', "searchString[$this->listId]");
@@ -344,8 +348,10 @@ class FF_List {
                 sprintf(_('in %s'), $o_renderer->elementToHtml("searchField[$this->listId]")) : '';
             $s_findText = $this->o_output->getHelpLink($tmp_help, _('Search Help')) . ' ' . 
                 _('Find') . ' ' . $o_renderer->elementToHtml("searchString[$this->listId]") . ' ' . 
-                $s_searchField . ' ' . $o_renderer->elementToHtml('query_submit') . ' ' . 
-                $o_renderer->elementToHtml('listall_submit');
+                $s_searchField . ' ' . $o_renderer->elementToHtml('query_submit') . ' ';  
+                if ($this->listAll) {
+                    $s_findText .= $o_renderer->elementToHtml('listall_submit');
+                }
         }
 
 
@@ -1051,6 +1057,20 @@ class FF_List {
     function getAllFieldsKey()
     {
         return $this->allFieldsKey;
+    }
+
+    // }}}
+    // {{{ toggleListAll()
+
+    /**
+     * Toggle the visibility of the list all button
+     *
+     * @access public
+     * @return string The key used for searching all fields 
+     */
+    function toggleListAll($in_listAll)
+    {
+        return $this->listAll=$in_listAll;
     }
 
     // }}}
