@@ -1,5 +1,5 @@
 <?php
-/** $Id: Auth.php,v 1.3 2003/01/20 17:33:44 ggilbert Exp $ */
+/** $Id: Auth.php,v 1.4 2003/01/21 01:21:33 jrust Exp $ */
 // {{{ constants
 
 define('FASTFRAME_AUTH_OK',         0);
@@ -372,112 +372,6 @@ class FastFrame_Auth {
     }
 
     // }}}
-    // {{{ createCredential()
-
-    /**
-     * Creates a username or password, either randomly
-     * or based on the field in the companies table 
-     *
-     * @param string $in_type Either 'password' or 'username'
-     * @param bool $in_random (optional) Force this to be random?
-     * @param string $in_userID (optional) The user ID, otherwise we use current userID
-     * @param string $in_domain (optional) The domain (employee or admin)
-     * @param string $in_table (optional) The table to pull data from if the company has
-     *               has a special rule.  Normally we use current_main or admin 
-     *
-     * @access public
-     * @return string The username
-     */
-    function createCredential($in_type, $in_random = false, $in_userID = null, $in_domain = 'employee', $in_table = null)
-    {
-        $registry =& FastFrame_Registry::singleton();
-        $info =& FastFrame_Info::singleton();
-        $db = $registry->getDataConnection();
-        $fields =& FastFrame_Central::factory('Fields');
-
-        if (is_null($in_userID)) {
-            $userID = $info->getUserID();
-        }
-        else {
-            $userID = $in_userID;
-        }
-
-        $random = $in_random;
-        $rule = '';
-        // get their rule (if it's not random)
-        if ($in_type == 'password' && !$random) {
-            $rule = $info->getCompanyParam('passwordRule');
-        }
-        elseif ($in_type == 'username' && !$random) {
-            $rule = $info->getCompanyParam('usernameRule');
-        }
-
-        if ($rule == '') {
-            $random = true;
-        }
-
-        if ($random) {
-            // exclude I, O, 0, and 1 (too much alike)
-            $possibleChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ23456789';
-            $isUnique = false;
-            while (!$isUnique) {
-                $credential = FastFrame::getRandomString(8, $possibleChars);
-                if ($in_type == 'username') {
-                    $isUnique = FastFrame_Auth::_is_unique_username($credential);
-                }
-                else {
-                    $isUnique = true;
-                }
-            }
-        }
-        else {
-            // check for central field first 
-            if (($tmp_myname = $fields->isFieldID($rule)) !== false) {
-                $credential = $fields->getFieldForUser($tmp_myname, false, false, $userID);
-                // if error just get random
-                if (FastFrame_Central::isError($credential)) {
-                    $credential = FastFrame_Auth::createCredential($in_type, true);
-                }
-            }
-            else {
-                // get the credential using a regular field
-                // determine table to pull data from
-                if (is_null($in_table)) {
-                    if ($in_domain == 'employee') {
-                        $table = 'current_main';
-                    }
-                    else {
-                        $table = 'admin';
-                    }
-                }
-                else {
-                    $table = $in_table;
-                }
-
-                $query = '
-                SELECT ' . $rule . ' FROM `' . $registry->getCompanyDatabase() . '`.`' . $table . '` 
-                WHERE `f_ssn`=' . $db->quote($userID);
-
-                $credential = $db->getOne($query);
-                // if error just get random
-                if (DB::isError($credential)) {
-                    $credential = FastFrame_Auth::createCredential($in_type, true);
-                }
-            }
-
-            if ($in_type == 'username') {
-                // make sure it is a unique username
-                if (!FastFrame_Auth::_is_unique_username($credential, $in_table)) {
-                    // if not just create a random one
-                    $credential = FastFrame_Auth::createCredential('username', true);
-                }
-            }
-        }
-
-        return $credential;
-    }
-
-    // }}}
     // {{{ decryptPassword()
 
     /**
@@ -689,42 +583,6 @@ class FastFrame_Auth {
     {
         $registry =& FastFrame_Registry::singleton();
         FastFrame::redirect($registry->getConfigParam('session/safelogout'));
-    }
-
-    // }}}
-    // {{{ _is_unique_username()
-
-    /**
-     * Checks to make sure a username is unique
-     *
-     * @param string $in_username The username to check
-     * @param string $in_eeTable (optional) The ee table, if empty we use current_main
-     *
-     * @access private
-     * @return bool True or false
-     */
-    function _is_unique_username($in_username, $in_eeTable = null)
-    {
-        $registry =& FastFrame_Registry::singleton();
-        $db = $registry->getDataConnection();
-
-        if (is_null($in_eeTable)) {
-            $eeTable = 'current_main';
-        }
-        else {
-            $eeTable = $in_eeTable;
-        }
-
-        // make sure it is unique in admin and ee tables 
-        $query = 'SELECT 1 FROM `' . $registry->getCompanyDatabase() . '`.`admin` WHERE `f_loginUsername`=' . $db->quote($in_username);
-        if ($db->getOne($query) != 1) {
-            $query = 'SELECT 1 FROM `' . $registry->getCompanyDatabase() . '`.`' . $eeTable . '` WHERE `f_loginUsername`=' . $db->quote($in_username);
-            if ($db->getOne($query) != 1) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     // }}}
