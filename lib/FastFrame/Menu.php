@@ -1,9 +1,8 @@
 <?php
-/** $Id: Menu.php,v 1.2 2003/01/22 02:08:59 jrust Exp $ */
-// {{{ includes
+/** $Id: Menu.php,v 1.3 2003/02/06 18:57:57 jrust Exp $ */
+// {{{ requires 
 
-require_once dirname(__FILE__) . '/Error.php';
-require_once dirname(__FILE__) . '/Registry.php';
+require_once dirname(__FILE__) . '/Output.php';
 
 // }}}
 // {{{ class FastFrame_Menu
@@ -26,20 +25,26 @@ class FastFrame_Menu {
     // {{{ properties
 
     /**
-     * FastFrame_Registry instance
-     * @var object $FastFrame_Registry
+     * Registry instance
+     * @type object
      */
-    var $FastFrame_Registry;
+    var $o_registry;
+
+    /**
+     * The Output object
+     * @type object
+     */
+    var $o_output;
 
     /**
      * The array of menu variables
-     * @var array $menuVariables
+     * @type array
      */
     var $menuVariables = null; 
 
     /**
      * The placeholder used to specify the current app in the menu.
-     * @var string $currentAppPlaceholder
+     * @type string
      */
     var $currentAppPlaceholder = '%currentApp%';
 
@@ -54,7 +59,8 @@ class FastFrame_Menu {
      */
     function FastFrame_Menu()
     {
-        $this->FastFrame_Registry =& FastFrame_Registry::singleton();
+        $this->o_registry =& FastFrame_Registry::singleton();
+        $this->o_output =& FastFrame_Output::singleton();
     }
 
     // }}}
@@ -115,13 +121,13 @@ class FastFrame_Menu {
         if (!$this->isMenuVarsImported()) {
             $this->menuVariables = array();
             // loop through the apps and grab the menu vars for each registered app
-            foreach ($this->FastFrame_Registry->getApps() as $s_app) {
+            foreach ($this->o_registry->getApps() as $s_app) {
                 // make sure this app is active
-                if ($this->FastFrame_Registry->getAppParam('status', 'active', array('app' => $s_app)) != 'active') {
+                if ($this->o_registry->getAppParam('status', 'active', array('app' => $s_app)) != 'active') {
                     continue;
                 }
                     
-                $pth_menu = $this->FastFrame_Registry->getAppFile('menu.php', $s_app, 'config');
+                $pth_menu = $this->o_registry->getAppFile('menu.php', $s_app, 'config');
                 if (is_readable($pth_menu)) {
                     $a_appMenu = null; 
                     include_once $pth_menu;
@@ -187,7 +193,7 @@ class FastFrame_Menu {
         static $s_baseURL, $s_argSeparator;
         if (!isset($s_baseURL)) {
             $s_argSeparator = ini_get('arg_separator.output');
-            $s_baseURL = FastFrame::url($this->FastFrame_Registry->getRootFile('menuRedirect.php', '', FASTFRAME_WEBPATH));
+            $s_baseURL = FastFrame::url($this->o_registry->getRootFile('menuRedirect.php', '', FASTFRAME_WEBPATH));
             // if the URL has no query vars attach one on so we can use the URL easily later
             if (strpos($s_baseURL, '?') === false) {
                 $s_baseURL .= '?_fromMenu=1';
