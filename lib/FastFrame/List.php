@@ -62,6 +62,12 @@ class FF_List {
     var $columnData = array();
 
     /**
+     * The array of extra search elements for the search box
+     * @var array
+     */
+    var $extraSearchElements = array();
+
+    /**
      * The searchable fields. 
      * @var array
      */
@@ -219,61 +225,21 @@ class FF_List {
             $a_searchFields[$a_val['search']] = $a_val['name'];
         }
         
-        
-        // Add form elements which go only on advanced list in normal mode
-        if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
-            // set up sortable fields
-            $a_sortFields = array();
-            foreach ($this->getColumnData() as $a_val) {
-                if (isset($a_val['sort'])) {
-                    $a_sortFields[$a_val['sort']] = $a_val['name'];
-                }
-            }
+        $s_numListed = min(($this->getMatchedRecords() - $this->getRecordOffset()), 
+                $this->getDisplayLimit(), $this->getMatchedRecords());
 
+        // Add form elements which go only on advanced list
+        if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
             $o_form->addElement('text', "displayLimit[$this->listId]", null, 
                     array('style' => 'vertical-align: middle;', 'size' => 3, 'maxlength' => 3));
             $o_form->addElement('submit', 'displayLimit_submit', _('Update'), 
                     array('style' => 'vertical-align: middle;'));
             $o_form->addRule("displayLimit[$this->listId]", _('Limit must be a positive integer'), 
                     'nonzero', null, 'client', true); 
-        }
-        else {
-            $o_form->addElement('hidden', "displayLimit[$this->listId]");
-        }
 
-        $o_form->addElement('text', "searchString[$this->listId]", null, 
-                array('size' => 15, 'style' => 'vertical-align: middle;', 'onfocus' => 'this.value = ""'));
-        $o_form->addElement('submit', 'query_submit', _('Search'), 
-                array('style' => 'vertical-align: bottom;'));
-        if ($this->listAll) {
-            $o_form->addElement('submit', 'listall_submit', _('List All'), 
-                array('onclick' => "document.search_box['searchString[$this->listId]'].value = '';", 
-                    'style' => 'vertical-align: bottom;'));
-        }
-
-        if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
             $o_form->addElement('select', "searchField[$this->listId]", null, $a_searchFields, 
-                    array('style' => 'vertical-align: middle;')); 
-        }
-        else {
-            $o_form->addElement('hidden', "searchField[$this->listId]");
-        }
+                    array('style' => 'vertical-align: middle;'));
 
-        $s_numListed = min(($this->getMatchedRecords() - $this->getRecordOffset()), 
-                $this->getDisplayLimit(), $this->getMatchedRecords());
-        if ($a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
-            $o_form->addElement('hidden', "pageOffset[$this->listId]");
-            if ($this->getMatchedRecords() > 0) {
-                $s_pagination = sprintf(_('%1$d to %2$d of %3$d'),
-                        $this->getRecordOffset() + 1,
-                        $this->getRecordOffset() + $s_numListed,
-                        $this->getMatchedRecords());
-            }
-            else {
-                $s_pagination = '0 found'; 
-            }
-        }
-        else {
             // Construct the menu ring for jumping to different blocks of table
             if ($this->getTotalPages() > 1) {
                 foreach (range(1, $this->getTotalPages()) as $i) {
@@ -289,8 +255,33 @@ class FF_List {
             }
             else {
                 $o_form->addElement('hidden', "pageOffset[$this->listId]");
-                $s_pagination = sprintf(_('1 of 1'), 1, 1);
+                $s_pagination = _('1 of 1');
             }
+        }
+        else {
+            $o_form->addElement('hidden', "displayLimit[$this->listId]");
+            $o_form->addElement('hidden', "searchField[$this->listId]");
+            $o_form->addElement('hidden', "pageOffset[$this->listId]");
+            if ($this->getMatchedRecords() > 0) {
+                $s_pagination = sprintf(_('%1$d to %2$d of %3$d'),
+                        $this->getRecordOffset() + 1,
+                        $this->getRecordOffset() + $s_numListed,
+                        $this->getMatchedRecords());
+            }
+            else {
+                $s_pagination = '0 found'; 
+            }
+        }
+
+        $o_form->addElement('text', "searchString[$this->listId]", null, 
+                array('size' => 15, 'style' => 'vertical-align: middle;', 'onfocus' => 'this.value = ""',
+                    'accesskey' => $this->o_output->getAccessKey(_('Search for'))));
+        $o_form->addElement('submit', 'query_submit', _('Search'), 
+                array('style' => 'vertical-align: bottom;'));
+        if ($this->listAll) {
+            $o_form->addElement('submit', 'listall_submit', _('List All'), 
+                array('onclick' => "document.search_box['searchString[$this->listId]'].value = '';", 
+                    'style' => 'vertical-align: bottom;'));
         }
 
         // Add as hidden elements any persistent data
@@ -298,6 +289,13 @@ class FF_List {
             $o_form->addElement('hidden', $s_key, $s_val);
         }
 
+        $a_defaults = array();
+        foreach ($this->extraSearchElements as $a_element) {
+            $o_form->addElement('select', $a_element[1], null, $a_element[2], $a_element[4]);
+            $a_defaults[$a_element[1]] = $a_element[3];
+        }
+
+        $o_form->setDefaults($a_defaults);
         $o_form->accept($o_renderer);
         if ($s_pagination === false) {
             $s_pagination = $o_renderer->elementToHtml("pageOffset[$this->listId]");
@@ -343,14 +341,15 @@ class FF_List {
             array_shift($a_searchFields);
         }
 
-        $tmp_help = sprintf(_('Find items in the list by entering a search term in the box to the right.  The following fields can be searched: %s.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy'), implode(', ', $a_searchFields));
+        $tmp_help = sprintf(_('Search for items in the list by entering a search term in the box to the right.  The following fields can be searched: %s.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy'), implode(', ', $a_searchFields));
         $s_searchField = $a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED ?
             sprintf(_('in %s'), $o_renderer->elementToHtml("searchField[$this->listId]")) : '';
         $s_findText = $this->o_output->getHelpLink($tmp_help, _('Search Help')) . ' ' . 
-            _('Find') . ' ' . $o_renderer->elementToHtml("searchString[$this->listId]") . ' ' . 
-            $s_searchField . ' ' . $o_renderer->elementToHtml('query_submit') . ' ';  
+            $this->o_output->highlightAccessKey(_('Search for')) . ' ' . 
+            $o_renderer->elementToHtml("searchString[$this->listId]") . ' ' . 
+            $s_searchField . ' ' . $o_renderer->elementToHtml('query_submit');  
         if ($this->listAll) {
-            $s_findText .= $o_renderer->elementToHtml('listall_submit');
+            $s_findText .= ' ' . $o_renderer->elementToHtml('listall_submit');
         }
 
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
@@ -363,6 +362,14 @@ class FF_List {
 
             $o_searchWidget->assign(array('T_search_limit' => $s_limitText, 
                         'T_search_find' => $s_findText));
+        }
+
+        if (count($this->extraSearchElements) > 0) {
+            $o_searchWidget->assign('has_extra_elements', true);
+            foreach ($this->extraSearchElements as $a_element) {
+                $o_searchWidget->append('extraElements', 
+                        array('T_desc' => $a_element[0], 'T_element' => $o_renderer->elementToHtml($a_element[1])));
+            }
         }
 
         return $o_renderer->toHtml($o_searchWidget->fetch());
@@ -480,6 +487,29 @@ class FF_List {
         }
 
         return $a_fieldCells;
+    }
+
+    // }}}
+    // {{{ addSearchSelect()
+
+    /**
+     * Adds a select list to the search box.
+     *
+     * @param string $in_desc The description for the select 
+     * @param string $in_name The select name
+     * @param array $in_options The array of options
+     * @param string $in_default (optional) The default option
+     * @param array $in_params (optional) An array of parameters for the
+     *        select list
+     *
+     * @access public
+     * @return void
+     */
+    function addSearchSelect($in_desc, $in_name, $in_options, $in_default = null, $in_params = array('style' => 'vertical-align: middle;', 'onchange' => 'this.form.submit();')) 
+    {
+        FF_Request::setParam($in_name, FF_Request::getParam($in_name, 'gps', $in_default), 's');
+        $this->extraSearchElements[] = array($in_desc, $in_name, $in_options,
+                FF_Request::getParam($in_name, 's'), $in_params);
     }
 
     // }}}
@@ -799,8 +829,8 @@ class FF_List {
     // {{{ setSearchField()
 
     /**
-     * Sets the search field variable from $in_value or GET/POST/SESSION if not passed in,
-     * defaulting to empty field if not present.
+     * Sets the search field variable from $in_value or GET/POST/SESSION
+     * if not passed in, defaulting to all fields if not present.
      *
      * @param string $in_value (optional) What field to search on. 
      *
@@ -810,7 +840,7 @@ class FF_List {
     function setSearchField($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->searchField = FF_Request::getParam("searchField[$this->listId]", 'gps', $this->getAllFieldsKey());
+            $this->searchField = FF_Request::getParam("searchField[$this->listId]", 'gps', $this->allFieldsKey);
         }
         else {
             $this->searchField = $in_value;
@@ -841,7 +871,7 @@ class FF_List {
     {
         $this->searchableFields = array();
         if ($in_addAllFields) {
-            $this->searchableFields[] = array('name' => _('All Fields'), 'search' => $this->getAllFieldsKey());
+            $this->searchableFields[] = array('name' => _('All Fields'), 'search' => $this->allFieldsKey);
         }
 
         foreach ($in_fields as $a_val) {
@@ -872,7 +902,7 @@ class FF_List {
         if ($in_excludeAll) {
             $a_list = array(); 
             foreach ($this->searchableFields as $a_val) {
-                if ($a_val['search'] != $this->getAllFieldsKey()) {
+                if ($a_val['search'] != $this->allFieldsKey) {
                     $a_list[] = $a_val;
                 }
             }

@@ -249,7 +249,8 @@ class FF_Output {
      * @param  string $in_text content for the link tag
      * @param  array  $in_options A number of options that have to do with the a tag.  The 
      *                            options are as follows:
-     *                            status, title, class, target, onclick, style, confirm
+     *                            status, title, class, target, onclick, style, confirm, 
+     *                            getAccessKey (attempts to get an accesskey for the link)
      *
      * @access public
      * @return string Entire <a> tag plus attributes
@@ -260,7 +261,7 @@ class FF_Output {
                 // these can be blank or event (onmouseover, onmousemove or onclick)
                 'greasy' => '', 'sticky' => '',
                 'confirm' => '', 'onclick' => '', 'class' => '',
-                'style' => '', 'target' => '_self');
+                'style' => '', 'target' => '_self', 'getAccessKey' => false);
 
         $a_options = array_merge($a_options, $in_options);
 
@@ -273,12 +274,20 @@ class FF_Output {
             $a_options['onclick'] .= ' return window.confirm(\'' . $s_confirm . '\');';
         }
 
+        $s_ak = '';
+        if ($a_options['getAccessKey']) {
+            $s_ak = $this->getAccessKey($in_text);
+        }
+
         // We use the basic title tag when there is no caption.
         if (empty($a_options['caption'])) {
             $a_events = array('onclick' => $a_options['onclick'], 'onmouseover' => '', 'onmousemove' => '');
             // Make the text the title if no title was passed in
             if (empty($in_options['title']) && strpos($in_text, '<img') === false) {
                 $a_options['title'] = $in_text;
+                if (!empty($s_ak)) {
+                    $a_options['title'] .= ' ' . sprintf(_('(Accesskey: %s)'), $s_ak);
+                }
             }
         }
         else {
@@ -301,7 +310,7 @@ class FF_Output {
         $s_tag .= !empty($a_options['target']) ? ' target="' . $a_options['target'] . '"' : '';
         $s_tag .= '>';
  
-        return $s_tag . $in_text . '</a>';
+        return $s_tag . $this->highlightAccessKey($in_text, $s_ak) . '</a>';
     }
 
     // }}}
@@ -366,6 +375,131 @@ class FF_Output {
         else {
             return '';
         }
+    }
+
+    // }}}
+    // {{{ getAccessKey()
+
+    /**
+     * Returns an un-used access key from the label given.
+     *
+     * @param string $in_label The label to choose an access key from.
+     *
+     * @author Originally from Horde <http://horde.org>
+     * @access public
+     *
+     * @return string  A single lower case character access key or empty
+     *                 string if none can be found
+     */
+    function getAccessKey($in_label)
+    {
+        // The access keys already used in this page
+        static $_used = array();
+        // The labels already used
+        static $_labels = array();
+        $a_letters = array();
+        $in_label = strip_tags($in_label);
+        $in_label = preg_replace('/&[^;]+;/', '', $in_label);
+        if (isset($_labels[$in_label])) {
+            return $_labels[$in_label];
+        }
+
+        // Try the upper case characters first
+        $iMax = strlen($in_label);
+        for ($i = 0; $i < $iMax; $i++) {
+            $c = substr($in_label, $i, 1);
+            if ($c >= 'A' && $c <= 'Z') {
+                $s_lower = strtolower($c);
+                if (!isset($_used[$s_lower])) {
+                    $_used[$s_lower] = 1;
+                    $_labels[$in_label] = $c;
+                    return $c;
+                }
+            } 
+            else {
+                $a_letters[] = $c;
+            }
+        }
+
+        // Try the lower case characters next
+        foreach ($a_letters as $c) {
+            if (!isset($_used[$c]) && $c >= 'a' && $c <= 'z') {
+                $_labels[$in_label] = $c;
+                $_used[$c] = 1;
+                return $c;
+            }
+        }
+
+        // No key found
+        return '';
+    }
+
+    // }}}
+    // {{{ highlightAccessKey()
+
+    /**
+     * Highlight an access key in a label.
+     *
+     * @param string $in_label The label to to highlight the access key in.
+     * @param string $in_accessKey (optional) The access key to
+     *        highlight.  If not specified we get one.
+     *
+     * @author Originally from Horde <http://horde.org>
+     * @access public
+     * @return string  The HTML version of the label with the access key
+     *                 highlighted.
+     */
+    function highlightAccessKey($in_label, $in_accessKey = null)
+    {
+        $s_html = '';
+        if (is_null($in_accessKey)) {
+            $in_accessKey = $this->getAccessKey($in_label);
+        }
+        
+        if (empty($in_accessKey)) {
+            return $in_label;
+        }
+
+        $intag = false;
+        $s_len = strlen($in_label);
+        for ($pos = 0; $pos < $s_len; $pos++) {
+            $c = substr($in_label, $pos, 1);
+            // Are we still inside a tag or entity? Skipping.
+            if ($intag && $c != $intag) {
+                continue;
+            }
+            $intag = false;
+            // Are we at the beginning of a tag? Skipping.
+            if ($c == '<') {
+                $intag = '>';
+                continue;
+            }
+            // Are we at the beginning of an entity? Skipping.
+            if ($c == '&') {
+                $intag = ';';
+                continue;
+            }
+            // Access key found?
+            if ($c == $in_accessKey) {
+                break;
+            }
+        }
+            
+        // Access key not found.
+        if ($pos == $s_len) {
+           return $in_label;
+        }
+
+        if ($pos > 0) {
+            $s_html .= substr($in_label, 0, $pos);
+        }
+
+        $s_html .= '<span class="accessKey">' . $c . '</span>';
+        if ($pos < strlen($in_label) - 1) {
+            $s_html .= substr($in_label, $pos + 1);
+        }
+
+        return $s_html;
     }
 
     // }}}
