@@ -120,14 +120,15 @@ class FF_Action_Form extends FF_Action {
      */
     function run()
     {
-        if (!$this->checkPerms()) {
-            return $this->o_nextAction;
-        }
-
         $this->setSubmitActionId();
         $b_result = $this->fillModelWithData();
         // see if we encountered an error.
         if (!$b_result) {
+            return $this->o_nextAction;
+        }
+
+        // Check perms after filling so object perms can be checked
+        if (!$this->checkPerms()) {
             return $this->o_nextAction;
         }
 

@@ -49,11 +49,12 @@ class FF_Action_Display extends FF_Action {
      */
     function run()
     {
-        if (!$this->checkPerms()) {
+        if (!$this->fillModelWithData()) {
             return $this->o_nextAction;
         }
 
-        if (!$this->fillModelWithData()) {
+        // Check perms after filling data so object perms work
+        if (!$this->checkPerms()) {
             return $this->o_nextAction;
         }
 

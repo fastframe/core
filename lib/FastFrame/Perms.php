@@ -163,7 +163,7 @@ class FF_Perms {
             $s_userName = FF_Auth::getCredential('username');
         }
 
-        return in_array($s_userName, $this->superUsers);
+        return isset($this->superUsers[$s_userName]);
     }
 
     // }}}
@@ -219,7 +219,7 @@ class FF_Perms {
     function _getPermCacheKey($in_perm, $in_app, $in_permType)
     {
         if (is_array($in_perm)) {
-            return $in_app . ':' . serialize($in_perm) . ':' . $in_permType;
+            return $in_app . ':' . implode(':', $in_perm) . ':' . $in_permType;
         }
         else {
             return $in_app . ':' . $in_perm . ':' . $in_permType;
