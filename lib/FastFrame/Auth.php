@@ -424,7 +424,7 @@ class FF_Auth {
             }
             else {
                 ini_alter('session.use_cookies', 1);
-                session_set_cookie_params($o_registry->getConfigParam('session/idle'), 
+                session_set_cookie_params($o_registry->getConfigParam('session/expire'), 
                             $o_registry->getConfigParam('cookie/path'),
                             $o_registry->getConfigParam('cookie/domain'),
                             $o_registry->getConfigParam('webserver/use_ssl') ? 1 : 0);
