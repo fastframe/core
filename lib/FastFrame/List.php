@@ -298,8 +298,7 @@ class FF_List {
                 'T_search_found' => $s_foundText, 
                 'T_search_options' => $o_renderer->elementToHtml('advancedList') . ' | ' . $s_printLink,
             ),
-            FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
-            false
+            $this->o_output->getGlobalBlockName()
         );
 
         // Add the data to the first row
@@ -334,8 +333,7 @@ class FF_List {
                     'T_search_find' => $s_findText,
                     'T_search_sort' => $s_sortText, 
                 ),
-                FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
-                false
+                $this->o_output->getGlobalBlockName()
             );
         }
 

@@ -175,7 +175,7 @@ class FF_Action_List extends FF_Action_Form {
                     'I_navigation_next'     => $a_data['next'],
                     'I_navigation_last'     => $a_data['last'],
                     ));
-            $o_tableWidget->assignBlockData(array('T_end_data' => $o_navWidget->render()), FASTFRAME_TEMPLATE_GLOBAL_BLOCK, false);
+            $o_tableWidget->assignBlockData(array('T_end_data' => $o_navWidget->render()), $this->o_output->getGlobalBlockName());
         }
 
         $this->renderListData($o_tableWidget);

@@ -199,8 +199,7 @@ class FF_Output extends FF_Template {
                 'CANVAS_WIDTH' => '100%',
                 'PAGE_TITLE' => $this->getPageTitle(),
             ),
-            FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
-            false
+            $this->getGlobalBlockName()
         );
 
         // set up menu
@@ -287,9 +286,9 @@ class FF_Output extends FF_Template {
                 array(
                     'THEME_DIR' => $this->o_registry->getRootFile($this->theme, 'themes', FASTFRAME_WEBPATH)
                 ),
-                FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
-                false
+                $this->getGlobalBlockName()
             );
+
             $fp = fopen($s_cssCacheFile, 'w');
             fwrite($fp, $o_cssWidget->render());
             fclose($fp);
@@ -302,8 +301,7 @@ class FF_Output extends FF_Template {
                 // put the filemtime on so that they only grab the new file when it is recreated
                 'MAIN_CSS' => '<link rel="stylesheet" type="text/css" href="' . $s_cssURL . '?fresh=' . filemtime($s_cssCacheFile) . '" />',
             ),
-            FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
-            false
+            $this->getGlobalBlockName()
         );
     }
 
@@ -869,13 +867,7 @@ class FF_Output extends FF_Template {
             break;
             case 'smallTable':
                 // override canvas width
-                $this->assignBlockData(
-                    array(
-                        'CANVAS_WIDTH' => '450px',
-                    ),
-                    FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
-                    false
-                );
+                $this->assignBlockData(array('CANVAS_WIDTH' => '450px'), $this->getGlobalBlockName());
 
                 // move it down slightly
                 $this->assignBlockData(

@@ -114,8 +114,7 @@ class FF_Output_Table {
                 'T_table_header' => $this->tableHeaderText,
                 'S_table_header' => 'style="text-align: center;"',
             ),
-            FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
-            false
+            $this->o_output->getGlobalBlockName()
         );
         $this->o_widget->touchBlock('switch_table_header');
     }

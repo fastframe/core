@@ -32,11 +32,15 @@
  *
  * TODO:
  * - 4th param to assignBlockData, if data has already been assigned to variable, append new data
- * - don't have to check for global block if just make global block persistent when creating blockList
- * - add a settings function which will set things like leaveUnparsedBlocks, leaveUnparsedVariables and parseUntouchedBlocks
+ * - don't have to check for global block if just make global block persistent when creating
+ *   blockList
+ * - add a settings function which will set things like leaveUnparsedBlocks,
+ *   leaveUnparsedVariables and parseUntouchedBlocks
  * - be able to append to a variable after it is assigned
  * - add a bit more error throwing
- * - we might be able to get away with caching branched blocks by having fixed length namespaces...then we can just do a string replace an not worry about destroying serialization
+ * - we might be able to get away with caching branched blocks by having fixed length
+ *   namespaces...then we can just do a string replace an not worry about destroying
+ *   serialization
  */
 // {{{ includes
 
@@ -54,7 +58,6 @@ define('FASTFRAME_TEMPLATE_DUPLICATE_BLOCK',     -5);
 define('FASTFRAME_TEMPLATE_CYCLE_NOT_ALLOWED',   -6);
 define('FASTFRAME_TEMPLATE_FILE_NOT_FOUND',      -7);
 
-define('FASTFRAME_TEMPLATE_GLOBAL_BLOCK', '**global**');
 // }}}
 // {{{ class FF_Template
 
@@ -71,37 +74,42 @@ define('FASTFRAME_TEMPLATE_GLOBAL_BLOCK', '**global**');
 class FF_Template {
     // {{{ properties
 
+    /**
+     * If debugging is on
+     * @type bool
+     */
     var $debug = false;
+
     /**
      * Array of accumulated errors, used primarily for non-fatal error accumulation.  Fatal
      * errors are returned when they occur.
-     * @var array $errorStack
+     * @type array
      */
     var $errorStack = array();
 
     /**
-     * [!] Still need to implement this [!]
-     * @var string $globalBlockName
+     * The global block name, used to identify the template which has no block around it.
+     * @type string
      */
-    var $globalBlockName = FASTFRAME_TEMPLATE_GLOBAL_BLOCK;
+    var $globalBlockName = '**global**'; 
 
     /**
      * Regular expression used to test for a valid blockname.
-     * @var string $blockNamePattern
+     * @type string
      */    
     var $blockNamePattern = '[[:alnum:]_]+';
     
     /**
      * Regular expression built to locate variables in a block.
-     * @var $variableLocatorPattern
      * @see constructor
+     * @type string
      */
     var $variableLocatorPattern;
 
     /**
      * Regular expression built to locate blocks within the template.
-     * @var $blockLocatorPattern
      * @see constructor
+     * @type string
      */
     var $blockLocatorPattern;
 
@@ -109,68 +117,68 @@ class FF_Template {
      * Regular expression used for blocks in the template.  The template is used because
      * sometimes we want to match the general pattern for a block variable and sometimes
      * we are looking for a specific one.
-     * @var string $blockPatternTemplate
+     * @type string
      */
     var $blockPatternTemplate = '<!-- BLOCK (%s) -->(\s*<!-- DELIMITER -->(.*?)<!-- /DELIMITER -->)?\s*(.*)<!-- /BLOCK \1 -->';
 
     /**
      * Used for creating new blocks
-     * @var $blockTemplate
+     * @type string 
      */
     var $blockTemplate = '<!-- BLOCK %s -->%s<!-- /BLOCK %s -->';
 
     /**
      * Runtime regular expression used for blocks in the template.  This is created by
      * using the block template and filling in the $blockNamePattern using sprintf()
-     * @var string $blockPattern, contructor
      * @see $blockPatternTemplate
+     * @type string
      */
     var $blockPattern = '';
 
     /**
      * Regular expression used to find include files in the template.
-     * @var string $includePattern
+     * @type string
      */
     var $includePattern = '<!-- INCLUDE (.*) -->';
 
     /**
      * Runtime regular expression used for finding include files in the template.
-     * @var string $includeLocatorPattern
+     * @type string
      */
     var $includeLocatorPattern = '';
 
     /**
      * Regular expression matching a variable name in the template
-     * @var string $variableNamePattern
      * @see $blockNamePattern, $variableWrapper, constructor
+     * @type string
      */
     var $variableNamePattern    = '[[:alnum:]_]+';
 
     /**
      * Runtime regular expression used to find a variable in the template. This is created
      * by surrounding this pattern with the variableWrappers
-     * @var string $variablePattern
      * @see $variableWrappers, contructor
+     * @type string
      */
     var $variablePattern = '';
 
     /**
      * An array of size 2 that contains the start and end delimiters.
-     * @var string $variableWrapper
      * @see $variableNamePattern
+     * @type string
      */
     var $variableWrapper = array('{', '}');
 
     /**
      * Toggles whether untouched blocks are permitted to be openned for parsing.
      * This is good to disabled if you know you have no conditional blocks.
-     * @var boolean $parseUntouchedBlocks
+     * @type bool
      */
     var $parseUntouchedBlocks = false;
 
     /**
      * Controls the handling of unassigned variables, default is to remove them.
-     * @var boolean $removeUnusedVariables
+     * @type bool
      */
     var $removeUnusedVariables = true;
 
@@ -178,28 +186,28 @@ class FF_Template {
      * Controls the handling of untouched blocks, default is to remove them.
      * It will actually be somewhat slower to leave them in because we have to
      * rebuild the template underneath them.
-     * @var boolean $removeUntouchedBlocks
+     * @type bool
      */
     var $removeUntouchedBlocks = true;
 
     /**
     * Name of the current block.  We begin with the global block, which is assigned in load()
-    * @var string $currentBlockName
     * @see load()
+    * @type string
     */
     var $currentBlockName = null;
 
     /**
      * Original content of the template.  Once the tree is loaded this variable is cleared
-     * @var string $template
+     * @type string
      */
     var $template = '';
 
     /**
      * Flag specifing whether or not a template is currently loaded.  This flag
      * can be toggled after loading a template with a call to reset()
-     * @var boolean $templateLoaded
      * @see reset(), load()
+     * @type bool
      */
     var $templateLoaded = false;
 
@@ -217,31 +225,35 @@ class FF_Template {
      *   'parsed'    => int     number of times the block has been parsed
      *   'persistent'=> bool    auto-touch, block does not need to be touched or assigned data to be parsed
      *   'callback'  => string  filter function that will be run on the block after parsing it
-     * @var array $blockList
      * @see _build_block_tree()
+     * @type array
      */
     var $blockList = array();
 
     /**
      * Variables which are available to the current block when parsing it.  This
      * array is a temporary storage location of variable references.
-     * @var array $availableVariables
      * @see parse()
+     * @type array
      */
     var $availableVariables = array();
 
+    /**
+     * Those blocks which are always touched
+     * @type array
+     */
     var $persistentBlocks = array();
 
     /**
      * Root directory for all file operations, which gets prefixed to all filenames given.
-     * @var string $fileRoot
      * @see setDirectory()
+     * @type string
      */
     var $fileRoot = './';
 
     /**
      * Internal flag indicating that a blockName was used multiple times.
-     * @var boolean $flagBlockTrouble
+     * @type bool
      */
     var $flagBlockTrouble = false;
 
@@ -249,15 +261,15 @@ class FF_Template {
      * Array of variables which have been claimed by a parent block.
      * This array is critical in building the ownership of each variable
      * so that we know when it is appropriate to delete the variables from the cache.
-     * @var array $ownedVariables
+     * @type array
      */
     var $ownedVariables = array();
 
     /**
      * Cache the build templates so that we don't have to ever rebuild them again.  These
      * templates are stored as serialized arrays (it is just the blockList)
-     * @var array $templateCache
      * @see $blockList, load()
+     * @type array
      */
     var $templateCache = array();
 
@@ -466,6 +478,11 @@ class FF_Template {
     {
         if (FF_Template::isError($blockName = $this->_validate_block($in_blockName, $this->currentBlockName))) {
             return $blockName;
+        }
+
+        // Never advance the global block or else we can't write to the template any more
+        if ($blockName == $this->globalBlockName) {
+            $in_advance = false;
         }
 
         if ($blockName != $this->globalBlockName) {
@@ -870,6 +887,20 @@ class FF_Template {
     }
 
     // }}}
+    // {{{ string  getGlobalBlockName()
+
+    /**
+     * Gets the global block name. 
+     *
+     * @access public
+     * @return string The global block name
+     */
+    function getGlobalBlockName()
+    {
+        return $this->globalBlockName;
+    }
+
+    // }}}
     // {{{ _build_block_tree()
 
     /**
@@ -1162,7 +1193,6 @@ class FF_Template {
  * @version  Revision: 1.0
  * @author   Dan Allen <dan@mojavelinux.com>
  * @access   public
- * @since    PHP 4.2.1
  * @package  FF_Template
  */
 
