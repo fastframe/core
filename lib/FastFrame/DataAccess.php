@@ -282,6 +282,23 @@ class FF_DataAccess {
     }
 
     // }}}
+    // {{{ boolToScalar()
+
+    /**
+     * Converts a boolean to the scalar of T and F which are the values stored for boolean
+     * fields.
+     *
+     * @param bool $in_bool The boolean value
+     *
+     * @access public
+     * @return string T if it is true, F otherwise
+     */
+    function boolToScalar($in_bool)
+    {
+        return $in_bool ? 'T' : 'F';
+    }
+
+    // }}}
     // {{{ getListData()
 
     /**
