@@ -21,11 +21,6 @@
 // +----------------------------------------------------------------------+
 
 // }}}
-// {{{ requires
-
-require_once FASTFRAME_ROOT . 'lib/FastFrame/ActionHandlerConfig.php';
-
-// }}}
 // {{{ class FF_ActionHandlerConfig
 
 /**
@@ -47,8 +42,10 @@ class FF_ActionHandlerConfig {
      * @type string 
      */
     var $actionHandler;
+
     // }}}
     // {{{ constructor
+
     /**
      * Configures actions for the Action Handler
      *
@@ -57,11 +54,12 @@ class FF_ActionHandlerConfig {
      */
     function FF_ActionHandlerConfig(&$in_actionHandler)
     {
-        $this->actionHandler=&$in_actionHandler;
+        $this->actionHandler =& $in_actionHandler;
     }
 
     // }}}
     // {{{ hasCheckAuth
+
     /**
      * Checks whether or not this function as a checkAuth() implementation 
      *
@@ -72,8 +70,10 @@ class FF_ActionHandlerConfig {
     {
         return false;
     }
+
     //}}}
     // {{{ checkAuth()
+
     /**
      * Initializes the auth object and makes sure that the page can proceed because the
      * authentication passes. Used to override the ActionHandler::_checkAuth() function 
@@ -85,7 +85,7 @@ class FF_ActionHandlerConfig {
     {
         return false;
     }
-    // }}}
 
+    // }}}
 }
 ?>
