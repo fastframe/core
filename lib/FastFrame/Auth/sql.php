@@ -1,5 +1,5 @@
 <?php
-/** $Id: sql.php,v 1.7 2003/02/08 00:10:55 jrust Exp $ */
+/** $Id: sql.php,v 1.8 2003/02/22 02:02:20 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -22,7 +22,7 @@
 // }}}
 // {{{ requires
 
-require_once 'DB/QueryTool.php';
+require_once 'DB.php'; 
 
 // }}}
 // {{{ class  AuthSource_sql
@@ -114,8 +114,10 @@ class AuthSource_sql extends AuthSource {
     {
         $o_registry =& FastFrame_Registry::singleton();
         // set up database
-        $o_data =& new DB_QueryTool($o_registry->getDataDsn());
-        $o_data->setTable($this->table);
+        $o_data =& DB::connect($o_registry->getDataDsn());
+        if (DB::isError($o_data)) {
+            FastFrame::fatal($result, __FILE__, __LINE__);
+        }
 
         // hash/encrypt the password if needed
         switch ($this->encryptionType) {
@@ -128,12 +130,15 @@ class AuthSource_sql extends AuthSource {
             break;
         }
 
-        $o_data->reset();
-        $o_data->addWhere($this->userField . '=' . $o_data->_db->quote($in_username));
-        $o_data->addWhere($this->passField . '=' . $o_data->_db->quote($s_encryptPass));
-        $s_result = $o_data->getCount();
-
-        if ($s_result) {
+        $s_query = sprintf('SELECT COUNT(*) FROM %s WHERE %s=%s AND %s=%s',
+                              $this->table,
+                              $this->userField,
+                              $o_data->quote($in_username),
+                              $this->passField,
+                              $o_data->quote($s_encryptPass)
+                          );
+        $s_result = $o_data->getOne($s_query);
+        if ($s_result == 1) {
             return true;
         }
         else {
