@@ -476,6 +476,8 @@ class FF_Menu {
                 $in_url['app'] = $this->currentAppPlaceholder;
             }
 
+            // Always want session to be on url in case someone has cookies off
+            $in_url[session_name()] = session_id();
             $s_url = FastFrame::url('index.php', $in_url);
             // Can't have the current session id in the url
             if ($in_sessionInTags) {
@@ -485,14 +487,7 @@ class FF_Menu {
                 $tmp_repl = '\' . SID . \'';
             }
 
-            // Always want the session in the url in case the user doesn't support cookies
-            if (strpos($s_url, session_name()) === false) {
-                $s_url .= '&' . $tmp_repl;
-            }
-            else {
-                $s_url = preg_replace('/' . session_name() . '=.*?(&|$)/S', "$tmp_repl\\1", $s_url);
-            }
-
+            $s_url = preg_replace('/' . session_name() . '=.*?(&|$)/S', "$tmp_repl\\1", $s_url);
             return $s_url;
         }
         else {
