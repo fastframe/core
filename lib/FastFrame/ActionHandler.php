@@ -22,8 +22,8 @@
 // }}}
 // {{{ requires
 
+require_once 'PEAR.php';
 require_once dirname(__FILE__) . '/ErrorHandler.php';
-require_once 'File.php';
 require_once dirname(__FILE__) . '/../FastFrame.php';
 require_once dirname(__FILE__) . '/Request.php';
 require_once dirname(__FILE__) . '/Registry.php';
@@ -523,6 +523,8 @@ class FF_ActionHandler {
      */
     function _initializeErrorHandler()
     {
+        // This causes all pear errors to be sent to the error handler
+        PEAR::setErrorHandling(PEAR_ERROR_TRIGGER, E_USER_NOTICE); 
         $o_error =& new FF_ErrorHandler();
         $GLOBALS['o_error'] =& $o_error;
         $o_error->setDateFormat('[Y-m-d H:i:s]');
