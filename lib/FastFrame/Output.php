@@ -380,8 +380,7 @@ class FF_Output {
     {
         if ($this->o_registry->getConfigParam('user/use_help', false)) {
             $in_title = is_null($in_title) ? _('Help') : $in_title;
-            return $this->link('#', $this->imgTag('help.png', 'actions', array('align' => 'middle',
-                        'style' => 'cursor: pointer;', 'height' => 16, 'width' => 16)),
+            return $this->link('#', $this->imgTag('help.png', 'actions', array('height' => 16, 'width' => 16)),
                     array('title' => $in_text, 'caption' => $in_title));
         }
         else {
@@ -528,7 +527,7 @@ class FF_Output {
      * @param array  $in_options (optional) A number of options that
      *               have to do with the image, included what type
      *               of image tag this is.  The options are as follows
-     *               width, height, type, align, style, onclick, id,
+     *               width, height, type, style, onclick, id,
      *               onlyUrl, fullPath, title, name, app (if the image is
      *               in a specific application)
      *
@@ -593,13 +592,9 @@ class FF_Output {
             $s_tag .= isset($in_options['id']) ? " id=\"{$in_options['id']}\"" : '';
             $s_tag .= isset($in_options['title']) ? " title=\"{$in_options['title']}\" alt=\"{$in_options['title']}\"" : '';
             $s_tag .= isset($in_options['name']) ? " name=\"{$in_options['name']}\"" : '';
-            $s_tag .= isset($in_options['hspace']) ? " hspace=\"{$in_options['hspace']}\"" : '';
-            $s_tag .= isset($in_options['vspace']) ? " vspace=\"{$in_options['vspace']}\"" : '';
             $s_tag .= isset($in_options['width']) ? " width=\"{$in_options['width']}\"" : '';
             $s_tag .= isset($in_options['height']) ? " height=\"{$in_options['height']}\"" : '';
             $s_tag .= isset($in_options['style']) ? " style=\"{$in_options['style']}\"" : '';
-            $s_tag .= isset($in_options['align']) ? " align=\"{$in_options['align']}\"" : ' align="middle"';
-            $s_tag .= isset($in_options['border']) ? " border=\"{$in_options['border']}\"" : ' border="0"';
             $s_tag .= ' />';
 
             return $s_tag;
@@ -956,7 +951,7 @@ class FF_Output {
     {
         $s_footer = $this->o_registry->getConfigParam('display/footer_text');
         if (strpos($s_footer, '%userInfo%') !== false) {
-            if (FF_Auth::checkAuth()) {
+            if (!FF_Auth::isGuest()) {
                 $s_footer = str_replace('%userInfo%', sprintf(_('You are logged in as %s.'), 
                             FF_Auth::getCredential('username')), $s_footer);
             }

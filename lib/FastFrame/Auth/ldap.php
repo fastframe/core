@@ -67,6 +67,15 @@ class FF_AuthSource_ldap extends FF_AuthSource {
      */
     var $password;
 
+    /**
+     * The capabilities of the auth source so we know what it can do.
+     * @var array
+     */
+    var $capabilities = array(
+            'resetpassword' => false,
+            'updateusername' => false,
+            'transparent' => false);
+
     // }}}
     // {{{ constructor
 

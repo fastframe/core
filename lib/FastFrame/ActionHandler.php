@@ -479,13 +479,10 @@ class FF_ActionHandler {
         } 
         else {
             if (!FF_Auth::checkAuth(true)) {
-                if ($this->o_registry->getAppParam('allow_guests', false)) {
-                    return true;
-                }
                 // If there was no app specified then they have arrived newly at the
                 // site.  We don't want to bounce them to the initial app only to have
                 // them bounce back to the login page.  So we send them straight to it.
-                elseif (FF_Request::getParam('app', 'gp', false) === false) {
+                if (FF_Request::getParam('app', 'gp', false) === false) {
                     $this->setAppId('login');
                     $this->setModuleId($this->o_registry->getConfigParam('general/initial_module', null, $this->appId));
                     $this->loadActions();
@@ -575,8 +572,8 @@ class FF_ActionHandler {
     // {{{ _checkProfile()
 
     /**
-     * Checks to see if the user must complete their profile before proceeding.  Redirects
-     * them to the profile page if so.
+     * Checks to see if the user must complete their profile before
+     * proceeding.  Redirects them to the profile page if so.
      *
      * @access private
      * @return void
@@ -584,7 +581,7 @@ class FF_ActionHandler {
     function _checkProfile()
     {
         if ($this->o_registry->hasApp('profile') &&
-            FF_Auth::checkAuth() && 
+            !FF_Auth::isGuest() &&
             !FF_Auth::getCredential('isProfileComplete') &&
             $this->getActionId() != ACTION_LOGOUT &&
             $this->o_registry->getConfigParam('profile/force_complete', false, 'profile')) {

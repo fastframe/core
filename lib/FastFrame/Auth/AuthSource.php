@@ -48,19 +48,13 @@ class FF_AuthSource {
     var $serverName;
 
     /**
-     * Whether the password value is writable.  If so the source must
-     * implement the updatePassword() method
-     * @var bool
+     * The capabilities of the auth source so we know what it can do.
+     * @var array
      */
-    var $passwordWritable = false;
-
-    /**
-     * Whether the username value is writable.  If so the source must
-     * implement the updateUserName() method
-     * @var bool
-     */
-    var $usernameWritable = false;
-
+    var $capabilities = array(
+            'resetpassword' => false,
+            'updateusername' => false,
+            'transparent' => false);
 
     // }}}
     // {{{ constructor
@@ -115,13 +109,24 @@ class FF_AuthSource {
     /**
      * Perform the login procedure.
      *
-     * Authenticates the user name and password. This implementation will always
-     * fail. 
-     *
      * @access public
-     * @return boolean determines if login was successfull
+     * @return bool determines if login was successfull
      */
     function authenticate($username, $password)
+    {
+        return false;
+    }
+
+    // }}}
+    // {{{ transparent()
+
+    /**
+     * Perform a transparent login procedure.
+     *
+     * @access public
+     * @return bool determines if login was successfull
+     */
+    function transparent()
     {
         return false;
     }
@@ -155,31 +160,19 @@ class FF_AuthSource {
     }
 
     // }}}
-    // {{{ isPasswordWritable()
+    // {{{ hasCapability()
 
     /**
-     * Determines if the password is writable.  Used in determining if it can be updated.
+     * Gets the specified capability
+     *
+     * @param $in_name The name of the capability
      *
      * @access public
-     * @return bool True if the password is writable.
+     * @return bool The capability 
      */
-    function isPasswordWritable()
+    function hasCapability($in_name)
     {
-        return $this->passwordWritable;
-    }
-
-    // }}}
-    // {{{ isUserNameWritable()
-
-    /**
-     * Determines if the username is writable.  Used in determining if it can be updated.
-     *
-     * @access public
-     * @return bool True if the username is writable.
-     */
-    function isUserNameWritable()
-    {
-        return $this->usernameWritable;
+        return $this->capabilities[$in_name];
     }
 
     // }}}

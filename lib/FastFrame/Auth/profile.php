@@ -41,7 +41,16 @@ class FF_AuthSource_profile extends FF_AuthSource {
      * @var object
      */
     var $o_model;
-    
+
+    /**
+     * The capabilities of the auth source so we know what it can do.
+     * @var array
+     */
+    var $capabilities = array(
+            'resetpassword' => true,
+            'updateusername' => true,
+            'transparent' => false);
+
     // }}}
     // {{{ constructor
 
@@ -57,8 +66,6 @@ class FF_AuthSource_profile extends FF_AuthSource {
     function FF_AuthSource_profile($in_name, $in_params)
     {
         FF_AuthSource::FF_AuthSource($in_name, $in_params);
-        $this->passwordWritable = true;
-        $this->usernameWritable = true;
         $o_registry =& FF_Registry::singleton();
         $this->serverName = $o_registry->getConfigParam('data/host');
         require_once $o_registry->getAppFile('Model/Profile.php', 'profile', 'libs');

@@ -374,10 +374,10 @@ class FF_Menu {
         // Possible options for visibility are guest_only, logged_in, and always
         $in_data['visibility'] = isset($in_data['visibility']) ? $in_data['visibility'] : 'logged_in';
         if ($in_data['visibility'] == 'guest_only') {
-            $a_ifStatements[] = '!FF_Auth::checkAuth()';
+            $a_ifStatements[] = 'FF_Auth::isGuest()';
         }
         elseif ($in_data['visibility'] == 'logged_in') {
-            $a_ifStatements[] = 'FF_Auth::checkAuth()';
+            $a_ifStatements[] = '!FF_Auth::isGuest()';
         }
 
         if (isset($in_data['perms'])) {

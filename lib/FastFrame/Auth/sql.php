@@ -65,6 +65,15 @@ class FF_AuthSource_sql extends FF_AuthSource {
      */
     var $passField;
 
+    /**
+     * The capabilities of the auth source so we know what it can do.
+     * @var array
+     */
+    var $capabilities = array(
+            'resetpassword' => false,
+            'updateusername' => false,
+            'transparent' => false);
+
     // }}}
     // {{{ constructor
 

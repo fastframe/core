@@ -16,42 +16,38 @@
 // | Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, |
 // | MA 02111-1307, USA.                                                  |
 // +----------------------------------------------------------------------+
-// | Authors: Greg Gilbert <greg@treke.net>                               |
+// | Authors: Jason Rust <jrust@codejanitor.com>                          |
 // +----------------------------------------------------------------------+
 
 // }}}
-// {{{ class  FF_AuthSource_imap
+// {{{ class  FF_AuthSource_guest
 
 /**
- * An authentication source for imap servers
+ * An authentication source that transparently logs users into FastFrame
+ * using a defined username (default: 'guest') to a set of apps
+ * (default: all).
  *
  * @version Revision: 1.0 
- * @author  Greg Gilbert <greg@treke.net>
+ * @author  Jason Rust <jrust@codejanitor.com>
  * @access  public
  * @package FastFrame
  */
 
 // }}}
-class FF_AuthSource_imap extends FF_AuthSource {
+class FF_AuthSource_guest extends FF_AuthSource {
     // {{{ properties
 
     /**
-     * The port on server to connect to
-     * @var string
+     * The array of apps that are valid for this auth source
+     * @var array
      */
-    var $serverPort;
+    var $allowedApps = array('*');
 
     /**
-     * The options used on the server 
+     * The username we register as being logged in
      * @var string
      */
-    var $serverOptions;
-
-	/**
-	 * A hostname or something else to append to the username
-	 * @var string
-	 */
-	var $usernameAppend;
+    var $username = 'guest';
 
     /**
      * The capabilities of the auth source so we know what it can do.
@@ -60,51 +56,43 @@ class FF_AuthSource_imap extends FF_AuthSource {
     var $capabilities = array(
             'resetpassword' => false,
             'updateusername' => false,
-            'transparent' => false);
+            'transparent' => true);
 
     // }}}
     // {{{ constructor
 
     /**
-     * Initialize the FF_AuthSource_imap class
-     *
-     * Create an instance of the FF_AuthSource class.  
+     * Initialize the FF_AuthSource_guest class
      *
      * @param string $in_name The name of this auth source
-     * @param array $in_params Parameters needed for authenticating against an imap server.
-     *              These include hostname, port
+     * @param array $in_params Parameters include 'username', 'apps' (an
+     *              array of valid applications to auto-login to or '*'
+     *              for all.
      *
      * @access public
-     * @return object FF_AuthSource_imap object
+     * @return object FF_AuthSource_guest object
      */
-    function FF_AuthSource_imap($in_name, $in_params)
+    function FF_AuthSource_guest($in_name, $in_params)
     {
         FF_AuthSource::FF_AuthSource($in_name, $in_params);
-        $this->serverName = $in_params['hostname'];
-        $this->serverOptions = isset($in_params['options']) ? '/' . $in_params['options'] : '';
-        $this->serverPort = isset($in_params['port']) ? $in_params['port'] : 143;
-        $this->usernameAppend = isset($in_params['username_append']) ? $in_params['username_append'] : '';
+        $this->allowedApps = (array) @$in_params['apps'];
+        $this->username = isset($in_params['username']) ? $in_params['username'] : $this->username;
     }
 
     // }}}
-    // {{{ authenticate()
+    // {{{ transparent()
 
     /**
-     * Perform the login procedure.
-     *
-     * Authenticates the user name and password against an imap server
-     *
-     * @param string $in_username The username
-     * @param string $in_password The password 
+     * Perform a transparent login procedure.
      *
      * @access public
-     * @return boolean determines if login was successfull
+     * @return bool determines if login was successfull
      */
-    function authenticate($in_username, $in_password)
+    function transparent()
     {
-        $s_imapString = '{' . $this->serverName . ':' . $this->serverPort . $this->serverOptions . '}';
-        if (($result = @imap_open($s_imapString, $in_username . $this->usernameAppend, $in_password))) {
-            @imap_close($result);
+        $o_registry =& FF_Registry::singleton();
+        if (in_array('*', $this->allowedApps) || in_array($o_registry->getCurrentApp(), $this->allowedApps)) {
+            FF_Auth::setAuth($this->username, array('transparent' => 1, 'apps' => $this->allowedApps));
             return true;
         }
         else {

@@ -29,7 +29,8 @@ define('FASTFRAME_AUTH_IDLED',     -1);
 define('FASTFRAME_AUTH_EXPIRED',   -2);
 define('FASTFRAME_AUTH_NO_LOGIN',  -3);
 define('FASTFRAME_AUTH_BAD_LOGIN', -4);
-define('FASTFRAME_AUTH_LOGOUT',    -5);
+define('FASTFRAME_AUTH_BAD_APP',   -5);
+define('FASTFRAME_AUTH_LOGOUT',    -6);
 
 // }}}
 // {{{ includes
@@ -79,27 +80,19 @@ class FF_Auth {
         $o_registry =& FF_Registry::singleton();
         $s_authType = $o_registry->getConfigParam('auth/method');
         $b_authenticated = false;
-        $a_credentials = array();
-        // populate all of the authentication sources
-        $a_sources = $o_registry->getConfigParam('auth/sources');
-        if (is_array($a_sources)) {
-            foreach ($a_sources as $a_source) {
-                // Get an AuthSource of the proper type
-                $o_authSource =& FF_Auth::getAuthSourceObject($a_source['name']);
-                if ($o_authSource->authenticate($in_username, $in_password)) {
-                    $a_credentials['authSource'] = $o_authSource->getName();
-                    $b_authenticated = true;
-                    break;
-                }
+        $a_credentials = array('apps' => array('*'));
+        $a_sources = (array) $o_registry->getConfigParam('auth/sources');
+        foreach ($a_sources as $a_source) {
+            $o_authSource =& FF_Auth::getAuthSourceObject($a_source['name']);
+            if ($o_authSource->authenticate($in_username, $in_password)) {
+                $a_credentials['authSource'] = $o_authSource->getName();
+                $b_authenticated = true;
+                break;
             }
-        }
-        else {
-            trigger_error('No authentication source was defined in the config file.', E_USER_ERROR);
-            return false;
         }
 
         if ($b_authenticated) {
-            FF_Auth::setAuth($in_username, $a_credentials, true);
+            FF_Auth::setAuth($in_username, $a_credentials);
             return true;
         }
         else {
@@ -116,11 +109,14 @@ class FF_Auth {
      * Checks if there is a session with valid the valid authentication
      * information. This includes checking for the session cookie anchor
      * to make sure this session did not leak to another browser.  If
-     * the cookie is not found they are logged out safely.
+     * the cookie is not found they are logged out safely.  If the user
+     * cannot be logged in we see if they can be logged in
+     * transparently.
      *
      * @param bool $in_full Do a full check, including the idle time,
-     *             exipire time, and session anchor?  This only needs to
-     *             be done once a page load, so normally we don't do it.
+     *             exipire time, transparent methods, and session
+     *             anchor?  This only needs to be done once a page load,
+     *             so normally we don't do it.
      *
      * @access public
      * @return bool {or void logout exception}
@@ -146,6 +142,11 @@ class FF_Auth {
                 FF_Auth::_setStatus(FASTFRAME_AUTH_IDLED);
                 return false;
             }
+            elseif (($a_apps = (array) FF_Auth::getCredential('apps')) &&
+                    !in_array('*', $a_apps) && !in_array($o_registry->getCurrentApp(), $a_apps)) {
+                FF_Auth::_setStatus(FASTFRAME_AUTH_BAD_APP);
+                return false;
+            }
             elseif (FF_Request::getParam('__auth__[\'registered\']', 's', false)) {
                 FF_Auth::_setStatus(FASTFRAME_AUTH_OK);
                 FF_Auth::_updateIdle();
@@ -155,6 +156,15 @@ class FF_Auth {
             }
         }
         else {
+            $o_registry =& FF_Registry::singleton();
+            $a_sources = (array) $o_registry->getConfigParam('auth/sources');
+            foreach ($a_sources as $a_source) {
+                $o_authSource =& FF_Auth::getAuthSourceObject($a_source['name']);
+                if ($o_authSource->hasCapability('transparent') && $o_authSource->transparent()) {
+                    return true;
+                }
+            }
+
             return false;
         }
 
@@ -170,6 +180,21 @@ class FF_Auth {
         }
 
         return true;
+    }
+
+    // }}}
+    // {{{ isGuest()
+
+    /**
+     * Determines if the current user is in guest mode (i.e. not logged
+     * in or transparently logged in)
+     *
+     * @access public
+     * @return bool Whether or not the user is a guest
+     */
+    function isGuest()
+    {
+        return (!FF_Auth::checkAuth() || FF_Auth::getCredential('transparent'));
     }
 
     // }}}
@@ -190,20 +215,16 @@ class FF_Auth {
     // {{{ setAuth()
 
     /**
-     * Force a transparent login.
-     *
-     * Set the appropriate variables so as to force a transparent login using
-     * the username.  The credentials are the extra information on the user such
-     * as the username
+     * Sets a variable in the session indicating that authentication has
+     * passed.  Extra credentials also are set.
      *
      * @param  string  $in_username The username who has been authorized
      * @param  mixed   $in_credentials (optional) other information to store about the user
-     * @param  bool    $in_setAnchor (optional) Set the anchor to tie this session to the browser?
      *
      * @access public
      * @return void
      */
-    function setAuth($in_username, $in_credentials = null, $in_setAnchor = false)
+    function setAuth($in_username, $in_credentials = array())
     {
         FF_Request::setParam('__auth__', array(
             'registered' => true,
@@ -211,20 +232,14 @@ class FF_Auth {
             'username'   => $in_username,
             'timestamp'  => time(),
             'idle'       => time()), 's');
-        
-        if (!is_null($in_credentials)) {
-            FF_Request::setParam('__auth__[\'credentials\']', $in_credentials, 's');
-        }
-
-        // username is a credential as well as an auth item
-        FF_Request::setParam('__auth__[\'credentials\'][\'username\']', $in_username, 's');
+        $in_credentials['username'] = $in_username;
+        FF_Request::setParam('__auth__[\'credentials\']', $in_credentials, 's');
         
         // set the anchor for this browser to never expire
-        if ($in_setAnchor) {
-            FF_Request::setCookies(array(FF_Auth::_getSessionAnchor() => 1), 0,
-                $this->o_registry->getConfigParam('cookie/path'),
-                $this->o_registry->getConfigParam('cookie/domain'));
-        }
+        $o_registry =& FF_Registry::singleton();
+        FF_Request::setCookies(array(FF_Auth::_getSessionAnchor() => 1), 0,
+            $o_registry->getConfigParam('cookie/path'),
+            $o_registry->getConfigParam('cookie/domain'));
     }
 
     // }}}
@@ -238,9 +253,10 @@ class FF_Auth {
      */
     function clearAuth()
     {
+        $o_registry =& FF_Registry::singleton();
         FF_Request::unsetCookies(array('__auth__', FF_Auth::_getSessionAnchor()),
-                $this->o_registry->getConfigParam('cookie/path'),
-                $this->o_registry->getConfigParam('cookie/domain'));
+                $o_registry->getConfigParam('cookie/path'),
+                $o_registry->getConfigParam('cookie/domain'));
         FF_Request::setParam('__auth__', array(), 's');
         FF_Request::setParam('__auth__[\'registered\']', false, 's');
     }
