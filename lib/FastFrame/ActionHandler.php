@@ -172,14 +172,8 @@ class FF_ActionHandler {
         $this->_makeDefaultPathsAbsolute();
         $this->_checkProfile();
         $o_output =& FF_Output::singleton();
-        if ($this->o_registry->getConfigParam('display/theme_locked', false)) {
-            $s_theme = $this->o_registry->getConfigParam('display/default_theme');
-        }
-        else {
-            $s_theme = FF_Auth::getCredential('theme');
-            $s_theme = empty($s_theme) ? $this->o_registry->getConfigParam('display/default_theme') : $s_theme;
-        }
-
+        $s_theme = FF_Auth::getCredential('theme');
+        $s_theme = empty($s_theme) ? $this->o_registry->getConfigParam('display/default_theme') : $s_theme;
         $o_output->load($s_theme);
     }
 

@@ -323,18 +323,22 @@ class FF_Menu {
     function _importMenuVars()
     {
         $this->menuVariables = array();
-        // Loop through the apps and grab the menu vars for each registered app
+        // First just loop and include all actions so all apps can link to other apps
+        foreach ($this->o_registry->getApps() as $s_app) {
+            // Include any additional action IDs this app has
+            $pth_actions = $this->o_registry->getAppFile('ActionHandler/actions.php', $s_app, 'libs');
+            if (file_exists($pth_actions)) {
+                require_once $pth_actions;
+            }
+        }
+
+        // Now loop through enabled apps and get the menu variables
         foreach ($this->o_registry->getApps() as $s_app) {
             // Make sure this app is enabled 
             if ($this->o_registry->getAppParam('status', 'disabled', array('app' => $s_app)) != 'enabled') {
                 continue;
             }
                 
-            // Include any additional action IDs this app has
-            $pth_actions = $this->o_registry->getAppFile('ActionHandler/actions.php', $s_app, 'libs');
-            if (file_exists($pth_actions)) {
-                require_once $pth_actions;
-            }
 
             $pth_menu = $this->o_registry->getAppFile($this->_getMenuFilename($s_app), $s_app, 'config');
             if (file_exists($pth_menu)) {

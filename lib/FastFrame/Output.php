@@ -153,8 +153,7 @@ class FF_Output extends FF_Template {
      */
     function load($in_theme)
     {
-        $this->theme = FF_Request::getParam('printerFriendly', 'gp', false) && 
-            !$this->o_registry->getConfigParam('display/theme_locked', false) ?
+        $this->theme = FF_Request::getParam('printerFriendly', 'gp', false) ?
             $this->o_registry->getConfigParam('display/print_theme') : $in_theme;
 
         // See if theme is a full path (if theme is in app directory it can be)
