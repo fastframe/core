@@ -367,12 +367,19 @@ class FF_DataAccess {
             $s_searchCondition = '`%field%` LIKE ' . $this->o_data->quote('%' . $in_searchString . '%');
         }
 
-        $tmp_fields = array();
-        foreach ($in_searchFields as $s_field) {
-            $tmp_fields[] = str_replace('%field%', $s_field, $s_searchCondition);
+        if (count($in_searchFields) != 0) {
+            $tmp_fields = array();
+            foreach ($in_searchFields as $s_field) {
+                $tmp_fields[] = str_replace('%field%', $s_field, $s_searchCondition);
+            }
+
+            $s_where = implode(" OR \n", $tmp_fields);
+        }
+        else {
+            // Allow for an empty search field list 
+            $s_where = '1';
         }
 
-        $s_where = implode(" OR \n", $tmp_fields);
         return $s_where;
     }
 
