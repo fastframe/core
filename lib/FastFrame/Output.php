@@ -1,5 +1,5 @@
 <?php
-/** $Id: Output.php,v 1.7 2003/04/02 00:08:20 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -482,7 +482,7 @@ class FF_Output extends FF_Template {
      *                        the path includes the type in it.
      * @param array  $in_options (optional) A number of options that have to do with the image tag, included 
      *                           what type of image tag this is.  The options are as follows
-     *                           width, height, type, align, style, onclick, state, onlyURL
+     *                           width, height, type, align, style, onclick, state, onlyUrl
      *
      * @access public
      * @return string image tag
@@ -623,7 +623,7 @@ class FF_Output extends FF_Template {
         $in_options['style'] = isset($in_options['style']) && !Net_UserAgent_Detect::isBrowser('ns4') ? " style=\"{$in_options['style']}\"" : '';
         $in_options['onclick'] = isset($in_options['onclick']) ? " onclick=\"{$in_options['onclick']}\"" : '';
 
-        if (isset($in_options['onlyURL']) && $in_options['onlyURL']) {
+        if (isset($in_options['onlyUrl']) && $in_options['onlyUrl']) {
             return $s_imgWebPath;
         }
         else {
