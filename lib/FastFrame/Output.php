@@ -479,7 +479,7 @@ class FF_Output {
         }
 
         if (!isset($a_files[$in_file])) {
-            $a_file[$in_file] = 1;
+            $a_files[$in_file] = 1;
             $this->o_tpl->append('javascript',
                     '<script language="JavaScript" type="text/javascript" src="' . $in_file . '"></script>');
         }
