@@ -1,5 +1,5 @@
 <?php
-/** $Id: Display.php,v 1.6 2003/03/15 01:26:57 jrust Exp $ */
+/** $Id: Display.php,v 1.7 2003/04/04 23:11:28 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -28,13 +28,13 @@ require_once dirname(__FILE__) . '/../Action.php';
 // {{{ class FF_Action_Display 
 
 /**
- * The FF_Action_Display:: class handles displaying some object, such as a table or
- * image to the user. 
+ * The FF_Action_Display:: class handles displaying a representation of the model to the
+ * user 
  *
  * @author  Jason Rust <jrust@codejanitor.com>
  * @version Revision: 1.0 
  * @access  public
- * @package ActionHandler 
+ * @package Action 
  */
 
 // }}}
@@ -65,9 +65,99 @@ class FF_Action_Display extends FF_Action {
      */
     function run()
     {
-        $this->o_output->setMessage(_('Please choose an action from the menu.'), FASTFRAME_ERROR_MESSAGE);
+        if (!$this->checkPerms()) {
+            return $this->o_nextAction;
+        }
+
+        if (!$this->fillModelWithData()) {
+            return $this->o_nextAction;
+        }
+
+        $this->o_output->setPageName($this->getPageName());
+        $this->renderDisplay();
         $this->o_output->output();
         return $this->o_nextAction;
+    }
+
+    // }}}
+    // {{{ renderDisplay()
+
+    /**
+     * Renders the display over the table.
+     *
+     * @access public
+     * @return void
+     */
+    function renderDisplay()
+    {
+        // interface
+    }
+
+    // }}}
+    // {{{ fillModelWithData()
+
+    /**
+     * Fills the model object with data for the field being edited.  If an error occurs in
+     * getting the data we set the problem action id.
+     *
+     * @access public
+     * @return bool True if the model loaded successfully, false otherwsie
+     */
+    function fillModelWithData()
+    {
+        $b_result = $this->o_model->fillById(FastFrame::getCGIParam('objectId', 'gp'));
+        if (!$b_result) {
+            $this->o_output->setMessage(
+                sprintf(_('Could not find the specified %s'), $this->getSingularText()), 
+                FASTFRAME_ERROR_MESSAGE
+            );
+            $this->o_nextAction->setNextActionId(ACTION_LIST);
+            return false; 
+        }
+
+        return true;
+    }
+
+    // }}}
+    // {{{ checkPerms()
+
+    /**
+     * Check the permissions on this action.
+     *
+     * @access public
+     * @return bool True if everything is ok, false if a new action has been set
+     */
+    function checkPerms()
+    {
+        return true;
+    }
+
+    // }}}
+    // {{{ getSingularText()
+
+    /**
+     * Gets the text that describes a singular version of the items displayed
+     *
+     * @access public
+     * @return string The singular text
+     */
+    function getSingularText()
+    {
+        return _('Item');
+    }
+
+    // }}}
+    // {{{ getPageName()
+
+    /**
+     * Returns the page name for this action 
+     *
+     * @access public
+     * @return string The page name
+     */
+    function getPageName()
+    {
+        return sprintf(_('%s Display'), $this->getSingularText());
     }
 
     // }}}
