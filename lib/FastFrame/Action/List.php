@@ -207,6 +207,10 @@ class FF_Action_List extends FF_Action_Form {
                     ' onclick="window.location.href=\'' . $this->getHighlightedRowUrl() . '\';"' : '';
                 $a_cells = array();
                 foreach ($a_map as $tmp_fields) {
+                    if (!empty($tmp_fields['notable'])) {
+                        continue;
+                    }
+
                     $s_attr = isset($tmp_fields['attr']) ? $tmp_fields['attr'] : '';
                     $tmp_fields['args'] = isset($tmp_fields['args']) ? $tmp_fields['args'] : array();
                     // Cells with buttons have  special attributes
@@ -216,7 +220,6 @@ class FF_Action_List extends FF_Action_Form {
                             $tmp_fields['object'] =& $this;
                         }
                     }
-                    
 
                     if (isset($tmp_fields['object'])) {
                         $tmp_displayData = $this->o_output->processCellData(
@@ -259,8 +262,10 @@ class FF_Action_List extends FF_Action_Form {
         $a_colData = array();
         $a_searchData = array();
         foreach ($this->getFieldMap() as $s_key => $a_val) {
-            $a_colData[$s_key] = array('name' => $a_val['description']);
             $a_searchData[$s_key] = array('name' => $a_val['description']);
+            if (empty($a_val['notable'])) {
+                $a_colData[$s_key] = array('name' => $a_val['description']);
+            }
 
             if (isset($a_val['field'])) {
                 $a_colData[$s_key]['sort'] = $a_val['field'];
@@ -422,7 +427,7 @@ class FF_Action_List extends FF_Action_Form {
     }
 
     // }}}
-    //{{{ getFieldMap()
+    // {{{ getFieldMap()
 
     /**
      * Returns the field map array.
@@ -437,6 +442,7 @@ class FF_Action_List extends FF_Action_Form {
      * 'sort' => Field name to sort by.
      * 'field' => A shortcut way to set a field as both searchable and
      *  sortable.
+     *  'notable' => Hides the field from being displayed in the table.
      *  'attr' => Any attributes to apply to the cell
      * 'description' => Description of the field.
      * 'img' => Makes the column header the specified image
