@@ -233,11 +233,13 @@ class FF_DataAccess {
      * @param int $in_id The id value so we can check against the primary key
      * @param bool $in_isUpdate Is this an update?  If so we will allow for the value to be
      *             in its existing row.
+     * @param string $in_where (optional) Any additional statements to add to the WHERE
+     *               clause
      *
      * @access public
      * @return bool True if it is unique, false otherwise
      */
-    function isDataUnique($in_dataField, $in_data, $in_id, $in_isUpdate)
+    function isDataUnique($in_dataField, $in_data, $in_id, $in_isUpdate, $in_where = null)
     {
         $s_query = sprintf('SELECT COUNT(*) FROM %s WHERE %s=%s',
                               $this->table,
@@ -249,6 +251,10 @@ class FF_DataAccess {
                                    $this->primaryKey,
                                    $this->o_data->quote($in_id)
                                );
+        }
+
+        if (!is_null($in_where)) {
+            $s_query .= ' ' . $in_where;
         }
 
         if ($this->o_data->getOne($s_query) == 0) {
