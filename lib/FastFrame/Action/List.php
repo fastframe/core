@@ -24,7 +24,7 @@
 
 require_once dirname(__FILE__) . '/Form.php';
 require_once dirname(__FILE__) . '/../List.php';
-require_once dirname(__FILE__) . '/../Model/ListModeler.php';
+require_once dirname(__FILE__) . '/../ListModeler.php';
 require_once dirname(__FILE__) . '/../Output/Table.php';
 
 // }}}
@@ -116,7 +116,7 @@ class FF_Action_List extends FF_Action_Form {
             array('actionId' => $this->currentActionId)
         );
         $this->processFieldMapForList($this->getFieldMap());
-        $this->o_listModeler =& new FF_Model_ListModeler($this->o_list, $this->o_model, $this->getFilter());
+        $this->o_listModeler =& new FF_ListModeler($this->o_list, $this->o_model, $this->getFilter());
         if (!$this->o_listModeler->performSearch()) {
             $this->o_output->setMessage(_('Unable to query data'), FASTFRAME_ERROR_MESSAGE);
             $this->o_nextAction->setNextActionId(ACTION_PROBLEM);

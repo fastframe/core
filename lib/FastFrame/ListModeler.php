@@ -20,10 +20,10 @@
 // +----------------------------------------------------------------------+
 
 // }}}
-// {{{ class FF_Model_ListModeler
+// {{{ class FF_ListModeler
 
 /**
- * The FF_Model_ListModeler:: is a class to help in producing a list of models.
+ * The FF_ListModeler:: is a class to help in producing a list of models.
  *
  * This class provides the ability to get the necessary data from a SQL database and return
  * a new model upon each iteration of the result set.  Is used in conjunction with an
@@ -36,7 +36,7 @@
  */
 
 // }}}
-class FF_Model_ListModeler {
+class FF_ListModeler {
     // {{{ properties
 
     /**
@@ -82,7 +82,7 @@ class FF_Model_ListModeler {
      * @access public
      * @return void
      */
-    function FF_Model_ListModeler(&$in_listObject, &$in_modelObject, $in_filter)
+    function FF_ListModeler(&$in_listObject, &$in_modelObject, $in_filter)
     {
         $this->o_list =& $in_listObject;
         $this->o_model =& $in_modelObject;
