@@ -125,8 +125,6 @@ class FF_Output {
         $this->o_tpl =& new FF_Smarty('overall');
         $this->setDefaults();
         // Include some common js
-        $this->addScriptFile($this->o_registry->getRootFile('domLib_strip.js', 'javascript', FASTFRAME_WEBPATH));
-        $this->addScriptFile($this->o_registry->getRootFile('domTT_strip.js', 'javascript', FASTFRAME_WEBPATH));
         $this->addScriptFile($this->o_registry->getRootFile('core.lib.js', 'javascript', FASTFRAME_WEBPATH));
         // Prevents E_ALL errors
         $this->o_tpl->assign(array('content_left' => array(), 'content_middle' => array(),
@@ -245,9 +243,9 @@ class FF_Output {
     // {{{ link()
 
     /**
-     * Creates an entire link tag using linkStart() and linkEnd()
+     * Creates a link tag
      *
-     * @param  string $in_url The full URL to be linked to
+     * @param  string $in_url The URL to be linked to
      * @param  string $in_text content for the link tag
      * @param  array  $in_options A number of options that have to do with the a tag.  The 
      *                            options are as follows:
@@ -255,53 +253,17 @@ class FF_Output {
      *
      * @access public
      * @return string Entire <a> tag plus attributes
-     *
-     * @see linkStart(), linkEnd()
      */
     function link($in_url, $in_text, $in_options = array())
     {
-        // Title should be the text if it's not set and isn't an image tag
-        if (!isset($in_options['title']) && strpos($in_text, '<img') === false) {
-            $in_options['title'] = $in_text;
-        }
+        $a_options = array('title' => '', 'caption' => '', 'status' => '',
+                // these can be blank or event (onmouseover, onmousemove or onclick)
+                'greasy' => '', 'sticky' => '',
+                'confirm' => '', 'onclick' => '', 'class' => '',
+                'style' => '', 'target' => '_self');
 
-        return FF_Output::linkStart($in_url, $in_options) . $in_text . FF_Output::linkEnd();
-    }
+        $a_options = array_merge($a_options, $in_options);
 
-    // }}}
-    // {{{ linkStart()
-
-    /**
-     * Return an anchor tag with the relevant parameters 
-     *
-     * @param  string $in_url The full URL to be linked to
-     * @param  array  $in_options A number of options that have to do with the a tag.  The 
-     *                            options are as follows:
-     *                            status, title, class, target, onclick, style, confirm
-     *
-     * @return string The start <a> tag plus attributes
-     */
-    function linkStart($in_url, $in_options = array())
-    {
-        // cast $in_options to an array
-        settype($in_options, 'array');
-
-        $a_defaults = array(
-            'title'       => '',
-            'caption'     => '',
-            'status'      => '',
-            'greasy'      => '', // can be blank or event (onmouseover, onmousemove or onclick)
-            'sticky'      => '', // can be blank or event (onclick, onmouseover, onmousemove)
-            'confirm'     => '',
-            'onclick'     => '',
-            'class'       => '',
-            'style'       => '',
-            'target'      => '_self',
-        );
-
-        $a_options = array_merge($a_defaults, $in_options);
-
-        // make sure you manually add cslashes where necessary for your onclick
         if (!empty($a_options['onclick'])) {
             $a_options['onclick'] = strtr(htmlspecialchars($a_options['onclick']), "\n\r", '  ');
         }
@@ -311,44 +273,37 @@ class FF_Output {
             $a_options['onclick'] .= ' return window.confirm(\'' . $s_confirm . '\');';
         }
 
-        $a_events = $this->_prepareTooltip(
-            array(
-                'caption'      => $a_options['caption'],
-                'content'      => $a_options['title'],
-                'status'       => $a_options['status'],
-                'sticky'       => $a_options['sticky'],
-                'greasy'       => $a_options['greasy'],
-                'onclick'      => $a_options['onclick'],
-            )
-        );
+        // We use the basic title tag when there is no caption.
+        if (empty($a_options['caption'])) {
+            $a_events = array('onclick' => $a_options['onclick'], 'onmouseover' => '', 'onmousemove' => '');
+            // Make the text the title if no title was passed in
+            if (empty($in_options['title']) && strpos($in_text, '<img') === false) {
+                $a_options['title'] = $in_text;
+            }
+        }
+        else {
+            $a_events = $this->_prepareTooltip(array('caption' => $a_options['caption'], 
+                        'content' => $a_options['title'], 'status' => $a_options['status'],
+                        'sticky' => $a_options['sticky'], 'greasy' => $a_options['greasy'],
+                        'onclick' => $a_options['onclick']));
+            // Title is replaced by a tooltip
+            $a_options['title'] = '';
+        }
 
         // build the tag
-        $s_tag = '<a ';
-        // in some cases we don't want href, because IE evaluates that before the onclick
-        $s_tag .= !empty($in_url) ? 'href="' . $in_url . '"' : '';
-        $s_tag .= $a_events['onmouseover'] != '' ? ' onmouseover="' . $a_events['onmouseover'] . '"' : '';
-        $s_tag .= $a_events['onmousemove'] != '' ? ' onmousemove="' . $a_events['onmousemove'] . '"' : '';
-        $s_tag .= $a_events['onclick'] != '' ? ' onclick="' . $a_events['onclick'] . '"' : '';
+        $s_tag = '<a href="' . $in_url . '"';
+        $s_tag .= !empty($a_events['onmouseover']) ? ' onmouseover="' . $a_events['onmouseover'] . '"' : '';
+        $s_tag .= !empty($a_events['onmousemove']) ? ' onmousemove="' . $a_events['onmousemove'] . '"' : '';
+        $s_tag .= !empty($a_events['onclick']) ? ' onclick="' . $a_events['onclick'] . '"' : '';
+        $s_tag .= !empty($a_options['title']) ? ' title="' . $a_options['title'] . '"' : '';
         $s_tag .= !empty($a_options['class']) ? ' class="' . $a_options['class'] . '"' : '';
         $s_tag .= !empty($a_options['style']) ? ' style="' . $a_options['style'] . '"' : '';
         $s_tag .= !empty($a_options['target']) ? ' target="' . $a_options['target'] . '"' : '';
-
         $s_tag .= '>';
-        return $s_tag;
+ 
+        return $s_tag . $in_text . '</a>';
     }
 
-    // }}}
-    // {{{ linkEnd()
-
-    /**
-    * Returns an end link
-    * @return   string  The Output to end a link 
-    */
-    function linkEnd()
-    {
-        return '</a>';
-    }
-    
     // }}}
     // {{{ popupLink()
 
@@ -476,14 +431,12 @@ class FF_Output {
         }
         else {
             $a_events = $this->_prepareTooltip(array(
-                    'caption'      => isset($in_options['caption']) ? $in_options['caption'] : '',
-                    'content'      => isset($in_options['title']) ? $in_options['title'] : '',
-                    'status'       => isset($in_options['status']) ? $in_options['status'] : '',
-                    'sticky'       => isset($in_options['sticky']) ? $in_options['sticky'] : '',
-                    'greasy'       => isset($in_options['greasy']) ? $in_options['greasy'] : '',
-                    'onclick'       => isset($in_options['onclick']) ? $in_options['onclick'] : '',
-                )
-            );
+                    'caption' => isset($in_options['caption']) ? $in_options['caption'] : '',
+                    'content' => isset($in_options['title']) ? $in_options['title'] : '',
+                    'status'  => isset($in_options['status']) ? $in_options['status'] : '',
+                    'sticky'  => isset($in_options['sticky']) ? $in_options['sticky'] : '',
+                    'greasy'  => isset($in_options['greasy']) ? $in_options['greasy'] : '',
+                    'onclick' => isset($in_options['onclick']) ? $in_options['onclick'] : ''));
             $s_tag = '<';
             $s_tag .= isset($in_options['type']) && $in_options['type'] == 'input' ? 
                 'input type="image"' : 'img';
@@ -510,7 +463,9 @@ class FF_Output {
     // {{{ addScriptFile()
 
     /**
-     * Adds a javascript file to the template.
+     * Adds a javascript file to the template.  Keeps track of those
+     * files that have been addes so that they are not sent more than
+     * once.
      *
      * @param string $in_file The path to the javascript file
      * @access public
@@ -518,8 +473,16 @@ class FF_Output {
      */
     function addScriptFile($in_file)
     {
-        $this->o_tpl->append('javascript',
-                '<script language="JavaScript" type="text/javascript" src="' . $in_file . '"></script>');
+        static $a_files;
+        if (!isset($a_files)) {
+            $a_files = array();
+        }
+
+        if (!isset($a_files[$in_file])) {
+            $a_file[$in_file] = 1;
+            $this->o_tpl->append('javascript',
+                    '<script language="JavaScript" type="text/javascript" src="' . $in_file . '"></script>');
+        }
     }
 
     // }}}
@@ -930,6 +893,9 @@ class FF_Output {
             $a_events[$in_options['sticky']] = 'sticky';
         }
 
+        // Require the needed javascript since a tooltip will be used
+        $this->addScriptFile($this->o_registry->getRootFile('domLib_strip.js', 'javascript', FASTFRAME_WEBPATH));
+        $this->addScriptFile($this->o_registry->getRootFile('domTT_strip.js', 'javascript', FASTFRAME_WEBPATH));
         foreach ($a_events as $s_event => $s_type) {
             if (!$s_type) {
                 continue;

@@ -120,6 +120,13 @@ class FF_Menu {
      */
     var $currentAppPlaceholder = '%currentApp%';
 
+    /**
+     * If we are in debug mode we output the menu code formatted nicely. 
+     * Otherwise it is condensed with no padding or newlines.
+     * @var bool
+     */
+    var $debug = false;
+
     // }}}
     // {{{ constructor()
 
@@ -405,7 +412,8 @@ class FF_Menu {
         }
 
         if (count($a_ifStatements) != 0) {
-            $in_node = "\n<?php if (" . implode(' && ', $a_ifStatements) . ") { ?>\n$in_node\n<?php } ?>\n";
+            $tmp_nl = $this->debug ? "\n" : ' '; 
+            $in_node = "$tmp_nl<?php if (" . implode(' && ', $a_ifStatements) . ") { ?>$tmp_nl$in_node$tmp_nl<?php } ?>$tmp_nl";
         }
 
         return $in_node;
@@ -428,8 +436,9 @@ class FF_Menu {
     {
 
         if (isset($in_data['app_private']) && $in_data['app_private'] == true) {
+            $tmp_nl = $this->debug ? "\n" : ' '; 
             $s_appCheck = '$o_registry->getCurrentApp() == \'' . $this->currentAppPlaceholder .  '\'';
-            $in_node = "\n<?php if ($s_appCheck) { ?>\n$in_node\n<?php } ?>\n";
+            $in_node = "$tmp_nl<?php if ($s_appCheck) { ?>$tmp_nl$in_node$tmp_nl<?php } ?>$tmp_nl";
         }
 
         return $in_node;

@@ -49,7 +49,6 @@ class FF_Menu_DOM extends FF_Menu {
             $this->_importMenuVars();
             // Create all the javascript needed for the menu 
             $s_domMenu = '
-            <script type="text/javascript" src="' . $this->o_registry->getRootFile('domMenu_strip.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>
             <script type="text/javascript">
             domMenu_settings.set("domMenu_main", new Hash(
                 "expandMenuArrowUrl", "' . $this->o_output->imgTag('right-black.gif', 'arrows', array('onlyUrl' => true)) . '",
@@ -73,6 +72,8 @@ class FF_Menu_DOM extends FF_Menu {
         // We have to take off the last comma from the last node of each set
         $s_domMenu = preg_replace('/,(\s+)\)/', '\\1)', $s_domMenu);
         // Load menu js
+        $this->o_output->addScriptFile($this->o_registry->getRootFile('domLib_strip.js', 'javascript', FASTFRAME_WEBPATH));
+        $this->o_output->addScriptFile($this->o_registry->getRootFile('domMenu_strip.js', 'javascript', FASTFRAME_WEBPATH));
         $this->o_output->o_tpl->append('javascript', $s_domMenu);
     }
 
@@ -125,16 +126,16 @@ class FF_Menu_DOM extends FF_Menu {
     {
         $in_data = $this->_formatMenuNodeData($in_data, true);
         $in_data['contents'] = $in_data['icon'] . $in_data['statusText'];
-        $tmp_pad = str_repeat(' ', $in_level * 2);
+        $tmp_pad = $this->debug ? str_repeat(' ', $in_level * 2) : '';
+        $tmp_nl = $this->debug ? "\n" : ' ';
 
         // Create js for this node
         // The hash number has to be dynamic so perms will work
-        $s_jsNode = "
-        $tmp_pad<?php echo ++\$a_count[$in_level]; ?>, new Hash(
-        $tmp_pad    'contents', '<?php echo addcslashes(_('{$in_data['contents']}'), '\''); ?>',
-        $tmp_pad    'uri', '{$in_data['urlParams']}',
-        $tmp_pad    'target', '{$in_data['target']}',
-        $tmp_pad    'statusText', '<?php echo addcslashes(_('{$in_data['statusText']}'), '\''); ?>'";
+        $s_jsNode = "$tmp_pad<?php echo ++\$a_count[$in_level]; ?>, new Hash($tmp_nl";
+        $s_jsNode .= "$tmp_pad'contents', '<?php echo addcslashes(_('{$in_data['contents']}'), '\''); ?>',$tmp_nl";
+        $s_jsNode .= "$tmp_pad'uri', '{$in_data['urlParams']}',$tmp_nl";
+        $s_jsNode .= "$tmp_pad'target', '{$in_data['target']}',$tmp_nl";
+        $s_jsNode .= "$tmp_pad'statusText', '<?php echo addcslashes(_('{$in_data['statusText']}'), '\''); ?>'$tmp_nl";
 
         // Recurse sub-elements
         $s_nextLevel = $in_level + 1;
@@ -143,8 +144,7 @@ class FF_Menu_DOM extends FF_Menu {
             if (is_int($s_key) && is_array($a_data)) {
                 // See if we need to init counter for this level
                 if (!$s_initCounter) {
-                    $s_jsNode .= ",
-                    $tmp_pad<?php \$a_count[$s_nextLevel] = 0; ?>";
+                    $s_jsNode .= ",$tmp_nl$tmp_pad<?php \$a_count[$s_nextLevel] = 0; ?>";
                     $s_initCounter = true;
                 }
 
@@ -152,9 +152,7 @@ class FF_Menu_DOM extends FF_Menu {
             }
         }
 
-        $s_jsNode .= "
-        $tmp_pad),";
-
+        $s_jsNode .= "$tmp_nl$tmp_pad),";
         $s_jsNode = $this->_processPerms($in_data, $s_jsNode);
         $s_jsNode = $this->_processApps($in_data, $s_jsNode);
         return $s_jsNode;
