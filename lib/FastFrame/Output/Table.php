@@ -1,5 +1,5 @@
 <?php
-/** $Id: Table.php,v 1.1 2003/02/06 22:26:32 jrust Exp $ */
+/** $Id: Table.php,v 1.2 2003/02/06 22:31:46 jrust Exp $ */
 // {{{ requires 
 
 require_once dirname(__FILE__) . '/../Output.php';
@@ -14,12 +14,10 @@ require_once dirname(__FILE__) . '/../Output.php';
  * See the enclosed file COPYING for license information (LGPL). If you
  * did not receive this file, see http://www.fsf.org/copyleft/lesser.html.
  *
- * @author  Horde  http://www.horde.org/
  * @author  Jason Rust <jrust@rustyparts.com>
- * @author  Dan Allen <dan@mojavelinux.com>
- * @version Revision: 2.0 
+ * @version Revision: 1.0 
  * @access  public
- * @package FastFrame
+ * @package Output 
  */
 
 // }}}
