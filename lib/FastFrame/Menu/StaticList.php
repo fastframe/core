@@ -40,7 +40,7 @@ class FF_Menu_StaticList extends FF_Menu {
      * The css class we use for the each node
      * @var string
      */
-    var $cssClass = 'listElement';
+    var $cssClass = '';
 
     /**
      * The template variable to which we assign the menu
@@ -65,8 +65,10 @@ class FF_Menu_StaticList extends FF_Menu {
             $this->_saveMenuToCache($s_menu);
         }
 
-        // Turn on menu
         $s_menu = $this->_getCachedMenu();
+        // Remove empty lists
+        $s_menu = preg_replace('/<ul class="' . $this->cssClass . '">\s+<\/ul>/', '', $s_menu);
+        // Turn on menu
         if (!FastFrame::isEmpty($s_menu, false)) {
             $this->o_output->o_tpl->append($this->tmplVar, $s_menu);
         }
@@ -83,7 +85,7 @@ class FF_Menu_StaticList extends FF_Menu {
      */
     function _generateStaticMenu()
     {
-        $s_html = ''; 
+        $s_html = '<ul class="' . $this->cssClass . '">'; 
         foreach ($this->menuVariables as $a_topLevelData) {
             foreach ($a_topLevelData['vars'] as $a_data) {
                 $s_node = $this->_getMenuNode($a_data, 0);
@@ -91,6 +93,7 @@ class FF_Menu_StaticList extends FF_Menu {
             }
         }
 
+        $s_html .= '</ul>';
         return $s_html;
     }
 
@@ -111,12 +114,16 @@ class FF_Menu_StaticList extends FF_Menu {
      */
     function _getMenuNode($in_data, $in_level)
     {
-        $in_data = $this->_formatMenuNodeData($in_data, false);
+        static $s_lastLevel;
+        if (!isset($s_lastLevel)) {
+            $s_lastLevel = 0;
+        }
 
+        $tmp_nl = $this->debug ? "\n" : ' '; 
+        $in_data = $this->_formatMenuNodeData($in_data, false);
         // Create html for this node
         $tmp_style = empty($in_data['urlParams']) ? 'font-weight: bold;' : '';
-        $s_padNum = $in_level * 15;
-        $s_node = "<div class=\"$this->cssClass\" style=\"margin-left: {$s_padNum}px; $tmp_style\">";
+        $s_node = "<li style=\"$tmp_style\">";
         $s_node .= $in_data['icon'];
         if (!empty($in_data['urlParams'])) {
             $s_node .= "<?php echo \$o_output->link('{$in_data['urlParams']}', _('{$in_data['contents']}'), array('title' => _('{$in_data['statusText']}'), 'target' => '{$in_data['target']}')); ?>";
@@ -125,8 +132,7 @@ class FF_Menu_StaticList extends FF_Menu {
             $s_node .= "<?php echo _('{$in_data['contents']}'); ?>";
         }
 
-        $s_node .= "</div>\n";
-
+        $s_node .= "</li>$tmp_nl";
         // Recurse sub-elements
         $s_nextLevel = $in_level + 1;
         foreach ($in_data as $s_key => $a_data) {
@@ -135,8 +141,20 @@ class FF_Menu_StaticList extends FF_Menu {
             }
         }
 
+        // If we are coming into a level or out of a level, need to add
+        // the <ul> wrappers (where we do it is important so it shows up
+        // correctly with varying permissions)
+        if ($in_level < $s_lastLevel) {
+            $s_node .= "</ul>$tmp_nl";
+        }
+
         $s_node = $this->_processPerms($in_data, $s_node);
         $s_node = $this->_processApps($in_data, $s_node);
+        if ($in_level > $s_lastLevel) {
+            $s_node = "<ul class=\"$this->cssClass\">$tmp_nl" . $s_node;
+        }
+
+        $s_lastLevel = $in_level;
         return $s_node;
     }
 

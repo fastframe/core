@@ -86,7 +86,7 @@ class FF_Menu_QuickLinks extends FF_Menu_StaticList {
     function _generateStaticMenu()
     {
         $s_html = parent::_generateStaticMenu();
-        $s_html = preg_replace('/(<\/div>.+?<div class="' . $this->cssClass . '")/s', ' || \\1', $s_html);
+        $s_html = preg_replace('/(<\/li>.+?<li)/s', ' || \\1', $s_html);
         return $s_html;
     }
 
