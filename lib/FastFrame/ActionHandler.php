@@ -47,6 +47,7 @@ define('ACTION_LIST',           'list');
 define('ACTION_LOGIN',          'login');
 define('ACTION_LOGIN_SUBMIT',   'login_submit');
 define('ACTION_LOGOUT',         'logout');
+define('ACTION_SELECT',         'select');
 define('ACTION_DISPLAY',        'display');
 define('ACTION_TREE',           'tree');
 
@@ -78,6 +79,24 @@ class FF_ActionHandler {
     var $actionId;
 
     /**
+     * The app currently being run
+     * @type string 
+     */
+    var $appId;
+
+    /**
+     * The module within the application where the action exists
+     * @type string 
+     */
+    var $moduleId;
+
+    /**
+     * The module configuration object for the currently executing module
+     * @type string 
+     */
+    var $moduleConfig;
+
+    /**
      * The default actionId for when an invalid actionId is passed in
      * @type string 
      */
@@ -106,20 +125,7 @@ class FF_ActionHandler {
      * name of the class
      * @type array
      */
-    var $availableActions = array(
-        ACTION_PROBLEM    => array('Action/Problem.php', 'FF_Action_Problem'),
-        ACTION_ADD        => array('Action/Form.php', 'FF_Action_Form'),
-        ACTION_ADD_SUBMIT => array('Action/FormSubmit.php', 'FF_Action_FormSubmit'),
-        ACTION_EDIT       => array('Action/Form.php', 'FF_Action_Form'),
-        ACTION_EDIT_SUBMIT=> array('Action/FormSubmit.php', 'FF_Action_FormSubmit'),
-        ACTION_DELETE     => array('Action/Delete.php', 'FF_Action_Delete'),
-        ACTION_LIST       => array('Action/List.php', 'FF_Action_List'),
-        ACTION_LOGIN      => array('Action/Login.php', 'FF_Action_Login'),
-        ACTION_LOGIN_SUBMIT=> array('Action/LoginSubmit.php', 'FF_Action_LoginSubmit'),
-        ACTION_LOGOUT     => array('Action/Logout.php', 'FF_Action_Logout'),
-        ACTION_DISPLAY    => array('Action/Display.php', 'FF_Action_Display'),
-        ACTION_TREE       => array('Action/Tree.php', 'FF_Action_Tree'),
-    );
+    var $availableActions;
 
     // }}}
     // {{{ constructor
@@ -133,12 +139,23 @@ class FF_ActionHandler {
     function FF_ActionHandler()
     {
         $this->_initializeErrorHandler();
-        $this->setActionId(FastFrame::getCGIParam('actionId', 'gp'));
         $this->o_registry =& FF_Registry::singleton();
+        
+        $this->setActionId(FastFrame::getCGIParam('actionId', 'gp'));
+        $this->setModuleId(FastFrame::getCGIParam('module', 'gp'));
+        $this->setAppId(FastFrame::getCGIParam('app', 'gp'));
+
+        if (empty($this->appId)) {
+            $this->appId = $this->o_registry->getConfigParam('general/initial_app', 'login');
+        }
+        $this->o_registry->pushApp($this->appId);
+
+        if (empty($this->moduleId) ) {
+            $this->moduleId = $this->o_registry->getConfigParam('general/initial_module');
+        }
+
         FF_Auth::sessionStart();
-        $this->_checkAuth();
         $this->_checkProfile();
-        $this->_makeActionPathsAbsolute();
         $o_output =& FF_Output::singleton();
         $s_theme = FF_Auth::getCredential('theme');
         $s_theme = empty($s_theme) ? $this->o_registry->getConfigParam('general/default_theme') : $s_theme;
@@ -156,6 +173,7 @@ class FF_ActionHandler {
      */
     function takeAction()
     {
+        $this->loadActions($this->appId, $this->moduleId);
         if (empty($this->actionId) ||
             !isset($this->availableActions[$this->actionId])) {
             if (isset($this->availableActions[$this->defaultActionId])) {
@@ -168,6 +186,8 @@ class FF_ActionHandler {
 
         $hitLastAction = false;
         while (!$hitLastAction) {
+            $this->loadActions($this->appId, $this->moduleId);
+            $this->_checkAuth();
             $pth_actionFile = $this->availableActions[$this->actionId][0];
             if (file_exists($pth_actionFile)) {
                 require_once $pth_actionFile;
@@ -179,12 +199,66 @@ class FF_ActionHandler {
                 }
                 else {
                     $this->actionId = $o_nextAction->getNextActionId();
+
+                    if ($o_nextAction->getNextAppId()) {
+                        $this->appId = $o_nextAction->getNextAppId();
+                    }
+
+                    if ($o_nextAction->getNextModuleId()) {
+                        $this->moduleId = $o_nextAction->getNextModuleId();
+                    }
                 }
             }
             else {
                 $tmp_error = "The class file for action $this->actionId ($pth_actionFile) does not exist";
                 FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
             }
+        }
+    }
+
+    // }}}
+    // {{{ loadActions()
+
+    /**
+     * Adds/modifies an available action and registers the necessary class filees.
+     * 
+     * @param string $in_actionId The action id 
+     * @param string $in_classFile The path to the class file for this action
+     * @param string $in_className The name of the class for this action
+     *
+     * @access public
+     * @return void
+     */
+    function loadActions($in_app, $in_module)
+    {
+        $this->defaultActionId="";
+        $this->availableActions = array(
+            ACTION_PROBLEM    => array('Action/Problem.php', 'FF_Action_Problem'),
+            ACTION_ADD        => array('Action/Form.php', 'FF_Action_Form'),
+            ACTION_ADD_SUBMIT => array('Action/FormSubmit.php', 'FF_Action_FormSubmit'),
+            ACTION_EDIT       => array('Action/Form.php', 'FF_Action_Form'),
+            ACTION_EDIT_SUBMIT=> array('Action/FormSubmit.php', 'FF_Action_FormSubmit'),
+            ACTION_DELETE     => array('Action/Delete.php', 'FF_Action_Delete'),
+            ACTION_LIST       => array('Action/List.php', 'FF_Action_List'),
+            ACTION_LOGIN      => array('Action/Login.php', 'FF_Action_Login'),
+            ACTION_LOGIN_SUBMIT=> array('Action/LoginSubmit.php', 'FF_Action_LoginSubmit'),
+            ACTION_LOGOUT     => array('Action/Logout.php', 'FF_Action_Logout'),
+            ACTION_DISPLAY    => array('Action/Display.php', 'FF_Action_Display'),
+        );
+
+        $this->_makeActionPathsAbsolute();
+        $pth_config= $this->o_registry->getAppFile("ActionHandler/{$in_module}.php", $in_app, 'libs'); 
+        if (file_exists($pth_config)) {
+
+           require_once $pth_config;
+           $className="FF_ActionHandlerConfig_" . $in_module;
+           $this->moduleConfig = new $className($this);
+
+        }
+        else {
+            $tmp_error = "The class file for Module $in_module ($pth_config) does not exist";
+            FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
+
         }
     }
 
@@ -231,6 +305,66 @@ class FF_ActionHandler {
             $s_newClass = $this->availableActions[$s_actionId][1] . $in_classExtension;
             $this->addAction($s_actionId, $s_newPath, $s_newClass);
         }
+    }
+
+    // }}}
+    // {{{ setAppId()
+
+    /**
+     * Sets the appId.
+     *
+     * @param string $in_appId (optional) The appId to load actions and modules from.
+     *
+     * @access public
+     * @return void 
+     */
+    function setAppId($in_appId)
+    {
+        $this->appId = $in_appId;
+    }
+
+    // }}}
+    // {{{ getAppId()
+
+    /**
+     * Gets the appId.
+     *
+     * @access public
+     * @return string The current application 
+     */
+    function getAppId()
+    {
+        return $this->getAppId;
+    }
+
+    // }}}
+    // {{{ setModuleId()
+
+    /**
+     * Sets the moduleId.
+     *
+     * @param string $in_moduleId The module to act load actions from.
+     *
+     * @access public
+     * @return void 
+     */
+    function setModuleId($in_moduleId)
+    {
+        $this->moduleId = $in_moduleId;
+    }
+
+    // }}}
+    // {{{ getModuleId()
+
+    /**
+     * Gets the moduleId.
+     *
+     * @access public
+     * @return string The current moduleId 
+     */
+    function getModuleId()
+    {
+        return $this->moduleId;
     }
 
     // }}}
@@ -331,8 +465,13 @@ class FF_ActionHandler {
      */
     function _checkAuth()
     {
-        if (!FF_Auth::checkAuth()) {
-            FF_Auth::logout();
+        if ($this->moduleConfig->hasCheckAuth()) {
+            $this->moduleConfig->checkAuth();
+        } 
+        else {
+            if (!FF_Auth::checkAuth()) {
+                FF_Auth::logout();
+            }
         }
     }
 

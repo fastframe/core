@@ -1,5 +1,5 @@
 <?php
-/** $Id: NextAction.php,v 1.1 2003/02/22 01:49:08 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -44,6 +44,18 @@ class FF_NextAction{
     var $nextActionId;
 
     /**
+     * Next app Id 
+     * @type string 
+     */
+    var $nextAppId;
+
+    /**
+     * Next module Id 
+     * @type string 
+     */
+    var $nextModuleId;
+
+    /**
      * Is this the last action
      * @type boolean
      */
@@ -61,6 +73,69 @@ class FF_NextAction{
     function isLastAction()
     {
         return $this->lastAction;
+    }
+
+    // }}}
+    // {{{ setNextAppId()
+
+    /**
+     * Sets the next application id.
+     *
+     * @param string $in_appId The app id
+     * 
+     * @access public
+     * @return void
+     */
+    function setNextAppId($in_appId)
+    {
+        $this->lastAction = false;
+        $this->nextAppId = $in_appid;
+    }
+
+    // }}}
+    // {{{ getNextAppId()
+
+    /**
+     * Gets the next app Id
+     *
+     * @access public
+     * @return string The next app id
+     */
+    function getNextAppId()
+    {
+        return $this->nextAppId;
+    }
+
+    // }}}
+    // {{{ setNextModuleId()
+
+    /**
+     * Sets the next module id.
+     *
+     * @param string $in_moduleId The module id
+     * 
+     * @access public
+     * @return void
+     */
+    function setNextModuleId($in_moduleId)
+    {
+        $this->lastAction = false;
+        $this->nextModuleId = $in_moduleId;
+    }
+
+    // }}}
+    // {{{ getNextModuleId()
+
+    /**
+     * Gets the next module Id
+     *
+     * @access public
+     * @return string The next module id
+     */
+    function getNextModuleId()
+    {
+        $this->lastAction = false;
+        return $this->nextModuleId;
     }
 
     // }}}

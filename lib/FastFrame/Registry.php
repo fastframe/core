@@ -1,5 +1,5 @@
 <?php
-/** $Id: Registry.php,v 1.15 2003/04/02 00:10:27 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -548,41 +548,6 @@ class FF_Registry {
         }
 
         return $result;
-    }
-
-    // }}}
-    // {{{ getActionHandlerObject()
-
-    /**
-     * Returns the appropriate ActionHandler object for the specified app and module
-     *
-     * @param  string $in_app The application we are going to 
-     * @param  string $in_module (optional) The module within the application to proceed to
-     *
-     * @access public
-     * @return object The FF_ActionHandler object 
-     */
-    function &getActionHandlerObject($in_app, $in_module = null)
-    {
-        if (empty($in_module) && !empty($in_app)) {
-            $this->pushApp($in_app);
-            $in_module = $this->getConfigParam('general/initial_module');
-        }
-
-        if (!empty($in_app)) {
-            $pth_actionHandler = $this->getAppFile('lib/ActionHandler/' . ucfirst($in_module) . '.php', $in_app);
-        }
-
-        if (empty($in_app) || !file_exists($pth_actionHandler)) {
-            $in_app = $this->getConfigParam('general/initial_app', 'login');
-            $this->pushApp($in_app);
-            $in_module = $this->getConfigParam('general/initial_module');
-            $pth_actionHandler = $this->getAppFile('lib/ActionHandler/' . $in_module . '.php', $in_app);
-        }
-
-        require_once $pth_actionHandler; 
-        $s_className = 'FF_ActionHandler_' . $in_module;
-        return new $s_className();
     }
 
     // }}}
