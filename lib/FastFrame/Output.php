@@ -482,7 +482,8 @@ class FF_Output extends FF_Template {
      *                        the path includes the type in it.
      * @param array  $in_options (optional) A number of options that have to do with the image tag, included 
      *                           what type of image tag this is.  The options are as follows
-     *                           width, height, type, align, style, onclick, state, onlyUrl
+     *                           width, height, type, align, style, onclick, state, onlyUrl,
+     *                           fullPath
      *
      * @access public
      * @return string image tag
@@ -615,6 +616,13 @@ class FF_Output extends FF_Template {
                 addcslashes($in_options['title'], '\'');
             $statusOver = 'window.status=\'' . $status . '\';';
             $statusOut = 'window.status=\'\';';
+        }
+
+        if (isset($in_options['fullPath']) && 
+            $in_options['fullPath'] &&
+            !preg_match(';^(http://|ftp://);', $s_imgWebPath)) {
+            $s_imgWebPath = ($this->o_registry->getConfigParam('server/use_ssl') ? 'https' : 'http') . 
+                            '://' . $this->o_registry->getConfigParam('server/hostname') . $s_imgWebPath;
         }
 
         $in_options['border'] = isset($in_options['border']) ? $in_options['border'] : '0';

@@ -1,5 +1,5 @@
 <?php
-/** $Id: DOM.php,v 1.6 2003/04/03 22:10:15 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -149,7 +149,7 @@ class FF_Menu_DOM extends FF_Menu {
         // then we check if there are any other nodes to recurse into
         $tmp_contents = isset($in_data['contents']) ? addcslashes($in_data['contents'], '\'') : '';
         $tmp_status = isset($in_data['statusText']) ? $in_data['statusText'] : $tmp_contents;
-        $tmp_icon = isset($in_data['icon']) ? addcslashes($this->o_output->imgTag($in_data['icon'], 'none'), '\'') . ' ' : '';
+        $tmp_icon = isset($in_data['icon']) ? addcslashes($this->o_output->imgTag($in_data['icon'], 'none', array('fullPath' => true)), '\'') . ' ' : '';
         $tmp_contents = $tmp_icon . $tmp_status;
         $tmp_target = isset($in_data['target']) ? $in_data['target'] : '_self';
         $tmp_uri = isset($in_data['urlParams']) ? $this->_getLinkUrl($in_data['urlParams']) : '';

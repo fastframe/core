@@ -93,9 +93,9 @@ class FastFrame {
         }
 
         // see if we need to make this a full query string
-        if ($in_full &&
-            !preg_match(':^https?\://:', $in_url)) {
-            $url = ($o_registry->getConfigParam('server/use_ssl') ? 'https' : 'http') . '://' . $o_registry->getConfigParam('server/hostname') . $url;
+        if ($in_full && !preg_match(':^https?\://:', $in_url)) {
+            $url = ($o_registry->getConfigParam('server/use_ssl') ? 'https' : 'http') . 
+                   '://' . $o_registry->getConfigParam('server/hostname') . $url;
         }
 
         // getVars will be a name=>value pair hash of get variables
