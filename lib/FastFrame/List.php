@@ -154,11 +154,9 @@ class FF_List {
      * @access public
      * @return void
      */
-    function FF_List($in_defaultSortField, 
-                            $in_defaultSortOrder, 
-                            $in_defaultDisplayLimit, 
-                            $in_persistentData = array(), 
-                            $in_columnData = null)
+    function FF_List($in_defaultSortField, $in_defaultSortOrder, 
+            $in_defaultDisplayLimit, $in_persistentData = array(), 
+            $in_columnData = null)
     {
         $this->o_output =& FF_Output::singleton();
         if (!is_null($in_columnData)) {

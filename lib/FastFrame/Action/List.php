@@ -126,7 +126,7 @@ class FF_Action_List extends FF_Action_Form {
             $this->getDefaultSortField(), 
             $this->getDefaultSortOrder(),
             $this->getDefaultDisplayLimit(),
-            array('actionId' => $this->currentActionId)
+            $this->getPersistentData()
         );
         $this->processFieldMapForList($this->getFieldMap());
         $this->o_listModeler =& new FF_ListModeler($this->o_list, $this->o_model, $this->getFilter());
@@ -282,6 +282,21 @@ class FF_Action_List extends FF_Action_Form {
     function checkPerms()
     {
         return true;
+    }
+
+    // }}}
+    // {{{ getPersistentData()
+
+    /**
+     * Gets an array of the persistent data that will be passed from page to page on the
+     * list.
+     *
+     * @access public
+     * @return array An array of the name => value pairs of persistent data
+     */
+    function getPersistentData()
+    {
+        return array('actionId' => $this->currentActionId);
     }
 
     // }}}
