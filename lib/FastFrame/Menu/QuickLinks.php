@@ -160,7 +160,7 @@ class FF_Menu_QuickLinks extends FF_Menu_StaticList {
     {
         // Get the profile specific application menu
         if ($this->o_registry->getAppParam('profile', false, array('app' => $in_app))) {
-            return sprintf('quicklinks.%s.php', 
+            return sprintf('%s/quicklinks.php', 
                     $this->o_registry->getAppParam('profile', null, array('app' => $in_app)));
         }
         else {

@@ -302,7 +302,7 @@ class FF_Menu {
     {
         // Get the profile specific application menu
         if ($this->o_registry->getAppParam('profile', false, array('app' => $in_app))) {
-            return sprintf('menu.%s.php', 
+            return sprintf('%s/menu.php', 
                     $this->o_registry->getAppParam('profile', null, array('app' => $in_app)));
         }
         else {
