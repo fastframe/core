@@ -1,5 +1,5 @@
 <?php
-/** $Id: Problem.php,v 1.7 2003/03/18 23:56:27 jrust Exp $ */
+/** $Id: Problem.php,v 1.8 2003/04/02 00:13:08 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -65,7 +65,8 @@ class FF_Action_Problem extends FF_Action {
      */
     function run()
     {
-        $this->o_output->setMessage($this->getProblemMessage(), FASTFRAME_ERROR_MESSAGE);
+        $this->o_output->setPageName($this->getPageName());
+        $this->o_output->setMessage($this->getProblemMessage(), FASTFRAME_ERROR_MESSAGE, true);
         $this->o_output->output();
         return $this->o_nextAction;
     }
@@ -82,6 +83,20 @@ class FF_Action_Problem extends FF_Action {
     function getProblemMessage()
     {
         return _('A problem was encountered in processing your request.');
+    }
+
+    // }}}
+    // {{{ getPageName()
+
+    /**
+     * Returns the page name for this action 
+     *
+     * @access public
+     * @return string The page name
+     */
+    function getPageName()
+    {
+        return _('Problem Encountered'); 
     }
 
     // }}}
