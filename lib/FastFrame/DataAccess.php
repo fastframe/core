@@ -266,6 +266,22 @@ class FF_DataAccess {
     }
 
     // }}}
+    // {{{ timestampToISODate()
+
+    /**
+     * Converts a unix timestamp into an ISO date for use in SQL queries.
+     *
+     * @param int $in_date The date to convert
+     *
+     * @access public
+     * @return string The ISO date
+     */
+    function timestampToISODate($in_date)
+    {
+        return date("Y-m-d\tH:i:s", $in_date); 
+    }
+
+    // }}}
     // {{{ getListData()
 
     /**
