@@ -85,15 +85,18 @@ class FF_Result {
     /**
      * Adds an error, warning, or normal message to the list
      *
-     * @param string $in_message The message to set
+     * @param mixed $in_message The message to set or an array of messages
      *
      * @access public
      * @return void
      */
     function addMessage($in_message)
     {
-        // add it to the beginning of the stack so the last messages show up first on the screen
-        array_unshift($this->messages, $in_message);
+        foreach ((array) $in_message as $s_message) {
+            // add it to the beginning of the stack so the last 
+            // messages show up first on the screen
+            array_unshift($this->messages, $s_message);
+        }
     }
 
     // }}}
