@@ -199,9 +199,16 @@ class FF_Menu {
                 continue;
             }
                 
-            $pth_menu = $this->o_registry->getAppFile('menu.php', $s_app, 'config');
+            // Get the profile specific application menu
+            if ($this->o_registry->getAppParam('profile', null, array('app'=>$s_app))) {
+                $s_menuFile=sprintf('menu.%s.php', $this->o_registry->getAppParam('profile',null, array('app'=>$s_app)));
+            }
+            else {
+                $s_menuFile='menu.php';
+            }
 
-$GLOBALS['o_error']->debug($pth_menu, '', __FILE__, __LINE__);
+            $pth_menu = $this->o_registry->getAppFile($s_menuFile, $s_app, 'config');
+
             if (file_exists($pth_menu) && (filemtime($pth_menu) > $s_cacheMTime)) {
                 return false;
             }
@@ -302,7 +309,15 @@ $GLOBALS['o_error']->debug($pth_menu, '', __FILE__, __LINE__);
                 require_once $pth_actions;
             }
 
-            $pth_menu = $this->o_registry->getAppFile('menu.php', $s_app, 'config');
+            // Get the profile specific application menu
+            if ($this->o_registry->getAppParam('profile', null, array('app'=>$s_app))) {
+                $s_menuFile=sprintf('menu.%s.php', $this->o_registry->getAppParam('profile',null, array('app'=>$s_app)));
+            }
+            else {
+                $s_menuFile='menu.php';
+            }
+
+            $pth_menu = $this->o_registry->getAppFile($s_menuFile, $s_app, 'config');
             if (file_exists($pth_menu)) {
                 $a_appMenu = null; 
                 require $pth_menu;
