@@ -1,5 +1,5 @@
 <?php
-/** $Id: Output.php,v 1.3 2003/02/08 00:10:54 jrust Exp $ */
+/** $Id: Output.php,v 1.4 2003/02/12 20:56:14 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -159,11 +159,17 @@ class FastFrame_Output extends FastFrame_Template {
     /**
      * Outputs the template data to the browser.
      *
+     * @param array $in_messages (optional) Any messages to register to the screen
+     *
      * @access public
      * @return void
      */
-    function output()
+    function output($in_messages = array())
     {
+        foreach ($in_messages as $s_message) {
+            $this->setMessage($s_message, FASTFRAME_ERROR_MESSAGE);
+        }
+
         $this->renderPageType();
         $this->prender();
     }
