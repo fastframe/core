@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.11 2003/03/19 00:36:01 jrust Exp $ */
+/** $Id: List.php,v 1.12 2003/04/08 21:15:50 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -359,8 +359,14 @@ class FF_List {
                 $s_namespace . 'table_content_cell'
             );
 
+            $tmp_help = _('Find items in the list by entering a search term in the box to the right.  If you want to only search a particular field then select it from the drop down list.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy');
             $tmp_text = sprintf(
-                            _('Find %1$s in %2$s'), 
+                            _('%1$s %2$s in %3$s'), 
+                            $this->o_output->link(
+                                'javascript: void(0);',
+                                _('Find'),
+                                array('title' => $tmp_help, 'caption' => _('Search Help'), 'status' => _('Search Help'))
+                            ),
                             $o_form->renderElement('searchString', true), 
                             $o_form->renderElement('searchField', true) . ' ' .
                             $o_form->renderElement('query_submit', true) . ' ' .
