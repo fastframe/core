@@ -1,5 +1,5 @@
 <?php
-/** $Id: ActionHandler.php,v 1.9 2003/04/02 00:05:30 jrust Exp $ */
+/** $Id: ActionHandler.php,v 1.10 2003/04/03 22:11:37 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -217,13 +217,15 @@ class FF_ActionHandler {
      *               stored.
      * @param string $in_classExtension  The extension you are giving to the class name
      *               (i.e. Action_Form => becomes Action_Form_MyApp, then pass in _MyApp)
+     * @param string $in_filePrefix (optional) The prefix to the give the filename.  I.e.
+     *               List.php -> BorrowerList.php
      *
      * @access public
      * @return void
      */
-    function batchModifyActions($in_actions, $in_path, $in_classExtension) {
+    function batchModifyActions($in_actions, $in_path, $in_classExtension, $in_filePrefix = '') {
         foreach ($in_actions as $s_actionId) {
-            $s_newPath = File::buildPath(array($in_path, basename($this->availableActions[$s_actionId][0])));
+            $s_newPath = $in_path . '/' . $in_filePrefix . basename($this->availableActions[$s_actionId][0]);
             $s_newClass = $this->availableActions[$s_actionId][1] . $in_classExtension;
             $this->addAction($s_actionId, $s_newPath, $s_newClass);
         }
