@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.1 2003/01/16 01:04:28 jrust Exp $ */
+/** $Id: List.php,v 1.2 2003/01/16 22:55:13 jrust Exp $ */
 // {{{ class FastFrame_List
 
 /**
@@ -172,7 +172,7 @@ class FastFrame_List {
         }
 
         $a_searchFields = array();
-        foreach ($this->searchableFields as $a_val) {
+        foreach ($this->getSearchableFields() as $a_val) {
             $a_searchFields[$a_val['search']] = $a_val['name'];
         }
         
@@ -283,7 +283,7 @@ class FastFrame_List {
                         _('%1$d Found (%2$d%%), %3$d Listed out of %4$d Total %5$s'),
                         $this->matchedRecords, 
                         $this->getMatchedRecordsPercentage(), 
-                        min($this->displayLimit, $this->displayedRecords),
+                        min($this->displayLimit, $this->getDisplayedRecords()),
                         $this->totalRecords, 
                         $this->totalRecords == 1 ? $in_singularLang : $in_pluralLang
                     );
@@ -462,7 +462,7 @@ class FastFrame_List {
                 $tmp_title = sprintf(
                                 _('Sort %1$s (%2$s)'), 
                                 $a_colData['name'], 
-                                $this->getSortOrder() ? _('Ascending') : _('Descending')
+                                $tmp_sort ? _('Ascending') : _('Descending')
                             ); 
 
                 $tmp_href = $this->FastFrame_HTML->link(
@@ -847,6 +847,34 @@ class FastFrame_List {
     }
 
     // }}}
+    // {{{ getSearchableFields()
+
+    /**
+     * Gets the searchable fields.
+     *
+     * @param bool $in_excludeAll (optional) Exclude the All Fields key from the list?
+     *
+     * @access public
+     * @return array An array of the searchable fields 
+     */
+    function getSearchableFields($in_excludeAll = false)
+    {
+        if ($in_excludeAll) {
+            $a_list = array(); 
+            foreach ($this->searchableFields as $a_val) {
+                if ($a_val['search'] != $this->getAllFieldsKey()) {
+                    $a_list[] = $a_val;
+                }
+            }
+
+            return $a_list;
+        }
+        else {
+            return $this->searchableFields;
+        }
+    }
+
+    // }}}
     // {{{ setTotalRecords()
 
     /**
@@ -892,6 +920,20 @@ class FastFrame_List {
     function setDisplayedRecords($in_displayedRecords)
     {
         $this->displayedRecords = $in_displayedRecords;
+    }
+
+    // }}}
+    // {{{ getDisplayedRecords()
+
+    /**
+     * Gets the displayed records variable 
+     *
+     * @access public
+     * @return int The number of displayed records. 
+     */
+    function getDisplayedRecords()
+    {
+        return $this->displayedRecords;
     }
 
     // }}}
