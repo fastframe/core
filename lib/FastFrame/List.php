@@ -216,10 +216,6 @@ class FF_List {
         $o_renderer =& new HTML_QuickForm_Renderer_QuickHtml($o_form);
         $o_form->setConstants($a_listVars);
         
-        // make sure our display displayLimit is not to big so the page will render
-        // [!] should be an option [!]
-        $s_displayLimitCheck = 'if(document.search_box.displayLimit.value > 100){ document.search_box.displayLimit.value = 100; }';
-
         // Add all the form elements
         if ($a_listVars['advancedList']) {
             // need to set page offset to one when we search
@@ -228,15 +224,15 @@ class FF_List {
                 'void(0);';
 
             $o_form->addElement('text', 'displayLimit', null, array('class' => 'input_content', 'style' => 'vertical-align: middle;', 'size' => 3, 'maxlength' => 3));
-            $o_form->addElement('submit', 'displayLimit_submit', _('Update'), array('onclick' => $s_displayLimitCheck, 'style' => 'vertical-align: middle;'));
+            $o_form->addElement('submit', 'displayLimit_submit', _('Update'), array('style' => 'vertical-align: middle;'));
             $o_form->addElement('select', 'searchField', null, $a_searchFields, array('class' => 'input_content', 'style' => 'vertical-align: text-top;')); 
             $o_form->addElement('text', 'searchString', null, array('size' => 15, 'class' => 'input_content', 'style' => 'vertical-align: text-top;'));
-            $o_form->addElement('submit', 'query_submit', _('Search'), array('onclick' => $s_displayLimitCheck . ' ' . $tmp_onclick, 'style' => 'vertical-align: middle;'));
-            $o_form->addElement('submit', 'listall_submit', _('List All'), array('onclick' => $s_displayLimitCheck . ' document.search_box.searchString.value = \'\';' . $tmp_onclick, 'style' => 'vertical-align: middle;'));
+            $o_form->addElement('submit', 'query_submit', _('Search'), array('onclick' => $tmp_onclick, 'style' => 'vertical-align: middle;'));
+            $o_form->addElement('submit', 'listall_submit', _('List All'), array('onclick' => 'document.search_box.searchString.value = \'\';' . $tmp_onclick, 'style' => 'vertical-align: middle;'));
 
             $o_form->addElement('select', 'sortOrder', null, array(0 => 'DESC', 1 => 'ASC'), array('class' => 'input_content'));
             $o_form->addElement('select', 'sortField', null, $a_sortFields, array('class' => 'input_content'));
-            $o_form->addElement('submit', 'sort_submit', _('Sort'), null, array('onclick' => $s_displayLimitCheck));
+            $o_form->addElement('submit', 'sort_submit', _('Sort'));
         }
         // just make them all hidden if not in the advanced view
         else {
@@ -326,10 +322,16 @@ class FF_List {
             $s_namespace . 'table_field_cell'
         );
 
+        $s_printLink = $this->o_output->link(
+            FastFrame::selfURL($this->persistentData, $this->getAllListVariables(), array('printerFriendly' => 1)),
+            _('Printer Friendly'),
+            _('Printer Friendly')
+        );
+
         $this->o_output->assignBlockData(
             array(
-                'T_table_field_cell' => $o_renderer->elementToHtml('advancedList'),
-                'S_table_field_cell' => 'style="white-space: nowrap"',
+                'T_table_field_cell' => $o_renderer->elementToHtml('advancedList') . ' | ' . $s_printLink,
+                'S_table_field_cell' => 'style="white-space: nowrap; text-align: center;"',
             ),
             $s_namespace . 'table_field_cell'
         );
@@ -485,8 +487,10 @@ class FF_List {
     function generateSortFields($in_tableNamespace = null)
     {
         foreach ($this->getColumnData() as $a_colData) {
-            // check to see if it is searchable, and if so build the link
-            if (!empty($a_colData['sort'])) {
+            // Check to see if it is searchable and we're not in print mode.
+            // If so build a link to sort on the column
+            if (!empty($a_colData['sort']) && 
+                !FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
                 // if we previously sorted on this field, reverse the sort direction
                 if ($this->getSortField() == $a_colData['sort']) {
                     $tmp_sort = $this->getSortOrder() ? 0 : 1;
@@ -953,6 +957,20 @@ class FF_List {
     function setTotalRecords($in_totalRecords)
     {
         $this->totalRecords = $in_totalRecords;
+    }
+
+    // }}}
+    // {{{ getTotalRecords()
+
+    /**
+     * Gets the total records variable 
+     *
+     * @access public
+     * @return int Total number of records to display. 
+     */
+    function getTotalRecords()
+    {
+        return $this->totalRecords;
     }
 
     // }}}

@@ -91,8 +91,19 @@ class FF_Action_List extends FF_Action_Form {
             return $this->o_nextAction;
         }
 
-        $this->renderAdditionalLinks();
-        $this->o_list->renderSearchBox($this->getSingularText(), $this->getPluralText());
+        if (!FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
+            $this->renderAdditionalLinks();
+            $this->o_list->renderSearchBox($this->getSingularText(), $this->getPluralText());
+        }
+        else {
+            $s_link = $this->o_output->link(
+                        FastFrame::selfURL($this->o_list->getAllListVariables()),
+                        _('Return To List'), 
+                        array('title' => _('Return To List'))
+                        );
+            $this->o_output->assignBlockData(array('T_page_link' => $s_link), 'page_link');
+        }
+
         $this->createListTable();
         $this->o_output->output();
         return $this->o_nextAction; 
@@ -145,8 +156,11 @@ class FF_Action_List extends FF_Action_Form {
         $o_table->setNumColumns(count($this->o_list->getColumnData()));
         $o_table->beginTable();
         $this->o_list->generateSortFields($o_table->getTableNamespace());
-        $this->o_list->generateNavigationLinks();
-        $this->o_output->touchBlock($o_table->getTableNamespace() . 'switch_table_navigation');
+        if (!FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
+            $this->o_list->generateNavigationLinks();
+            $this->o_output->touchBlock($o_table->getTableNamespace() . 'switch_table_navigation');
+        }
+
         $this->renderListData($o_table->getTableNamespace());
     }
     

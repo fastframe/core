@@ -147,7 +147,7 @@ class FF_Output extends FF_Template {
      */
     function load($in_theme)
     {
-        $this->theme = $in_theme;
+        $this->theme = FastFrame::getCGIParam('printerFriendly', 'gp', false) ? 'basic_grey' : $in_theme;
         $s_directory = $this->o_registry->getRootFile($this->theme, 'themes');
         // make sure the main template exists
         if (!is_readable($s_directory . '/overall.tpl')) {
@@ -165,8 +165,14 @@ class FF_Output extends FF_Template {
         // always turn on main content
         $this->touchBlock('content_middle');
 
-        // initialize menu to default type
-        $this->setMenuType($this->o_registry->getConfigParam('menu/type'));
+        if (FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
+            // no menu for print
+            $this->setMenuType('none');
+        }
+        else {
+            // initialize menu to default type
+            $this->setMenuType($this->o_registry->getConfigParam('menu/type'));
+        }
         
         // include some common js, needs to be at top before any of their functions are used
         $this->assignBlockData(
