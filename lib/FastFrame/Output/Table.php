@@ -48,16 +48,10 @@ class FF_Output_Table {
     var $o_output;
 
     /**
-     * The namespace for the table
-     * @type string
+     * The widget object
+     * @type object
      */
-    var $tableNamespace;
-
-    /**
-     * The table name
-     * @type string
-     */
-    var $tableName = 'generic_table';
+    var $o_widget;
 
     /**
      * The total number of columns of table
@@ -109,16 +103,21 @@ class FF_Output_Table {
      */
     function beginTable()
     {
-        $this->tableNamespace = $this->o_output->branchBlockNS('CONTENT_MIDDLE', $this->tableName, 'genericTable.tpl', 'file');
-        $this->o_output->assignBlockData(
+        $this->o_widget =& $this->o_output->getWidgetObject('genericTable');
+        // Always want this block touched because it is a wrapper
+        // It is in the template so we can do this: 
+        // field cell | content cell | field cell | content cell...
+        $this->o_widget->makeBlockPersistent('table_cell_group');
+        $this->o_widget->assignBlockData(
             array(
                 'S_TABLE_COLUMNS' => $this->numColumns,
                 'T_table_header' => $this->tableHeaderText,
                 'S_table_header' => 'style="text-align: center;"',
             ),
-            $this->tableName 
+            FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
+            false
         );
-        $this->o_output->touchBlock($this->tableNamespace . 'switch_table_header');
+        $this->o_widget->touchBlock('switch_table_header');
     }
 
     // }}}
@@ -144,69 +143,69 @@ class FF_Output_Table {
         $this->o_output->assignBlockData(array('T_css' => $tmp_css), 'css'); 
         $this->beginTable();
         foreach ($this->tableHeaders as $tmp_header) {
-            $this->o_output->touchBlock($this->tableNamespace . 'table_row');
-            $this->o_output->cycleBlock($this->tableNamespace . 'table_field_cell');
-            $this->o_output->cycleBlock($this->tableNamespace . 'table_content_cell');
+            $this->o_widget->touchBlock('table_row');
+            $this->o_widget->cycleBlock('table_field_cell');
+            $this->o_widget->cycleBlock('table_content_cell');
             $tmp_style = isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : '';
-            $this->o_output->assignBlockData(
+            $this->o_widget->assignBlockData(
                 array(
                     'T_table_field_cell' => $tmp_header['title'],
                     'S_table_field_cell' => $tmp_style,
                 ),
-                $this->tableNamespace . 'table_field_cell'
+                'table_field_cell'
             );
             $tmp_style = isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : '';
-            $this->o_output->assignBlockData(
+            $this->o_widget->assignBlockData(
                 array(
                     'T_table_content_cell' => $tmp_header['data'], 
                     'S_table_content_cell' => $tmp_style,
                 ),
-                $this->tableNamespace . 'table_content_cell'
+                'table_content_cell'
             );
         }
     }
 
     // }}}
-    // {{{ renderTwoRowTable()
+    // {{{ renderMultiRowTable()
 
     /**
      * Processes the table headers by registering the appropriate html.  Creates a
-     * multi-column two row table of
+     * multi-column multi-row table of
      * title    |   title
      * data     |   data
      *
      * @access public
      * @return void 
      */
-    function renderTwoRowTable()
+    function renderMultiRowTable()
     {
         $this->setNumColumns(count($this->tableHeaders));
         $this->beginTable();
-        $this->o_output->touchBlock($this->tableNamespace . 'table_row');
-        $this->o_output->cycleBlock($this->tableNamespace . 'table_field_cell');
-        $this->o_output->cycleBlock($this->tableNamespace . 'table_content_cell');
+        $this->o_widget->touchBlock('table_row');
+        $this->o_widget->cycleBlock('table_field_cell');
+        $this->o_widget->cycleBlock('table_content_cell');
         foreach ($this->tableHeaders as $tmp_header) {
             $tmp_style = isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : '';
-            $this->o_output->assignBlockData(
+            $this->o_widget->assignBlockData(
                 array(
                     'T_table_field_cell' => $tmp_header['title'],
                     'S_table_field_cell' => $tmp_style,
                 ),
-                $this->tableNamespace . 'table_field_cell'
+                'table_field_cell'
             );
         }
 
-        $this->o_output->touchBlock($this->tableNamespace . 'table_row');
-        $this->o_output->cycleBlock($this->tableNamespace . 'table_field_cell');
-        $this->o_output->cycleBlock($this->tableNamespace . 'table_content_cell');
+        $this->o_widget->touchBlock('table_row');
+        $this->o_widget->cycleBlock('table_field_cell');
+        $this->o_widget->cycleBlock('table_content_cell');
         foreach ($this->tableHeaders as $tmp_header) {
             $tmp_style = isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : '';
-            $this->o_output->assignBlockData(
+            $this->o_widget->assignBlockData(
                 array(
                     'T_table_content_cell' => $tmp_header['data'], 
                     'S_table_content_cell' => $tmp_style,
                 ),
-                $this->tableNamespace . 'table_content_cell'
+                'table_content_cell'
             );
         }
     }
@@ -246,50 +245,6 @@ class FF_Output_Table {
     }
 
     // }}}
-    // {{{ getTableName()
-
-    /**
-     * Gets the table name
-     *
-     * @access public
-     * @return string The name given to the table 
-     */
-    function getTableName()
-    {
-        return $this->tableName;
-    }
-
-    // }}}
-    // {{{ setTableName()
-
-    /**
-     * Sets the table name
-     *
-     * @param string $in_tableName The table name
-     *
-     * @access public
-     * @return void
-     */
-    function setTableName($in_tableName)
-    {
-        $this->tableName = $in_tableName;
-    }
-
-    // }}}
-    // {{{ getTableNamespace()
-
-    /**
-     * Gets the table namespace
-     *
-     * @access public
-     * @return string The table namespace 
-     */
-    function getTableNamespace()
-    {
-        return $this->tableNamespace;
-    }
-
-    // }}}
     // {{{ getNumColumns()
 
     /**
@@ -316,6 +271,20 @@ class FF_Output_Table {
     function setNumColumns($in_numCols)
     {
         $this->numColumns = $in_numCols;
+    }
+
+    // }}}
+    // {{{ getWidgetObject()
+
+    /**
+     * Gets the table widget object
+     *
+     * @access public
+     * @return object The widget object
+     */
+    function &getWidgetObject()
+    {
+        return $this->o_widget;
     }
 
     // }}}

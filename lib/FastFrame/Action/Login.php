@@ -78,7 +78,9 @@ class FF_Action_Login extends FF_Action_Form {
         $this->o_form->setConstants($a_constants);
         $this->createFormElements();
         $o_table =& $this->renderFormTable();
-        $this->renderCreateAccountLink($o_table);
+        $o_tableWidget =& $o_table->getWidgetObject();
+        $this->renderCreateAccountLink($o_tableWidget, $o_table->getNumColumns());
+        $this->o_output->assignBlockData(array('W_content_middle' => $o_tableWidget->render()), 'content_middle');
         $this->o_output->output();
         return $this->o_nextAction;
     }
@@ -178,12 +180,13 @@ class FF_Action_Login extends FF_Action_Form {
     /**
      * Renders the create account link if it is enabled
      *
-     * @param $in_tableObj The table object
+     * @param object $in_tableObj The table object
+     * @param int $in_colspan The colspan for the cell
      * 
      * @access private
      * @return void
      */
-    function renderCreateAccountLink(&$in_tableObj)
+    function renderCreateAccountLink(&$in_tableWidget, $in_colspan)
     {
         // they must have a profile type auth source enabled in order to create an account
         $b_hasProfileAuth = false;
@@ -206,15 +209,14 @@ class FF_Action_Login extends FF_Action_Form {
                                 _('Don\'t have an account? Create one.'),
                                 array('title' => _('Create an account if you do not already have one.'))
                             );
-            $this->o_output->touchBlock($in_tableObj->getTableNamespace() . 'table_row');
-            $this->o_output->cycleBlock($in_tableObj->getTableNamespace() . 'table_field_cell');
-            $this->o_output->assignBlockData(
+            $in_tableWidget->touchBlock('table_row');
+            $in_tableWidget->cycleBlock('table_field_cell');
+            $in_tableWidget->assignBlockData(
                 array(
                     'T_table_field_cell' => $s_createAcct, 
-                    'S_table_field_cell' => 'colspan="' . $in_tableObj->getNumColumns() . '" ' .
-                                            'style="text-align: center;"',
+                    'S_table_field_cell' => 'colspan="' . $in_colspan . '" style="text-align: center;"',
                 ),
-                $in_tableObj->getTableNamespace() . 'table_field_cell'
+                'table_field_cell'
             );
         }
     }

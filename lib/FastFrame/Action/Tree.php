@@ -151,14 +151,11 @@ class FF_Action_Tree extends FF_Action {
         $o_table->setTableHeaderText($this->getPageName());
         $o_table->setNumColumns(1);
         $o_table->beginTable();
-        $this->o_output->touchBlock($o_table->getTableNamespace() . 'table_row');
-        $this->o_output->cycleBlock($o_table->getTableNamespace() . 'table_content_cell');
-        $this->o_output->assignBlockData(
-            array(
-                'T_table_content_cell' => $in_tree,
-            ),
-            $o_table->getTableNamespace() . 'table_content_cell'
-        );
+        $o_tableWidget =& $o_table->getWidgetObject();
+        $o_tableWidget->touchBlock('table_row');
+        $o_tableWidget->cycleBlock('table_content_cell');
+        $o_tableWidget->assignBlockData(array('T_table_content_cell' => $in_tree), 'table_content_cell');
+        $this->o_output->assignBlockData(array('W_content_middle' => $o_tableWidget->render()), 'content_middle');
     }
 
     // }}}

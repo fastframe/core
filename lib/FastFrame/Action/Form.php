@@ -136,7 +136,9 @@ class FF_Action_Form extends FF_Action {
         $this->o_form->setConstants($this->getFormConstants());
         $this->o_form->setDefaults($this->getFormDefaults());
         $this->createFormElements();
-        $this->renderFormTable();
+        $o_table =& $this->renderFormTable();
+        $o_tableWidget =& $o_table->getWidgetObject();
+        $this->o_output->assignBlockData(array('W_content_middle' => $o_tableWidget->render()), 'content_middle');
         $this->o_output->output();
         return $this->o_nextAction;
     }
@@ -161,22 +163,22 @@ class FF_Action_Form extends FF_Action {
     /**
      * Renders the submit row html for the form
      *
-     * @param $in_tableObj The table object
+     * @param object $in_tableWidget The table widget 
+     * @param int $in_colspan The number of columns to span 
      * 
      * @access private
      * @return void
      */
-    function renderSubmitRow(&$in_tableObj)
+    function renderSubmitRow(&$in_tableWidget, $in_colspan)
     {
-        $this->o_output->touchBlock($in_tableObj->getTableNamespace() . 'table_row');
-        $this->o_output->cycleBlock($in_tableObj->getTableNamespace() . 'table_field_cell');
-        $this->o_output->assignBlockData(
+        $in_tableWidget->touchBlock('table_row');
+        $in_tableWidget->cycleBlock('table_field_cell');
+        $in_tableWidget->assignBlockData(
             array(
                 'T_table_field_cell' => $this->getSubmitButtons(),
-                'S_table_field_cell' => 'colspan="' . $in_tableObj->getNumColumns() . '" ' .
-                                        'style="text-align: center;"',
+                'S_table_field_cell' => 'colspan="' . $in_colspan . '" style="text-align: center;"',
             ),
-            $in_tableObj->getTableNamespace() . 'table_field_cell'
+            'table_field_cell'
         );
     }
 
@@ -184,10 +186,10 @@ class FF_Action_Form extends FF_Action {
     // {{{ renderFormTable()
 
     /**
-     * Renders the table and form
+     * Renders the table and form using the genericTable widget.
      *
      * @access public
-     * @return The table object 
+     * @return object The table object 
      */
     function &renderFormTable()
     {
@@ -196,9 +198,10 @@ class FF_Action_Form extends FF_Action {
         $o_table->setTableHeaderText($this->getTableHeaderText());
         $o_table->setTableHeaders($this->getTableData());
         $o_table->renderTwoColumnTable();
-        $this->renderSubmitRow($o_table);
+        $o_tableWidget =& $o_table->getWidgetObject();
+        $this->renderSubmitRow($o_tableWidget, $o_table->getNumColumns());
         $this->o_form->accept($this->o_renderer);
-        $this->o_output->assignBlockCallback(array(&$this->o_renderer, 'toHtml'), array(), $o_table->getTableName());
+        $o_tableWidget->assignBlockCallback(array(&$this->o_renderer, 'toHtml'));
         return $o_table;
     }
 

@@ -149,21 +149,14 @@ class FF_Output extends FF_Template {
     {
         $this->theme = FastFrame::getCGIParam('printerFriendly', 'gp', false) ? 'basic_grey' : $in_theme;
         $s_directory = $this->o_registry->getRootFile($this->theme, 'themes');
-        // make sure the main template exists
+        // See if theme has its own main template
         if (!is_readable($s_directory . '/overall.tpl')) {
-            FastFrame::fatal("The main template file $s_directory/overall.tpl is not readable", __FILE__, __LINE__); 
+            $s_directory = $this->o_registry->getRootFile('widgets', 'themes');
         }
 
         // now that we have the template directory, we can initialize the template engine
         parent::FF_Template($s_directory);
         parent::load('overall.tpl', 'file');
-
-        // Always want this block touched because it is a wrapper for field & content cells.
-        // It is in the template so we can do this: field cell | content cell | field cell | content cell...
-        $this->makeBlockPersistent('table_cell_group');
-
-        // always turn on main content
-        $this->touchBlock('content_middle');
 
         if (FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
             // no menu for print
@@ -226,6 +219,37 @@ class FF_Output extends FF_Template {
     }
 
     // }}}
+    // {{{ getWidgetObject()
+
+    /**
+     * Gets a widget object.  First looks to see if the theme has the widget, if not it
+     * loads the widget from the default widgets directory.
+     *
+     * @param string $in_widget The widget name or the full path to the widget file.
+     *
+     * @access public
+     * @return object The FF_Template object for the specified widget
+     */
+    function &getWidgetObject($in_widget)
+    {
+        // See if it's a full path or just a widget name
+        if (substr($in_widget, -4) == '.tpl') {
+            $s_directory = dirname($in_widget); 
+        }
+        else {
+            $in_widget .= '.tpl';
+            $s_directory = $this->o_registry->getRootFile($this->theme, 'themes');
+            if (!is_readable($s_directory . '/' . $in_widget)) {
+                $s_directory = $this->o_registry->getRootFile('widgets', 'themes');
+            }
+        }
+
+        $o_widget =& new FF_Template($s_directory);
+        $o_widget->load($in_widget, 'file');
+        return $o_widget;
+    }
+
+    // }}}
     // {{{ renderCSS()
 
     /**
@@ -240,13 +264,12 @@ class FF_Output extends FF_Template {
     function renderCSS($in_remakeCSS = false)
     {
         require_once 'System.php';
-        $s_theme = $this->theme;
-        $s_cssCacheDir = $this->o_registry->getRootFile("css/$s_theme", 'cache');
+        $s_cssCacheDir = $this->o_registry->getRootFile("css/$this->theme", 'cache');
         if (!@System::mkdir("-p $s_cssCacheDir"))  {
             return PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_WARNING, $s_cssCacheDir, 'FF_Error', true);
         }
 
-        $s_cssTemplateFile = $this->o_registry->getRootFile("$s_theme/style.tpl", 'themes');
+        $s_cssTemplateFile = $this->o_registry->getRootFile("$this->theme/style.tpl", 'themes');
         $s_browser = Net_UserAgent_Detect::getBrowser(array('ie', 'gecko'));
         // Determine the css file based on the browser
         $s_cssFileName = 'style-' . $s_browser . '.css';
@@ -256,25 +279,23 @@ class FF_Output extends FF_Template {
         if ($in_remakeCSS ||
             !file_exists($s_cssCacheFile) || 
             filemtime($s_cssTemplateFile) > filemtime($s_cssCacheFile)) {
-            $o_tpl = new FF_Template();
-            $o_tpl->load($s_cssTemplateFile, 'file');
+            $o_cssWidget =& $this->getWidgetObject($s_cssTemplateFile); 
             // touch the browser specific block
-            $o_tpl->touchBlock('switch_is_' . $s_browser);
+            $o_cssWidget->touchBlock('switch_is_' . $s_browser);
             // set some variables
-            $o_tpl->assignBlockData(
+            $o_cssWidget->assignBlockData(
                 array(
-                    'THEME_DIR' => $this->o_registry->getRootFile($s_theme, 'themes', FASTFRAME_WEBPATH)
+                    'THEME_DIR' => $this->o_registry->getRootFile($this->theme, 'themes', FASTFRAME_WEBPATH)
                 ),
                 FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
                 false
             );
-            $s_data = $o_tpl->render();
             $fp = fopen($s_cssCacheFile, 'w');
-            fwrite($fp, $s_data);
+            fwrite($fp, $o_cssWidget->render());
             fclose($fp);
         }
 
-        $s_cssURL = $this->o_registry->getRootFile("css/$s_theme/$s_cssFileName", 'cache', FASTFRAME_WEBPATH);
+        $s_cssURL = $this->o_registry->getRootFile("css/$this->theme/$s_cssFileName", 'cache', FASTFRAME_WEBPATH);
         // register the CSS file 
         $this->assignBlockData(
             array(

@@ -1077,6 +1077,7 @@ class FF_Template {
         // clear the template since we no longer need it
         $this->template = '';
         $this->ownedVariables = array();
+        $this->_replace_includes($this->globalBlockName);
     }
 
     // }}}

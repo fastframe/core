@@ -93,7 +93,9 @@ class FF_Action_List extends FF_Action_Form {
 
         if (!FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
             $this->renderAdditionalLinks();
-            $this->o_list->renderSearchBox($this->getSingularText(), $this->getPluralText());
+            $this->o_output->assignBlockData(
+                    array('W_search_box' => $this->o_list->renderSearchBox($this->getSingularText(), $this->getPluralText())),
+                    'switch_search_box');
         }
         else {
             $s_link = $this->o_output->link(
@@ -155,13 +157,29 @@ class FF_Action_List extends FF_Action_Form {
         $o_table->setTableHeaderText($this->getTableHeaderText());
         $o_table->setNumColumns(count($this->o_list->getColumnData()));
         $o_table->beginTable();
-        $this->o_list->generateSortFields($o_table->getTableNamespace());
-        if (!FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
-            $this->o_list->generateNavigationLinks();
-            $this->o_output->touchBlock($o_table->getTableNamespace() . 'switch_table_navigation');
+        $o_tableWidget =& $o_table->getWidgetObject();
+        $o_tableWidget->touchBlock('table_row');
+        $o_tableWidget->cycleBlock('table_field_cell');
+        $o_tableWidget->cycleBlock('table_content_cell');
+        foreach ($this->o_list->generateSortFields() as $s_cell) {
+            $o_tableWidget->assignBlockData(array('T_table_field_cell' => $s_cell), 'table_field_cell');
         }
 
-        $this->renderListData($o_table->getTableNamespace());
+        if (!FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
+            $a_data = $this->o_list->generateNavigationLinks();
+            $o_navWidget =& $this->o_output->getWidgetObject('navigationRow');
+            $o_navWidget->assignBlockData(array(
+                    'S_TABLE_COLUMNS'       => $o_table->getNumColumns(),
+                    'I_navigation_first'    => $a_data['first'],
+                    'I_navigation_previous' => $a_data['previous'],
+                    'I_navigation_next'     => $a_data['next'],
+                    'I_navigation_last'     => $a_data['last'],
+                    ));
+            $o_tableWidget->assignBlockData(array('T_end_data' => $o_navWidget->render()), FASTFRAME_TEMPLATE_GLOBAL_BLOCK, false);
+        }
+
+        $this->renderListData($o_tableWidget);
+        $this->o_output->assignBlockData(array('W_content_middle' => $o_tableWidget->render()), 'content_middle');
     }
     
     // }}}
@@ -184,17 +202,17 @@ class FF_Action_List extends FF_Action_Form {
     /**
      * Registers the data for the list into the table
      *
-     * @param string $in_namespace The table namespace 
+     * @param object $in_tableWidget The table widget 
      *
      * @access public
      * @return void
      */
-    function renderListData($in_namespace)
+    function renderListData(&$in_tableWidget)
     {
         if ($this->o_list->getDisplayedRecords() > 0) {
             while (($this->o_model =& $this->o_listModeler->getNextModel()) !== false) {
-                $this->o_output->touchBlock($in_namespace . 'table_row');
-                $this->o_output->cycleBlock($in_namespace . 'table_content_cell');
+                $in_tableWidget->touchBlock('table_row');
+                $in_tableWidget->cycleBlock('table_content_cell');
                 foreach ($this->getFieldMap() as $tmp_fields) {
                     // see if the method is in the model 
                     if (isset($tmp_fields['field'])) {
@@ -205,24 +223,19 @@ class FF_Action_List extends FF_Action_Form {
                         $tmp_displayData = $this->o_output->processCellData($this->$tmp_fields['method']());
                     }
 
-                    $this->o_output->assignBlockData(
-                        array(
-                            'T_table_content_cell' => $tmp_displayData,
-                        ),
-                        $in_namespace . 'table_content_cell'
-                    );
+                    $in_tableWidget->assignBlockData(array('T_table_content_cell' => $tmp_displayData), 'table_content_cell');
                 }
             }
         }
         else {
-            $this->o_output->touchBlock($in_namespace . 'table_row');
-            $this->o_output->cycleBlock($in_namespace . 'table_content_cell');
-            $this->o_output->assignBlockData(
+            $in_tableWidget->touchBlock('table_row');
+            $in_tableWidget->cycleBlock('table_content_cell');
+            $in_tableWidget->assignBlockData(
                 array(
                     'T_table_content_cell' => $this->getEmptySetText(),
                     'S_table_content_cell' => 'style="font-style: italic; text-align: center;" colspan="' . count($this->o_list->getColumnData()) . '"', 
                 ),
-                $in_namespace . 'table_content_cell'
+                'table_content_cell'
             );
         }
     }

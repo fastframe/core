@@ -183,13 +183,13 @@ class FF_List {
 
     /**
      * Create a search/navigation box that can be used to search a list or navigate it by
-     * page.  Then render the generated form with the template. 
+     * page.  Then render the generated form using the genericTable widget. 
      *
      * @param  string  $in_singularLang Singular description of the data 
      * @param  string  $in_pluralLang Plural description of the data 
      *
      * @access public
-     * @return string table for the search box
+     * @return string The html for the search table 
      */
     function renderSearchBox($in_singularLang, $in_pluralLang)
     {
@@ -274,39 +274,9 @@ class FF_List {
         // }}}
         // {{{ template preparation
 
-        $this->o_output->touchBlock('switch_search_box');
-        $s_namespace = $this->o_output->branchBlockNS('SEARCH_BOX', 'search_box', 'genericTable.tpl', 'file');
+        $o_searchWidget =& $this->o_output->getWidgetObject('searchTable');
 
-        $this->o_output->assignBlockData(
-            array(
-                'S_TABLE_COLUMNS'        => 3,
-                'T_table_header'         => _('Search Results and Options'),
-                'S_table_header'         => 'style="text-align: center;"'
-            ),
-            'search_box'
-        );
-
-        $this->o_output->touchBlock($s_namespace . 'switch_table_header');
-
-        // Add the data to the second row
-        $this->o_output->assignBlockData(
-            array(
-                'S_table_field_cell' => 'style="text-align: center; vertical-align: middle; width: 33%;"',
-            ),
-            $s_namespace . 'table_row'
-        );
-
-        $this->o_output->cycleBlock($s_namespace . 'table_content_cell');
-        $this->o_output->cycleBlock($s_namespace . 'table_field_cell');
-
-        $this->o_output->assignBlockData(
-            array(
-                'T_table_field_cell' => sprintf(_('Viewing Page %s'), $s_pagination),
-            ),
-            $s_namespace . 'table_field_cell'
-        );
-
-        $tmp_text = sprintf(
+        $s_foundText = sprintf(
                         _('%1$d Found (%2$d%%), %3$d Listed out of %4$d Total %5$s'),
                         $this->matchedRecords, 
                         $this->getMatchedRecordsPercentage(), 
@@ -315,54 +285,33 @@ class FF_List {
                         $this->totalRecords == 1 ? $in_singularLang : $in_pluralLang
                     );
 
-        $this->o_output->assignBlockData(
-            array(
-                'T_table_field_cell' => $tmp_text,
-            ),
-            $s_namespace . 'table_field_cell'
-        );
-
         $s_printLink = $this->o_output->link(
             FastFrame::selfURL($this->persistentData, $this->getAllListVariables(), array('printerFriendly' => 1)),
             _('Printer Friendly'),
             _('Printer Friendly')
         );
 
-        $this->o_output->assignBlockData(
+        $o_searchWidget->assignBlockData(
             array(
-                'T_table_field_cell' => $o_renderer->elementToHtml('advancedList') . ' | ' . $s_printLink,
-                'S_table_field_cell' => 'style="white-space: nowrap; text-align: center;"',
+                'T_search_header' => _('Search Results and Options'),
+                'T_search_viewing' => sprintf(_('Viewing Page %s'), $s_pagination),
+                'T_search_found' => $s_foundText, 
+                'T_search_options' => $o_renderer->elementToHtml('advancedList') . ' | ' . $s_printLink,
             ),
-            $s_namespace . 'table_field_cell'
+            FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
+            false
         );
 
         // Add the data to the first row
         if ($this->getAdvancedList()) {
-            // assigns attributes to all cells in the row
-            $this->o_output->assignBlockData(
-                array(
-                    'S_table_content_cell' => 'style="text-align: center; vertical-align: middle; width: 33%; white-space: nowrap;"',
-                ),
-                $s_namespace . 'table_row'
-            );
-
-            $this->o_output->cycleBlock($s_namespace . 'table_content_cell');
-            
-            $tmp_text = sprintf(
+            $s_limitText = sprintf(
                             _('%1$s rows per page %2$s'), 
                             $o_renderer->elementToHtml('displayLimit'), 
                             $o_renderer->elementToHtml('displayLimit_submit')
                         );
 
-            $this->o_output->assignBlockData(
-                array(
-                    'T_table_content_cell' => $tmp_text,
-                ), 
-                $s_namespace . 'table_content_cell'
-            );
-
             $tmp_help = _('Find items in the list by entering a search term in the box to the right.  If you want to only search a particular field then select it from the drop down list.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy');
-            $tmp_text = sprintf(
+            $s_findText = sprintf(
                             _('%1$s %2$s in %3$s'), 
                             $this->o_output->link(
                                 'javascript: void(0);',
@@ -375,25 +324,24 @@ class FF_List {
                             $o_renderer->elementToHtml('listall_submit')
                         );
 
-            $this->o_output->assignBlockData(
-                array(
-                    'T_table_content_cell' => $tmp_text,
-                ), 
-                $s_namespace . 'table_content_cell'
-            );
+            $s_sortText = $o_renderer->elementToHtml('sortOrder') . ' ' .
+                          $o_renderer->elementToHtml('sortField') . ' ' .
+                          $o_renderer->elementToHtml('sort_submit');
 
-            $this->o_output->assignBlockData(
+            $o_searchWidget->assignBlockData(
                 array(
-                    'T_table_content_cell' => $o_renderer->elementToHtml('sortOrder') . ' ' .
-                                              $o_renderer->elementToHtml('sortField') . ' ' .
-                                              $o_renderer->elementToHtml('sort_submit'),
+                    'T_search_limit' => $s_limitText,
+                    'T_search_find' => $s_findText,
+                    'T_search_sort' => $s_sortText, 
                 ),
-                $s_namespace . 'table_content_cell'
+                FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
+                false
             );
         }
 
         $o_form->accept($o_renderer);
-        $this->o_output->assignBlockCallback(array(&$o_renderer, 'toHtml'), array(), 'search_box');
+        $o_searchWidget->assignBlockCallback(array(&$o_renderer, 'toHtml'));
+        return $o_searchWidget->render();
 
         // }}}
     }
@@ -405,13 +353,10 @@ class FF_List {
      * Generates first, previous, next, and last links with images for navigation through
      * the multiple pages of data.
      *
-     * @param bool $in_renderLinks (optional) Render the links in the template?  Otherwise we
-     *                          just return an array of the links.
-     *
      * @access public
-     * @return mixed Void if rendering, otherwise an array of the navigation links. 
+     * @return array An array of the navigation links. 
      */
-    function generateNavigationLinks($in_renderLinks = true)
+    function generateNavigationLinks()
     {
         // language constructs used for navigation
         $lang_firstPage = array('title' => _('First'),    'status' => _('Jump to First Page'));
@@ -453,21 +398,7 @@ class FF_List {
                                     ) : 
                                     $this->o_output->imgTag('last-gray.gif', 'arrows', $lang_atLast);
         
-        if ($in_renderLinks) {
-            $this->o_output->assignBlockData(
-                array(
-                    'I_navigation_first'    => $a_navigation['first'],
-                    'I_navigation_previous' => $a_navigation['previous'],
-                    'I_navigation_next'     => $a_navigation['next'],
-                    'I_navigation_last'     => $a_navigation['last'],
-                ),
-                FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
-                false
-            );
-        }
-        else {
-            return $a_navigation;
-        }
+        return $a_navigation;
     }
 
     // }}}
@@ -477,14 +408,9 @@ class FF_List {
      * Generate a set of column headers which are HTML'd to have images and links so they
      * can be clicked on to sort the page.
      *
-     * @param string $in_tableNamespace (optional) The namespace for the table to render
-     *               the cells to.  If not passed in then we just return the array of sort
-     *               fields.  It is up to you to branch the block, and assign
-     *               global table variables such as S_TABLE_COLUMNS
-     *
-     * @return mixed Either nothing (we render the cells) or an array of the sort fields 
+     * @return array An array of the sort fields with the links and descriptions of the cell
      */
-    function generateSortFields($in_tableNamespace = null)
+    function generateSortFields()
     {
         foreach ($this->getColumnData() as $a_colData) {
             // Check to see if it is searchable and we're not in print mode.
@@ -533,23 +459,7 @@ class FF_List {
             }
         }
 
-        // now render the sort fields if that was specified
-        if (!is_null($in_tableNamespace)) {
-            $this->o_output->touchBlock($in_tableNamespace . 'table_row');
-            $this->o_output->cycleBlock($in_tableNamespace . 'table_field_cell');
-            $this->o_output->cycleBlock($in_tableNamespace . 'table_content_cell');
-            foreach ($a_fieldCells as $s_cell) {
-                $this->o_output->assignBlockData(
-                    array(
-                        'T_table_field_cell' => $s_cell,
-                    ),
-                    $in_tableNamespace . 'table_field_cell'
-                );
-            }
-        }
-        else {
-            return $a_fieldCells;
-        }
+        return $a_fieldCells;
     }
 
     // }}}
