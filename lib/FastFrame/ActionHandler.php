@@ -22,6 +22,8 @@
 // }}}
 // {{{ requires
 
+define('ECLIPSE_ROOT', dirname(__FILE__) . '/../eclipse/');
+require_once dirname(__FILE__) . '/../Error/Error.php';
 require_once 'File.php';
 require_once dirname(__FILE__) . '/../FastFrame.php';
 require_once dirname(__FILE__) . '/Registry.php';
@@ -525,8 +527,6 @@ class FF_ActionHandler {
      */
     function _initializeErrorHandler()
     {
-        define('ECLIPSE_ROOT', dirname(__FILE__) . '/../eclipse/');
-        require_once dirname(__FILE__) . '/../Error/Error.php';
         $o_reporter =& new ErrorReporter();
         $o_reporter->setDateFormat('[Y-m-d H:i:s]');
         $o_reporter->setStrictContext(false);
