@@ -1,5 +1,5 @@
 <?php
-/** $Id: HTML.php,v 1.1 2003/01/03 23:41:29 jrust Exp $ */
+/** $Id: HTML.php,v 1.2 2003/01/08 00:05:13 jrust Exp $ */
 // {{{ includes
 
 require_once dirname(__FILE__) . '/Template.php';
@@ -85,7 +85,7 @@ class FastFrame_HTML extends FastFrame_Template {
      * @access public
      * @return void
      */
-    function FastFrame_HTML($in_options = array())
+    function FastFrame_HTML()
     {
         $this->FastFrame_Registry =& FastFrame_Registry::singleton();
 
@@ -145,11 +145,11 @@ class FastFrame_HTML extends FastFrame_Template {
      * @access public
      * @return object FastFrame_HTML instance
      */
-    function &singleton($in_options = array())
+    function &singleton()
     {
         static $instance;
         if (!isset($instance)) {
-            $instance = new FastFrame_HTML($in_options);
+            $instance = new FastFrame_HTML();
         }
         return $instance;
     }
@@ -777,7 +777,7 @@ class FastFrame_HTML extends FastFrame_Template {
 
         // make sure our display limit is not 0 or empty
         if (abs($in_persistentData['limit']) == 0) {
-            $in_persistentData['limit'] = $this->defaultLimit; 
+            $in_persistentData['limit'] = $this->getDefaultLimit(); 
         }
 
         if (abs($in_persistentData['pageOffset']) == 0) {
@@ -856,7 +856,7 @@ class FastFrame_HTML extends FastFrame_Template {
 
         // make sure our display limit is not 0 or empty
         if (abs($in_persistentData['limit']) == 0) {
-            $in_persistentData['limit'] = $this->defaultLimit; 
+            $in_persistentData['limit'] = $this->getDefaultLimit(); 
         }
 
         if (abs($in_persistentData['pageOffset']) == 0) {
@@ -935,6 +935,7 @@ class FastFrame_HTML extends FastFrame_Template {
             foreach(range(1, $s_totalPages) as $i) {
                 $a_pageOptions[$i] = $i . ' of ' . $s_totalPages;
             }
+
             // you can't change anything when changing pages...doesn't make sense, so
             // reset the form before going on to the next page
             $o_form->addElement('select', 'pageOffset', null, $a_pageOptions, array('style' => 'vertical-align: middle;', 'onchange' => 'var tmp = this.selectedIndex; this.form.reset(); this.options[tmp].selected = true; if (validate_search_box()) { this.form.submit(); } else { return false; }'));
@@ -1078,12 +1079,12 @@ class FastFrame_HTML extends FastFrame_Template {
      * @param array $in_persistentData (optional) Any persistent data to be passed on
      *              through the link.  If not sent in we get it form getPersistentData()
      *
-     * @requires 'sortField', 'sortOrder', 'offset'. All these must be in persistentData 
+     * @requires 'sortField', 'sortOrder', 'pageOffset'. All these must be in persistentData 
      * @return mixed Either nothing (we register the cells) or an array of the sort fields 
      */
     function registerSortFields($in_fieldData, $in_tableNamespace = null, $in_persistentData = null)
     {
-        $s_defaultSort = ($this->defaultSortOrder == 'ASC') ? 1 : 0;
+        $s_defaultSort = ($this->getDefaultSortOrder() == 'ASC') ? 1 : 0;
         $a_fieldCells = array();
         settype($in_fieldData, 'array');
         if (is_null($in_persistentData)) {
@@ -1271,6 +1272,34 @@ class FastFrame_HTML extends FastFrame_Template {
     }
 
     // }}}
+    // {{{ getDefaultSortOrder()
+
+    /**
+     * Get the default sort order(maybe someday this will interface with the config as well
+     *
+     * @access public
+     * @return string The default sort order (either 'ASC' or 'DESC') 
+     */
+    function getDefaultSortOrder()
+    {
+        return $this->defaultSortOrder;
+    }
+
+    // }}}
+    // {{{ getDefaultLimit()
+
+    /**
+     * Get the default limit (maybe someday this will interface with the config as well
+     *
+     * @access public
+     * @return int The default limit for list pages
+     */
+    function getDefaultLimit()
+    {
+        return $this->defaultLimit;
+    }
+
+    // }}}
     // {{{ getOptionsFromXML()
 
     /**
@@ -1332,27 +1361,27 @@ class FastFrame_HTML extends FastFrame_Template {
      */
     function getPersistentData($in_constants = array())
     {
-        static $persistentData;
+        static $a_persistentData;
 
         // get persistent data from globals
-        if (!isset($persistentData)) {
-            $persistentData = array();
-            foreach($this->persistentVariables as $variable) {
-                $persistentData[$variable] =& $GLOBALS[$variable];
+        if (!isset($a_persistentData)) {
+            $a_persistentData = array();
+            foreach($this->persistentVariables as $s_var) {
+                $a_persistentData[$s_var] =& $GLOBALS['a_persistent'][$s_var];
             }
         }
 
         if (count($in_constants) > 0) {
             // now do any overrides
-            $returnData = $persistentData;
-            foreach ($in_constants as $key => $value) {
-                $returnData[$key] = $value;
+            $a_returnData = $a_persistentData;
+            foreach ($in_constants as $s_key => $s_value) {
+                $a_returnData[$s_key] = $s_value;
             }
 
             return $returnData;
         }
         else {
-            return $persistentData;
+            return $a_persistentData;
         }
     }
 
