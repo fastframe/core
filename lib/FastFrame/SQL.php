@@ -1,5 +1,5 @@
 <?php
-/** $Id: SQL.php,v 1.1 2003/01/03 22:42:45 jrust Exp $ */
+/** $Id: SQL.php,v 1.2 2003/01/08 00:06:55 jrust Exp $ */
 // {{{ class FastFrame
 
 /**
@@ -130,6 +130,51 @@ class FastFrame_SQL {
         
         $sql = implode(' OR ', $sql);
         return $sql;
+    }
+
+    // }}}
+    // {{{ string  backTickString()
+
+    /**
+     * Enclose the database/table/column name in backticks if it is not already enclosed in
+     * them
+     *
+     * @param $in_string The database/table/column name
+     *
+     * @access public
+     * @return string The backticked string
+     */
+    function backTickString($in_string)
+    {
+        if (strpos($in_string, '`') !== 0) {
+            return '`' . $in_string . '`';
+        }
+        else {
+            return $in_string;
+        }
+    }
+
+    // }}}
+    // {{{ string   getOrderString()
+
+    /**
+     * Returns an order string by handling either true (ASC)/false (DESC) type notation or
+     * regular ASC/DESC strings.
+     *
+     * @param mixed $in_order The order
+     *
+     * @access public
+     * @return string Either ASC or DESC
+     */
+    function getOrderString($in_order)
+    {
+        $in_order = strtoupper($in_order);
+        if ($in_order == 'ASC' || $in_order == 'DESC') {
+            return $in_order;
+        }
+        else {
+            return (int) $in_order ? 'ASC' : 'DESC';
+        }
     }
 
     // }}}
