@@ -1,5 +1,5 @@
 <?php
-/** $Id: Output.php,v 1.1 2003/02/06 18:52:22 jrust Exp $ */
+/** $Id: Output.php,v 1.2 2003/02/06 22:25:44 jrust Exp $ */
 // {{{ requires 
 
 require_once dirname(__FILE__) . '/Template.php';
@@ -129,6 +129,21 @@ class FastFrame_Output extends FastFrame_Template {
             $instance = new FastFrame_Output();
         }
         return $instance;
+    }
+
+    // }}}
+    // {{{ output()
+
+    /**
+     * Outputs the template data to the browser.
+     *
+     * @access public
+     * @return void
+     */
+    function output()
+    {
+        $this->renderPageType();
+        $this->prender();
     }
 
     // }}}
