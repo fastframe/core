@@ -1,5 +1,5 @@
 <?php
-/** $Id: sql.php,v 1.10 2003/03/19 00:36:01 jrust Exp $ */
+/** $Id: sql.php,v 1.11 2003/04/02 00:01:23 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -25,10 +25,11 @@
 require_once 'DB.php'; 
 
 // }}}
-// {{{ class  AuthSource_sql
+// {{{ class  FF_AuthSource_sql
 
 /**
- * An authentication source for sql servers
+ * An authentication source for a simple SQL database that has a username and password field
+ * to authenticate against.
  *
  * @version Revision: 1.0 
  * @author  Greg Gilbert <greg@treke.net>
@@ -37,7 +38,7 @@ require_once 'DB.php';
  */
 
 // }}}
-class AuthSource_sql extends AuthSource {
+class FF_AuthSource_sql extends FF_AuthSource {
     // {{{ properties
 
     /**
@@ -69,20 +70,18 @@ class AuthSource_sql extends AuthSource {
     // {{{ constructor
 
     /**
-     * Initialize the AuthSource_imap class
-     *
-     * Create an instance of the AuthSource class.  
+     * Initialize the FF_AuthSource_sql class
      *
      * @param string $in_name The name of this auth source
      * @param array $in_params Parameters needed for authenticating against the SQL server.
-     *              These can include hostname, table
+     *              These should include encryption, table, userField, and passField
      *
      * @access public
-     * @return object AuthSource_sql object
+     * @return object FF_AuthSource_sql object
      */
-    function AuthSource_sql($in_name, $in_params)
+    function FF_AuthSource_sql($in_name, $in_params)
     {
-        $this->sourceName = $in_name;
+        FF_AuthSource::FF_AuthSource($in_name, $in_params);
         $this->encryptionType = $in_params['encryption'];
         $this->table = $in_params['table'];
         $this->userField = $in_params['userField'];
@@ -101,11 +100,12 @@ class AuthSource_sql extends AuthSource {
      * @param string $in_password The corresponding password.
      *
      * @access public
-     * @return boolean True if login was successfull
+     * @return boolean True if login was successful
      */
     function authenticate($in_username, $in_password)
     {
         $o_registry =& FF_Registry::singleton();
+        $this->serverName = $o_registry->getConfigParam('data/host');
         // set up database
         $o_data =& DB::connect($o_registry->getDataDsn());
         if (DB::isError($o_data)) {

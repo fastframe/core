@@ -1,5 +1,5 @@
 <?php
-/** $Id: imap.php,v 1.3 2003/02/08 00:10:55 jrust Exp $ */
+/** $Id: imap.php,v 1.4 2003/04/02 00:01:23 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -20,7 +20,7 @@
 // +----------------------------------------------------------------------+
 
 // }}}
-// {{{ class  AuthSource_imap
+// {{{ class  FF_AuthSource_imap
 
 /**
  * An authentication source for imap servers
@@ -32,14 +32,8 @@
  */
 
 // }}}
-class AuthSource_imap extends AuthSource {
+class FF_AuthSource_imap extends FF_AuthSource {
     // {{{ properties
-
-    /**
-     * The hostname of the server to connect to
-     * @type string
-     */
-    var $serverName;
 
     /**
      * The port on server to connect to
@@ -51,20 +45,20 @@ class AuthSource_imap extends AuthSource {
     // {{{ constructor
 
     /**
-     * Initialize the AuthSource_imap class
+     * Initialize the FF_AuthSource_imap class
      *
-     * Create an instance of the AuthSource class.  
+     * Create an instance of the FF_AuthSource class.  
      *
      * @param string $in_name The name of this auth source
      * @param array $in_params Parameters needed for authenticating against an imap server.
      *              These include hostname, port
      *
      * @access public
-     * @return object AuthSource_imap object
+     * @return object FF_AuthSource_imap object
      */
-    function AuthSource_imap($in_name, $in_params)
+    function FF_AuthSource_imap($in_name, $in_params)
     {
-        $this->_sourceName = $in_name;
+        FF_AuthSource::FF_AuthSource($in_name, $in_params);
         $this->serverName = $in_params['hostname'];
         $this->serverPort = isset($in_params['port']) ? $in_params['port'] : 143;
 
@@ -87,7 +81,7 @@ class AuthSource_imap extends AuthSource {
     function authenticate($in_username, $in_password)
     {
         $s_imapString = '{' . $this->serverName . ':' . $this->serverPort .'}';
-        if ( $result = @imap_open($s_imapString, $in_username, $in_password))	{
+        if (($result = @imap_open($s_imapString, $in_username, $in_password))) {
             @imap_close($result);
             return true;
         }
