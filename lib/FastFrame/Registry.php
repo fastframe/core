@@ -158,12 +158,13 @@ class FF_Registry {
      * @access public
      * @return object FF_Registry instance
      */
-    function &singleton ()
+    function &singleton()
     {
         static $instance;
         if (!isset($instance)) {
             $instance = new FF_Registry();
         }
+
         return $instance;
     }
 
