@@ -37,10 +37,10 @@ class FF_Menu_StaticList extends FF_Menu {
     // {{{ properties
 
     /**
-     * The css class we use for the each node
+     * The css id we use for the top level <ul>
      * @var string
      */
-    var $cssClass = 'staticList';
+    var $ulId = 'mainMenu';
 
     /**
      * The template variable to which we assign the menu
@@ -67,7 +67,7 @@ class FF_Menu_StaticList extends FF_Menu {
 
         $s_menu = $this->_getCachedMenu();
         // Remove empty lists
-        $s_menu = preg_replace('/<ul class="' . $this->cssClass . '">\s+<\/ul>/', '', $s_menu);
+        $s_menu = preg_replace('/<ul.*?>\s+<\/ul>/', '', $s_menu);
         // Turn on menu
         if (!FastFrame::isEmpty($s_menu)) {
             $this->o_output->o_tpl->append($this->tmplVar, $s_menu);
@@ -85,7 +85,7 @@ class FF_Menu_StaticList extends FF_Menu {
      */
     function _generateStaticMenu()
     {
-        $s_html = '<ul class="' . $this->cssClass . '">'; 
+        $s_html = '<ul id="' . $this->ulId . '">'; 
         foreach ($this->menuVariables as $a_topLevelData) {
             foreach ($a_topLevelData['vars'] as $a_data) {
                 $s_node = $this->_getMenuNode($a_data, 0);
@@ -122,24 +122,28 @@ class FF_Menu_StaticList extends FF_Menu {
         $tmp_nl = $this->debug ? "\n" : ' '; 
         $in_data = $this->_formatMenuNodeData($in_data, true);
         // Create html for this node
-        $tmp_style = empty($in_data['urlParams']) ? 'font-weight: bold;' : '';
-        $s_node = "<li style=\"$tmp_style\">";
-        $s_node .= $in_data['icon'];
+        $s_node = '<li>';
         if (!empty($in_data['urlParams'])) {
             $tmp_link = $this->o_output->link($in_data['urlParams'], $in_data['contents'], array('title' => $in_data['statusText'], 'target' => $in_data['target']));
             $tmp_link = preg_replace('/title=".*?"/', 'title="<?php echo _(\'' . $in_data['statusText'] . '\'); ?>"', $tmp_link);
-            $tmp_link = preg_replace('/">.*?<\/a>/', '"><?php echo _(\'' . $in_data['contents'] . '\'); ?></a>', $tmp_link);
+            $tmp_link = preg_replace('/">.*?<\/a>/', '">' . $in_data['icon'] . '<?php echo _(\'' . $in_data['contents'] . '\'); ?></a>', $tmp_link);
             $s_node .= $tmp_link;
         }
         else {
-            $s_node .= "<?php echo _('{$in_data['contents']}'); ?>";
+            $s_node .= "<a href=\"#\">{$in_data['icon']}<?php echo _('{$in_data['contents']}'); ?></a>";
         }
 
-        $s_node .= "</li>$tmp_nl";
         // Recurse sub-elements
         $s_nextLevel = $in_level + 1;
+        $b_hitSub = false;
         foreach ($in_data as $s_key => $a_data) {
             if (is_int($s_key) && is_array($a_data)) {
+                // Let them know there is a submenu
+                if (!$b_hitSub) {
+                    $b_hitSub = true;
+                    $s_node = preg_replace('|<li>(<a.*?>)(.*?)</a>|', '<li class="parent">\\1<div style="float: left;">\\2</div><div style="float: right;">&#187;</div></a>', $s_node);
+                }
+
                 $s_node .= $this->_getMenuNode($a_data, $s_nextLevel);
             }
         }
@@ -151,10 +155,11 @@ class FF_Menu_StaticList extends FF_Menu {
             $s_node .= "</ul>$tmp_nl";
         }
 
+        $s_node .= "$tmp_nl</li>";
         $s_node = $this->_processPerms($in_data, $s_node);
         $s_node = $this->_processApps($in_data, $s_node);
         if ($in_level > $s_lastLevel) {
-            $s_node = "<ul class=\"$this->cssClass\">$tmp_nl" . $s_node;
+            $s_node = "<ul>$tmp_nl" . $s_node;
         }
 
         $s_lastLevel = $in_level;

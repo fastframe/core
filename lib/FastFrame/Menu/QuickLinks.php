@@ -45,10 +45,10 @@ class FF_Menu_QuickLinks extends FF_Menu_StaticList {
     // {{{ properties
 
     /**
-     * The css class we use for the each node
+     * The css id we use for the top level <ul>
      * @var string
      */
-    var $cssClass = 'quickLink';
+    var $ulId = 'quickLink';
 
     /**
      * The template variable to which we assign the menu
