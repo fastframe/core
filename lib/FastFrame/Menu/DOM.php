@@ -187,6 +187,7 @@ class FF_Menu_DOM extends FF_Menu {
         $tmp_pad),";
 
         $s_jsNode = $this->_processPerms($in_data, $s_jsNode);
+        $s_jsNode = $this->_processApps($in_data, $s_jsNode);
         $s_padNum -= 4;
         return $s_jsNode;
     }

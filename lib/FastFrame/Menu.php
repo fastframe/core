@@ -259,6 +259,7 @@ class FF_Menu {
     {
         require_once dirname(__FILE__) . '/Perms.php';
         $o_perms =& FF_Perms::factory();
+        $o_registry =& FF_Registry::singleton();
         $s_cacheFile = $this->_getCacheFileName(); 
         ob_start();
         require_once $s_cacheFile;
@@ -368,6 +369,30 @@ class FF_Menu {
 
             $s_permsCall .= ')';
             $in_node = "\n<?php if ($s_permsCall) { ?>\n$in_node\n<?php } ?>\n";
+        }
+
+        return $in_node;
+    }
+
+    // }}}
+    // {{{ _processApps()
+
+    /**
+     * Wraps menu entries that are marked as private to an application with check for
+     * the currently running application
+     *
+     * @param array $in_data The data for the node
+     * @param string $in_node The node to wrap the application restrictions  around
+     *
+     * @access private
+     * @return string The node with any application restrictions wrapped around it
+     */
+    function _processApps($in_data, $in_node)
+    {
+
+        if (isset($in_data['app_private']) && $in_data['app_private'] == true) {
+            $s_appCheck = '$o_registry->getCurrentApp() == \'' . $this->currentAppPlaceholder .  '\'';
+            $in_node = "\n<?php if ($s_appCheck) { ?>\n$in_node\n<?php } ?>\n";
         }
 
         return $in_node;
