@@ -1,5 +1,5 @@
 <?php
-/** $Id: DataAccess.php,v 1.4 2003/03/19 00:36:00 jrust Exp $ */
+/** $Id: DataAccess.php,v 1.5 2003/04/04 23:10:17 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -198,6 +198,54 @@ class FF_DataAccess {
         else {
             return false;
         }
+    }
+
+    // }}}
+    // {{{ getListData()
+
+    /**
+     * Queries the database for the information displayed on a list page.
+     *
+     * @param string $in_where The where condition
+     * @param string $in_orderByField The order by field
+     * @param string $in_orderByDir The order by direction 
+     * @param int $in_offset The offset to start at
+     * @param int $in_limit The limit of records
+     *
+     * @access public
+     * @return object The result object
+     */
+    function &getListData($in_where, $in_orderByField, $in_orderByDir, $in_offset, $in_limit)
+    {
+        $s_query = sprintf('SELECT * FROM %s WHERE %s ORDER BY %s %s',
+                              $this->table,
+                              $in_where,
+                              $in_orderByField,
+                              $in_orderByDir
+                          );
+        $s_query = $this->o_data->modifyLimitQuery($s_query, $in_offset, $in_limit);
+        return $this->o_data->query($s_query);
+    }
+
+    // }}}
+    // {{{ getTotal()
+
+    /**
+     * Gets the total number of records in the table based on the WHERE condition.
+     *
+     * @param string $in_where (optional) The where condition.  If not specified, defaults
+     *               to 1
+     *
+     * @access public
+     * @return int The number of records in the main table
+     */
+    function getTotal($in_where = 1)
+    {
+        $s_query = sprintf('SELECT COUNT(*) FROM %s WHERE %s',
+                              $this->table,
+                              $in_where
+                          );
+        return $this->o_data->getOne($s_query);
     }
 
     // }}}

@@ -1,5 +1,5 @@
 <?php
-/** $Id: ListModeler.php,v 1.1 2003/03/13 18:35:23 jrust Exp $ */
+/** $Id: ListModeler.php,v 1.2 2003/04/04 23:10:17 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -94,10 +94,7 @@ class FF_Model_ListModeler {
      */
     function getTotalModelsCount()
     {
-        $s_query = sprintf('SELECT COUNT(*) FROM %s',
-                              $this->o_dataAccess->table
-                          );
-        return $this->o_dataAccess->o_data->getOne($s_query);
+        return $this->o_dataAccess->getTotal();
     }
 
     // }}}
@@ -111,11 +108,7 @@ class FF_Model_ListModeler {
      */
     function getMatchedModelsCount()
     {
-        $s_query = sprintf('SELECT COUNT(*) FROM %s WHERE %s',
-                              $this->o_dataAccess->table,
-                              $this->_getWhereCondition()
-                          );
-        return $this->o_dataAccess->o_data->getOne($s_query);
+        return $this->o_dataAccess->getTotal($this->_getWhereCondition());
     }
 
     // }}}
@@ -235,14 +228,15 @@ class FF_Model_ListModeler {
      */
     function _performSearch()
     {
-        $s_query = sprintf('SELECT * FROM %s WHERE %s ORDER BY %s %s',
-                              $this->o_dataAccess->table,
-                              $this->_getWhereCondition(),
-                              $this->o_list->getSortField(), 
-                              $this->_getOrderByDirection($this->o_list->getSortOrder())
-                          );
-        $s_query = $this->o_dataAccess->o_data->modifyLimitQuery($s_query, $this->o_list->getRecordOffset(), $this->o_list->getDisplayLimit()); 
-        if (!DB::isError($result =& $this->o_dataAccess->o_data->query($s_query))) {
+        $result =& $this->o_dataAccess->getListData(
+            $this->_getWhereCondition(), 
+            $this->o_list->getSortField(),
+            $this->_getOrderByDirection($this->o_list->getSortOrder()),
+            $this->o_list->getRecordOffset(),
+            $this->o_list->getDisplayLimit() 
+        );
+
+        if (!DB::isError($result)) {
             $this->o_resultSet =& $result;
         }
     }
