@@ -252,7 +252,8 @@ class FF_Action_Tree extends FF_Action {
         $s_folder = $this->getNodeIcon($in_hasChildren, $in_isOpen) . ' ';
         if ($in_hasChildren) {
             $this->isOpen = $in_isOpen ? 0 : 1;
-            $s_branch = $this->o_output->link(FastFrame::selfURL($this->getBranchUrlParams()), $s_branch);
+            $s_branch = $this->o_output->link(FastFrame::selfURL($this->getBranchUrlParams()), $s_branch, 
+                    array('class' => 'img'));
         }
 
         $s_html .= $s_branch;
