@@ -1,5 +1,5 @@
 <?php
-/** $Id: init.inc.php,v 1.7 2003/01/23 23:00:28 jrust Exp $ */
+/** $Id: init.inc.php,v 1.8 2003/02/06 18:59:31 jrust Exp $ */
 /**
  * If you want to use the FastFrame application framework in your application,
  * you have to specify the path, either full or relative to get to the
@@ -24,23 +24,19 @@ $o_error =& new Error_Handler(realpath(FASTFRAME_ROOT . 'config/Error_Handler.in
 // PEAR libraries
 require_once 'PEAR.php';
 require_once 'Net/UserAgent/Detect.php';
-require_once 'HTML/QuickForm.php';
-require_once 'XML/XPath.php';
 require_once 'File.php';
 
 // FastFrame specific libraries (we use dirname() here so it doesn't conflict with PEAR libraries)
 require_once dirname(__FILE__) . '/constants.inc.php';
 require_once dirname(__FILE__) . '/FastFrame.php';
-require_once dirname(__FILE__) . '/FastFrame/SQL.php';
-require_once dirname(__FILE__) . '/FastFrame/HTML.php';
-require_once dirname(__FILE__) . '/FastFrame/Menu.php';
 require_once dirname(__FILE__) . '/FastFrame/Auth.php';
+require_once dirname(__FILE__) . '/FastFrame/ActionHandler.php';
+require_once dirname(__FILE__) . '/FastFrame/Application.php';
 
 // }}}
 // {{{ init
 
 $o_registry =& FastFrame_Registry::singleton();
-
 // this starts the session
 $o_auth = FastFrame_Auth::singleton();
 // if this is not the login page, then we need to check the auth!
@@ -53,13 +49,6 @@ if (empty($b_checkAuth)) {
 
 // load in the core language text
 $a_lang =& $o_registry->getRootLocale();
-
-// }}}
-// {{{ set variables 
-
-$s_pageType = 'normal';
-$o_html =& FastFrame_HTML::singleton();
-FastFrame::setPersistentData('actionID', FastFrame::getCGIParam('actionID', 'gp', ACTION_NOOP));
 
 // }}}
 ?>
