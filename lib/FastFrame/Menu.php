@@ -1,5 +1,5 @@
 <?php
-/** $Id: Menu.php,v 1.5 2003/03/19 00:01:44 jrust Exp $ */
+/** $Id: Menu.php,v 1.6 2003/03/19 00:36:01 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -25,10 +25,10 @@
 require_once dirname(__FILE__) . '/Output.php';
 
 // }}}
-// {{{ class FastFrame_Menu
+// {{{ class FF_Menu
 
 /**
- * The FastFrame_Menu:: Menu class gathers the data from the menu.php files in each registered
+ * The FF_Menu:: Menu class gathers the data from the menu.php files in each registered
  * application and parses them into one of several formats.
  *
  * @version Revision: 1.0 
@@ -38,7 +38,7 @@ require_once dirname(__FILE__) . '/Output.php';
  */
 
 // }}}
-class FastFrame_Menu {
+class FF_Menu {
     // {{{ properties
 
     /**
@@ -74,10 +74,10 @@ class FastFrame_Menu {
      * @access public
      * @return void
      */
-    function FastFrame_Menu()
+    function FF_Menu()
     {
-        $this->o_registry =& FastFrame_Registry::singleton();
-        $this->o_output =& FastFrame_Output::singleton();
+        $this->o_registry =& FF_Registry::singleton();
+        $this->o_output =& FF_Output::singleton();
     }
 
     // }}}
@@ -101,7 +101,7 @@ class FastFrame_Menu {
         }
 
         $s_type = strtolower($in_type);
-        $s_class = 'fastframe_menu_' . strtolower($in_type);
+        $s_class = 'ff_menu_' . strtolower($in_type);
         if (!isset($a_instances[$s_class])) {
             if (@file_exists(dirname(__FILE__) . '/Menu/' . $in_type . '.php')) {
                 include_once dirname(__FILE__) . '/Menu/' . $in_type . '.php';
@@ -116,7 +116,7 @@ class FastFrame_Menu {
                 $a_instances[$s_class]->$s_class();
             } 
             else {
-                return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "Class definition of $s_class not found.", 'FastFrame_Error', true);
+                return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "Class definition of $s_class not found.", 'FF_Error', true);
             }
         }
 
@@ -161,7 +161,7 @@ class FastFrame_Menu {
                         );
                     }
                     else {
-                        return PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, null, E_USER_ERROR, "Menu for $s_app is not configured correctly.", 'FastFrame_Error', true);
+                        return PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, null, E_USER_ERROR, "Menu for $s_app is not configured correctly.", 'FF_Error', true);
                     }
                 }
             }

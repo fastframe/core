@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.10 2003/02/12 20:55:37 jrust Exp $ */
+/** $Id: List.php,v 1.11 2003/03/19 00:36:01 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -26,10 +26,10 @@ require_once dirname(__FILE__) . '/Output.php';
 require_once 'HTML/QuickForm.php';
 
 // }}}
-// {{{ class FastFrame_List
+// {{{ class FF_List
 
 /**
- * The FastFrame_List:: class provides the necessary methods for handling lists of items and
+ * The FF_List:: class provides the necessary methods for handling lists of items and
  * putting those lists into an HTML page.
  *
  * @author  Jason Rust <jrust@codejanitor.com>
@@ -39,7 +39,7 @@ require_once 'HTML/QuickForm.php';
  */
 
 // }}}
-class FastFrame_List {
+class FF_List {
     // {{{ properties
 
     /**
@@ -153,13 +153,13 @@ class FastFrame_List {
      * @access public
      * @return void
      */
-    function FastFrame_List($in_defaultSortField, 
+    function FF_List($in_defaultSortField, 
                             $in_defaultSortOrder, 
                             $in_defaultDisplayLimit, 
                             $in_persistentData = array(), 
                             $in_columnData = null)
     {
-        $this->o_output =& FastFrame_Output::singleton();
+        $this->o_output =& FF_Output::singleton();
         if (!is_null($in_columnData)) {
             $this->setColumnData($in_columnData);
             // set up the default search fields as the column fields, can be overridden later

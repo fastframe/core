@@ -1,5 +1,5 @@
 <?php
-/** $Id: Auth.php,v 1.10 2003/03/19 00:00:52 jrust Exp $ */
+/** $Id: Auth.php,v 1.11 2003/03/19 00:36:00 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -39,7 +39,7 @@ require_once dirname(__FILE__) . '/Auth/AuthSource.php';
 require_once dirname(__FILE__) . '/Perms.php';
 
 // }}}
-// {{{ class FastFrame_Auth
+// {{{ class FF_Auth
 
 /**
  * An authentication class for the FastFrame framework.
@@ -59,7 +59,7 @@ require_once dirname(__FILE__) . '/Perms.php';
  */
 
 // }}}
-class FastFrame_Auth {
+class FF_Auth {
     // {{{ properties
 
     /**
@@ -87,14 +87,14 @@ class FastFrame_Auth {
      * it using a static variable.
      *
      * @access public
-     * @return object FastFrame_Auth instance
+     * @return object FF_Auth instance
      */
     function &singleton()
     {
         static $instance;
 
         if (!isset($instance)) {
-            $instance =& new FastFrame_Auth();
+            $instance =& new FF_Auth();
         }
 
         return $instance; 
@@ -104,19 +104,19 @@ class FastFrame_Auth {
     // {{{ constructor
     
     /**
-     * Initialize the FastFrame_Auth class
+     * Initialize the FF_Auth class
      *
-     * Create an instance of the FastFrame_Auth class.  When we call the constructor
+     * Create an instance of the FF_Auth class.  When we call the constructor
      * or the singleton() function which in turn calls the constructor, we want
      * to start the session.  There the session name will be registered and the
      * session started up.
      *
      * @access public
-     * @return object FastFrame_Auth object
+     * @return object FF_Auth object
      */
-    function FastFrame_Auth()
+    function FF_Auth()
     {
-        FastFrame_Auth::_session_start();
+        FF_Auth::_session_start();
     }
 
     // }}}
@@ -134,11 +134,11 @@ class FastFrame_Auth {
     function authenticate($in_username, $in_password) 
     {
         // if we are already logged in, just return true immediately
-        if (FastFrame_Auth::checkAuth(false)) {
+        if (FF_Auth::checkAuth(false)) {
             return true;
         }
 
-        $o_registry =& FastFrame_Registry::singleton();
+        $o_registry =& FF_Registry::singleton();
         $o_registry->pushApp('login');
         $s_authType = $o_registry->getConfigParam('auth/method');
         $o_registry->popCurrentApp();
@@ -163,7 +163,7 @@ class FastFrame_Auth {
         foreach($this->authSources as $source) {
             if ($source->authenticate($in_username, $in_password)) {
                 $this->authenticatedSources = $source->getName();
-                $o_perms = new FastFrame_Perms($in_username);
+                $o_perms = new FF_Perms($in_username);
                 $b_authenticated=true;
                 $a_credentials = array(
                     'perms' => &$o_perms,
@@ -172,7 +172,7 @@ class FastFrame_Auth {
         }	
 
         if ($b_authenticated) {
-            FastFrame_Auth::setAuth($in_username, $a_credentials, true);
+            FF_Auth::setAuth($in_username, $a_credentials, true);
             return true;
         }
         else {
@@ -199,21 +199,21 @@ class FastFrame_Auth {
     function checkAuth($in_checkAnchor = true)
     {
         if (isset($_SESSION['__auth__'])) {
-            $o_registry =& FastFrame_Registry::singleton();
+            $o_registry =& FF_Registry::singleton();
             if (($expire = $o_registry->getConfigParam('session/expire')) > 0 && 
                 ($_SESSION['__auth__']['timestamp'] + $expire) < time()) {
-                FastFrame_Auth::_set_status(FASTFRAME_AUTH_EXPIRED);
-                FastFrame_Auth::_update_idle();
+                FF_Auth::_set_status(FASTFRAME_AUTH_EXPIRED);
+                FF_Auth::_update_idle();
                 return false;
             }
             elseif (($idle = $o_registry->getConfigParam('session/idle')) > 0 && 
                     ($_SESSION['__auth__']['idle'] + $idle) < time()) {
-                FastFrame_Auth::_set_status(FASTFRAME_AUTH_IDLED);
+                FF_Auth::_set_status(FASTFRAME_AUTH_IDLED);
                 return false;
             }
             elseif (!empty($_SESSION['__auth__']['registered'])) {
-                FastFrame_Auth::_set_status(FASTFRAME_AUTH_OK);
-                FastFrame_Auth::_update_idle();
+                FF_Auth::_set_status(FASTFRAME_AUTH_OK);
+                FF_Auth::_update_idle();
             }
         }
         else {
@@ -226,8 +226,8 @@ class FastFrame_Auth {
          * logout page, but not clear the session, since that would end the session for the
          * real user.
          */
-        if ($in_checkAnchor && !FastFrame::getCGIParam(FastFrame_Auth::_get_session_anchor(), 'c')) {
-            FastFrame_Auth::_safe_logout();
+        if ($in_checkAnchor && !FastFrame::getCGIParam(FF_Auth::_get_session_anchor(), 'c')) {
+            FF_Auth::_safe_logout();
             return false;
         }
 
@@ -307,7 +307,7 @@ class FastFrame_Auth {
         
         // set the anchor for this browser to never expire
         if ($in_setAnchor) {
-            FastFrame::setCookies(array(FastFrame_Auth::_get_session_anchor() => 1));
+            FastFrame::setCookies(array(FF_Auth::_get_session_anchor() => 1));
         }
     }
 
@@ -323,7 +323,7 @@ class FastFrame_Auth {
     function clearAuth()
     {
         // kill the anchor and the __auth__ cookie 
-        FastFrame::unsetCookies(array('__auth__', FastFrame_Auth::_get_session_anchor()));
+        FastFrame::unsetCookies(array('__auth__', FF_Auth::_get_session_anchor()));
 
         $_SESSION['__auth__'] = array();
         $_SESSION['__auth__']['registered'] = false;
@@ -365,7 +365,7 @@ class FastFrame_Auth {
      */
     function setCredential($in_credential, $in_value)
     {
-        if (FastFrame_Auth::checkAuth(false)) {
+        if (FF_Auth::checkAuth(false)) {
             $_SESSION['__auth__']['credentials'][$in_credential] = $in_value;
         }
     }
@@ -383,7 +383,7 @@ class FastFrame_Auth {
      */
     function getCredential($in_credential)
     {
-        if (FastFrame_Auth::checkAuth(false)) {
+        if (FF_Auth::checkAuth(false)) {
             $credentials = $_SESSION['__auth__']['credentials'];
             if (isset($credentials[$in_credential])) {
                 return $credentials[$in_credential];
@@ -408,7 +408,7 @@ class FastFrame_Auth {
     function logout($in_logoutURL = null, $in_return = false) 
     {
         if (is_null($in_logoutURL) && !$in_return) {
-            $o_registry =& FastFrame_Registry::singleton();
+            $o_registry =& FF_Registry::singleton();
             $s_logoutApp = $o_registry->getConfigParam('general/logout_app', $o_registry->getConfigParam('general/login_app'));
             $s_logoutURL = FastFrame::url($o_registry->getRootFile('index.php', null, FASTFRAME_WEBPATH), array('app' => $s_logoutApp), true);
         }
@@ -416,9 +416,9 @@ class FastFrame_Auth {
             $s_logoutURL = $in_logoutURL;
         }
 
-        FastFrame_Auth::clearAuth();
-        FastFrame_Auth::_set_status(FASTFRAME_AUTH_LOGOUT);
-        FastFrame_Auth::_session_end();
+        FF_Auth::clearAuth();
+        FF_Auth::_set_status(FASTFRAME_AUTH_LOGOUT);
+        FF_Auth::_session_end();
 
         if ($in_return) {
             return true;
@@ -445,7 +445,7 @@ class FastFrame_Auth {
         static $isStarted;
         
         if (!isset($isStarted)) {
-            $o_registry =& FastFrame_Registry::singleton();
+            $o_registry =& FF_Registry::singleton();
             // force usage of querystring for storing session ID
             ini_set('session.use_cookies', 0);
             // don't transparently track session ID, since we do it in all
@@ -535,7 +535,7 @@ class FastFrame_Auth {
      */
     function _safe_logout() 
     {
-        $registry =& FastFrame_Registry::singleton();
+        $registry =& FF_Registry::singleton();
         FastFrame::redirect($registry->getConfigParam('session/safelogout'));
     }
 

@@ -1,5 +1,5 @@
 <?php
-/** $Id: Perms.php,v 1.7 2003/03/19 00:02:20 jrust Exp $ */
+/** $Id: Perms.php,v 1.8 2003/03/19 00:36:01 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -38,7 +38,7 @@ define('UC_ADMIN',          16);
 define('UC_ROOT',           32); 
 
 // }}}
-// {{{ class FastFrame_Perms
+// {{{ class FF_Perms
 /**
  * A class for managing user permissions
  *
@@ -49,7 +49,7 @@ define('UC_ROOT',           32);
  */
 
 // }}}
-class FastFrame_Perms {
+class FF_Perms {
     // {{{ properties
 
     /**
@@ -78,7 +78,7 @@ class FastFrame_Perms {
     // {{{ constructor
 
     /**
-     * Initializes the FastFrame_Perms class
+     * Initializes the FF_Perms class
      *
      * This function initializes the permissions class for the
      * for the specified user.
@@ -89,16 +89,16 @@ class FastFrame_Perms {
      * @access public
      * @return void
      */
-    function FastFrame_Perms($in_userID = null)
+    function FF_Perms($in_userID = null)
     {
         if (is_null($in_userID)) {
-            $this->_userID = FastFrame_Auth::getCredential('userID');
+            $this->_userID = FF_Auth::getCredential('userID');
         }
         else {
             $this->_userID = $in_userID;
         }
 
-        $o_registry =& FastFrame_Registry::singleton();
+        $o_registry =& FF_Registry::singleton();
 
         $a_source = $o_registry->getConfigParam('perms/source');
         //$this->permSource =& PermSource::create($a_source['type'], $s_name, $a_source['params']);
@@ -119,7 +119,7 @@ class FastFrame_Perms {
      */
     function getAppList()
     {
-        $o_registry =& FastFrame_Registry::singleton();
+        $o_registry =& FF_Registry::singleton();
 
         if ($this->isSuperUser()) {
             return $o_registry->getApps();

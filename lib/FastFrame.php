@@ -1,5 +1,5 @@
 <?php
-/** $Id: FastFrame.php,v 1.10 2003/03/18 23:41:12 jrust Exp $ */
+/** $Id: FastFrame.php,v 1.11 2003/03/19 00:36:00 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -61,7 +61,7 @@ class FastFrame {
     {
         // just need to add to get rid of duplicate '/'
 
-        $o_registry =& FastFrame_Registry::singleton();
+        $o_registry =& FF_Registry::singleton();
 
         // merge all the get variable arrays
         $argv = func_get_args();
@@ -315,7 +315,7 @@ HTML;
     function logMessage($in_message, $in_file, $in_line, $in_priority = LOG_INFO)
     {
         static $o_logger;
-        $o_registry =& FastFrame_Registry::singleton();
+        $o_registry =& FF_Registry::singleton();
         
         if (!$o_registry->getConfigParam('log/enabled') || 
             $in_priority > $o_registry->getConfigParam('log/priority') ||
@@ -330,7 +330,7 @@ HTML;
                 is_null($s_name = $o_registry->getConfigParam('log/name')) ||
                 is_null($s_ident = $o_registry->getConfigParam('log/ident')) ||
                 is_null($a_params = $o_registry->getConfigParam('log/params'))) {
-                PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, E_USER_WARNING, 'FastFrame is not correctly configured to log error messages.  You must configure at least a text file in the conf.php file', 'FastFrame_Error', true);
+                PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, E_USER_WARNING, 'FastFrame is not correctly configured to log error messages.  You must configure at least a text file in the conf.php file', 'FF_Error', true);
             }
 
             $o_logger = Log::singleton($s_type, $s_name, $s_ident, $a_params);
@@ -416,7 +416,7 @@ HTML;
      */
     function getTmpDir($in_dir = null)
     {
-        $registry =& FastFrame_Registry::singleton();
+        $registry =& FF_Registry::singleton();
 
         $checkDir = is_null($in_dir) ? $registry->getConfigParam('general/tmpdir') : $in_dir;
 

@@ -1,5 +1,5 @@
 <?php
-/** $Id: Error.php,v 1.2 2003/02/08 00:10:54 jrust Exp $ */
+/** $Id: Error.php,v 1.3 2003/03/19 00:36:01 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -28,10 +28,10 @@ define('FASTFRAME_NO_PERMISSIONS',    -2);
 define('FASTFRAME_NOT_CONFIGURED',    -3);
 
 // }}}
-// {{{ class FastFrame_Error
+// {{{ class FF_Error
 
 /**
- * FastFrame_Error Class for Error Handling (using PEAR) of FastFrame
+ * FF_Error Class for Error Handling (using PEAR) of FastFrame
  * 
  * @version Revision: 2.0 
  * @author  Dan Allen <dan@mojavelinux.com>
@@ -39,7 +39,7 @@ define('FASTFRAME_NOT_CONFIGURED',    -3);
  */
 
 // }}}
-class FastFrame_Error extends PEAR_Error {
+class FF_Error extends PEAR_Error {
     // {{{ properties
 
     /**
@@ -61,11 +61,11 @@ class FastFrame_Error extends PEAR_Error {
      *
      * @access private
      */
-    function FastFrame_Error($code = FASTFRAME_ERROR, $mode = PEAR_ERROR_RETURN, 
+    function FF_Error($code = FASTFRAME_ERROR, $mode = PEAR_ERROR_RETURN, 
                              $level = E_USER_NOTICE, $debuginfo = null) 
     {
         if (is_int($code)) {
-            $this->PEAR_Error(FastFrame_Error::errorMessage($code), $code, $mode, $level, $debuginfo);
+            $this->PEAR_Error(FF_Error::errorMessage($code), $code, $mode, $level, $debuginfo);
         } 
         else {
             $this->PEAR_Error("Invalid error code: $code", FASTFRAME_ERROR, $mode, $level, $debuginfo);
@@ -85,7 +85,7 @@ class FastFrame_Error extends PEAR_Error {
      */
     function isError($in_value)
     {
-        return is_a($in_value, 'fastframe_error');
+        return is_a($in_value, 'ff_error');
     }
 
     // }}}
@@ -115,7 +115,7 @@ class FastFrame_Error extends PEAR_Error {
         }
 
         // If this is an error object, then grab the corresponding error code
-        if (FastFrame_Error::isError($in_value)) {
+        if (FF_Error::isError($in_value)) {
             $in_value = $in_value->getCode();
         }
         

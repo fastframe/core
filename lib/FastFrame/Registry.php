@@ -1,5 +1,5 @@
 <?php
-/** $Id: Registry.php,v 1.13 2003/02/22 02:05:40 jrust Exp $ */
+/** $Id: Registry.php,v 1.14 2003/03/19 00:36:01 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -61,7 +61,7 @@ $GLOBALS['_FASTFRAME_PATH'] = array(
 );
 
 // }}}
-// {{{ class FastFrame_Registry
+// {{{ class FF_Registry
 
 /**
  * The FastFrame Registry class provides the innerworkings necessary for
@@ -77,7 +77,7 @@ $GLOBALS['_FASTFRAME_PATH'] = array(
  */
 
 // }}}
-class FastFrame_Registry {
+class FF_Registry {
     // {{{ properties
 
     /**
@@ -107,7 +107,7 @@ class FastFrame_Registry {
     // }}}
     // {{{ constructor
 
-    function FastFrame_Registry()
+    function FF_Registry()
     {
         $this->importConfig();
 
@@ -156,13 +156,13 @@ class FastFrame_Registry {
      * it using a static variable
      *
      * @access public
-     * @return object FastFrame_Registry instance
+     * @return object FF_Registry instance
      */
     function &singleton ()
     {
         static $instance;
         if (!isset($instance)) {
-            $instance = new FastFrame_Registry();
+            $instance = new FF_Registry();
         }
         return $instance;
     }
@@ -205,7 +205,7 @@ class FastFrame_Registry {
             // here we change our root, but not our basic FastFrame structure in that root
             $s_file = File::buildPath(array($this->getConfigParam('webserver/file_root'), $this->getAppParam('root_apps'), $in_app, 'config/conf.php'));
             if (!is_readable($s_file)) {
-                $tmp_error = PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, null, E_USER_ERROR, "Can not import the config file for $in_app ($s_file)", 'FastFrame_Error', true);
+                $tmp_error = PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, null, E_USER_ERROR, "Can not import the config file for $in_app ($s_file)", 'FF_Error', true);
                 FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
             }
             else {
@@ -379,7 +379,7 @@ class FastFrame_Registry {
             $s_service = '%app%';
         }
         elseif (is_null($s_service = $this->getAppParam('app_' . $in_service))) {
-            return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "The app service 'app_$in_service' could not be found.", 'FastFrame_Error', true);
+            return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "The app service 'app_$in_service' could not be found.", 'FF_Error', true);
         }
 
         $s_app = !is_null($in_app) ? $in_app : $this->getCurrentApp();
@@ -419,7 +419,7 @@ class FastFrame_Registry {
             $s_service = '';
         }
         elseif (is_null($s_service = $this->getAppParam('root_' . $in_service))) {
-            return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "The service root_$in_service could not be found", 'FastFrame_Error', true);
+            return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "The service root_$in_service could not be found", 'FF_Error', true);
         }
 
         // if they want the data, there is only one option available 
@@ -459,7 +459,7 @@ class FastFrame_Registry {
             $s_setting = $this->getConfigParam('general/default_theme');
             // check if it's a valid theme
             if (!is_dir($this->getRootFile($s_setting, 'themes'))) {
-                return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "Theme $s_setting does not exist", 'FastFrame_Error', true);
+                return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "Theme $s_setting does not exist", 'FF_Error', true);
             }
         }
         // these settings are app specific or don't exist

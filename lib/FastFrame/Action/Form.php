@@ -1,5 +1,5 @@
 <?php
-/** $Id: Form.php,v 1.5 2003/03/15 01:26:17 jrust Exp $ */
+/** $Id: Form.php,v 1.6 2003/03/19 00:36:01 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -159,7 +159,7 @@ class FF_Action_Form extends FF_Action {
     function renderFormTable()
     {
         require_once dirname(__FILE__) . '/../Output/Table.php';
-        $o_table =& new FastFrame_Output_Table();
+        $o_table =& new FF_Output_Table();
         $o_table->setTableHeaderText($this->getTableHeaderText());
         $o_table->setTableHeaders($this->getTableData());
         $o_table->renderTwoColumnTable();

@@ -1,5 +1,5 @@
 <?php
-/** $Id: Output.php,v 1.5 2003/02/22 02:03:33 jrust Exp $ */
+/** $Id: Output.php,v 1.6 2003/03/19 00:36:01 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -41,10 +41,10 @@ define('FASTFRAME_WARNING_MESSAGE', 'warning.gif', true);
 define('FASTFRAME_SUCCESS_MESSAGE', 'success.gif', true);
 
 // }}}
-// {{{ class FastFrame_Output
+// {{{ class FF_Output
 
 /**
- * The FastFrame_Output:: class provides access to functions 
+ * The FF_Output:: class provides access to functions 
  * which produce Output code used to make common parts of a FastFrame page
  *
  * See the enclosed file COPYING for license information (LGPL). If you
@@ -59,7 +59,7 @@ define('FASTFRAME_SUCCESS_MESSAGE', 'success.gif', true);
  */
 
 // }}}
-class FastFrame_Output extends FastFrame_Template {
+class FF_Output extends FF_Template {
     // {{{ properties
 
     /**
@@ -95,19 +95,19 @@ class FastFrame_Output extends FastFrame_Template {
      * @access public
      * @return void
      */
-    function FastFrame_Output()
+    function FF_Output()
     {
-        $this->o_registry =& FastFrame_Registry::singleton();
+        $this->o_registry =& FF_Registry::singleton();
 
         $s_directory = $this->o_registry->getRootFile($this->o_registry->getUserParam('theme'), 'themes');
         // make sure the main template exists
         if (PEAR::isError($s_directory) || !is_readable($s_directory . '/overall.tpl')) {
-            $tmp_error = PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_ERROR, "The main template file $s_directory/overall.tpl is not readable", 'FastFrame_Error', true);
+            $tmp_error = PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_ERROR, "The main template file $s_directory/overall.tpl is not readable", 'FF_Error', true);
             FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
         }
 
         // now that we have the template directory, we can initialize the template engine
-        parent::FastFrame_Template($s_directory);
+        parent::FF_Template($s_directory);
         $this->load('overall.tpl', 'file');
 
         // create CSS
@@ -156,13 +156,13 @@ class FastFrame_Output extends FastFrame_Template {
      * it using a static variable
      *
      * @access public
-     * @return object FastFrame_Output instance
+     * @return object FF_Output instance
      */
     function &singleton()
     {
         static $instance;
         if (!isset($instance)) {
-            $instance = new FastFrame_Output();
+            $instance = new FF_Output();
         }
         return $instance;
     }
@@ -205,8 +205,8 @@ class FastFrame_Output extends FastFrame_Template {
         // set up menu
         if ($this->menuType != 'none') {
             require_once dirname(__FILE__) . '/Menu.php';
-            $o_menu =& FastFrame_Menu::factory($this->menuType);
-            if (FastFrame_Error::isError($o_menu)) {
+            $o_menu =& FF_Menu::factory($this->menuType);
+            if (FF_Error::isError($o_menu)) {
                 FastFrame::fatal($o_menu, __FILE__, __LINE__); 
             }
             
@@ -278,7 +278,7 @@ class FastFrame_Output extends FastFrame_Template {
         $s_theme = $this->o_registry->getUserParam('theme');
         $s_cssCacheDir = $this->o_registry->getRootFile("css/$s_theme", 'cache');
         if (!@System::mkdir("-p $s_cssCacheDir"))  {
-            return PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_WARNING, $s_cssCacheDir, 'FastFrame_Error', true);
+            return PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_WARNING, $s_cssCacheDir, 'FF_Error', true);
         }
 
         $s_cssTemplateFile = $this->o_registry->getRootFile("$s_theme/style.tpl", 'themes');
@@ -291,7 +291,7 @@ class FastFrame_Output extends FastFrame_Template {
         if ($in_remakeCSS ||
             !file_exists($s_cssCacheFile) || 
             filemtime($s_cssTemplateFile) > filemtime($s_cssCacheFile)) {
-            $o_tpl = new FastFrame_Template();
+            $o_tpl = new FF_Template();
             $o_tpl->load($s_cssTemplateFile, 'file');
             // touch the browser specific block
             $o_tpl->touchBlock('switch_is_' . $s_browser);
@@ -340,7 +340,7 @@ class FastFrame_Output extends FastFrame_Template {
      */
     function link($in_url, $in_text, $in_options = array())
     {
-        return FastFrame_Output::linkStart($in_url, $in_options) . $in_text . FastFrame_Output::linkEnd();
+        return FF_Output::linkStart($in_url, $in_options) . $in_text . FF_Output::linkEnd();
     }
 
     // }}}
@@ -451,7 +451,7 @@ class FastFrame_Output extends FastFrame_Template {
                     'bigtext'  => 'standardForm',
                 ),
                 'image' => array(
-                    'bigtext'  => ' ' . FastFrame_Output::imgTag('textarea.gif', 'symbols'),
+                    'bigtext'  => ' ' . FF_Output::imgTag('textarea.gif', 'symbols'),
                 ),
                 'text' => array(
                     'bigtext'  => '',
@@ -616,7 +616,7 @@ class FastFrame_Output extends FastFrame_Template {
             $tmp_newName = $in_options['state'].'-'.$theme.'-'.basename($s_imgFilePath); 
             $tmp_newFilePath = $this->o_registry->getRootFile("cache/$tmp_newName", 'graphics');
             $s_imgWebPath = $this->o_registry->getRootFile("cache/$tmp_newName", 'graphics', FASTFRAME_WEBPATH);
-            FastFrame_Image::_modulate_image($s_imgFilePath, $tmp_newFilePath, $tmp_settings);
+            FF_Image::_modulate_image($s_imgFilePath, $tmp_newFilePath, $tmp_settings);
             $s_imgFilePath = $tmp_newFilePath;
             // add a special cursor style
             $in_options['style'] = isset($in_options['style']) ? $in_options['style'] : '';
@@ -701,7 +701,7 @@ class FastFrame_Output extends FastFrame_Template {
      */
     function pimgTag($in_img = null, $in_type = 'icons', $in_options = array())
     {
-        echo FastFrame_Image::imgTag($in_img, $in_type, $in_options);
+        echo FF_Image::imgTag($in_img, $in_type, $in_options);
     }
 
     // }}}

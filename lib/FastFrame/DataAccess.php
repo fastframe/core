@@ -1,5 +1,5 @@
 <?php
-/** $Id: DataAccess.php,v 1.3 2003/03/15 01:24:06 jrust Exp $ */
+/** $Id: DataAccess.php,v 1.4 2003/03/19 00:36:00 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -77,7 +77,7 @@ class FF_DataAccess {
      */
     function FF_DataAccess()
     {
-        $this->o_registry =& FastFrame_Registry::singleton(); 
+        $this->o_registry =& FF_Registry::singleton(); 
         $this->connect();
     }
 

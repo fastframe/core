@@ -1,5 +1,5 @@
 <?php
-/** $Id: ActionHandler.php,v 1.7 2003/03/19 00:00:09 jrust Exp $ */
+/** $Id: ActionHandler.php,v 1.8 2003/03/19 00:36:00 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -130,7 +130,7 @@ class FF_ActionHandler {
         $this->_initializeErrorHandler();
         $this->_checkAuth();
         $this->_makeActionPathsAbsolute();
-        $this->o_registry =& FastFrame_Registry::singleton();
+        $this->o_registry =& FF_Registry::singleton();
         $this->setActionId(FastFrame::getCGIParam('actionId', 'gp'));
     }
 
@@ -319,7 +319,7 @@ class FF_ActionHandler {
     function _checkAuth()
     {
         require_once dirname(__FILE__) . '/Auth.php';
-        $o_auth =& FastFrame_Auth::singleton();
+        $o_auth =& FF_Auth::singleton();
         if (!$o_auth->checkAuth()) {
             $o_auth->logout();
         }

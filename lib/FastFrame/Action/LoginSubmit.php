@@ -1,5 +1,5 @@
 <?php
-/** $Id: LoginSubmit.php,v 1.6 2003/03/18 23:57:41 jrust Exp $ */
+/** $Id: LoginSubmit.php,v 1.7 2003/03/19 00:36:01 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -61,7 +61,7 @@ class FF_Action_LoginSubmit extends FF_Action {
     function FF_Action_LoginSubmit(&$in_model)
     {
         FF_Action::FF_Action($in_model);
-        $this->o_auth =& FastFrame_Auth::singleton();
+        $this->o_auth =& FF_Auth::singleton();
     }
 
     // }}}

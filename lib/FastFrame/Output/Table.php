@@ -1,5 +1,5 @@
 <?php
-/** $Id: Table.php,v 1.3 2003/02/08 00:10:56 jrust Exp $ */
+/** $Id: Table.php,v 1.4 2003/03/19 00:36:01 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -25,10 +25,10 @@
 require_once dirname(__FILE__) . '/../Output.php';
 
 // }}}
-// {{{ class FastFrame_Output_Table
+// {{{ class FF_Output_Table
 
 /**
- * The FastFrame_Output_Table:: class provides methods to create a table using
+ * The FF_Output_Table:: class provides methods to create a table using
  * a combination of table headers and templates.
  *
  * @author  Jason Rust <jrust@codejanitor.com>
@@ -38,7 +38,7 @@ require_once dirname(__FILE__) . '/../Output.php';
  */
 
 // }}}
-class FastFrame_Output_Table {
+class FF_Output_Table {
     // {{{ properties
 
     /**
@@ -93,9 +93,9 @@ class FastFrame_Output_Table {
      * @access public
      * @return void
      */
-    function FastFrame_Output_Table()
+    function FF_Output_Table()
     {
-        $this->o_output =& FastFrame_Output::singleton();
+        $this->o_output =& FF_Output::singleton();
     }
 
     // }}}

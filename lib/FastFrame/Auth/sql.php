@@ -1,5 +1,5 @@
 <?php
-/** $Id: sql.php,v 1.9 2003/03/18 23:55:46 jrust Exp $ */
+/** $Id: sql.php,v 1.10 2003/03/19 00:36:01 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -105,7 +105,7 @@ class AuthSource_sql extends AuthSource {
      */
     function authenticate($in_username, $in_password)
     {
-        $o_registry =& FastFrame_Registry::singleton();
+        $o_registry =& FF_Registry::singleton();
         // set up database
         $o_data =& DB::connect($o_registry->getDataDsn());
         if (DB::isError($o_data)) {

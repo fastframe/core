@@ -56,7 +56,7 @@ define('FASTFRAME_TEMPLATE_FILE_NOT_FOUND',      -7);
 
 define('FASTFRAME_TEMPLATE_GLOBAL_BLOCK', '**global**');
 // }}}
-// {{{ class FastFrame_Template
+// {{{ class FF_Template
 
 /**
  * A template class which allows the programmer to abstract the HTML from the programming
@@ -68,7 +68,7 @@ define('FASTFRAME_TEMPLATE_GLOBAL_BLOCK', '**global**');
  */
 
 // }}}
-class FastFrame_Template {
+class FF_Template {
     // {{{ properties
 
     var $debug = false;
@@ -272,7 +272,7 @@ class FastFrame_Template {
      *
      * @see setDirectory()
      */
-    function FastFrame_Template($in_directory = null) 
+    function FF_Template($in_directory = null) 
     {
         // build expression for locating variables in the template
         $this->variableLocatorPattern = ';' . $this->variableWrapper[0] . '(' . $this->variableNamePattern . ')' . $this->variableWrapper[1] . ';s';
@@ -377,7 +377,7 @@ class FastFrame_Template {
     function load($in_template, $in_type = 'file')
     {
         if ($this->templateLoaded == true) {
-            return PEAR::raiseError(null, FASTFRAME_TEMPLATE_ALREADY_LOADED, null, E_USER_NOTICE, null, 'FastFrame_Template_Error', true);
+            return PEAR::raiseError(null, FASTFRAME_TEMPLATE_ALREADY_LOADED, null, E_USER_NOTICE, null, 'FF_Template_Error', true);
         }
 
         $rebuild = true;
@@ -411,7 +411,7 @@ class FastFrame_Template {
         }
 
         if ($this->flagBlockTrouble) {
-            return PEAR::raiseError(null, FASTFRAME_TEMPLATE_PARSE_ERROR, null, E_USER_WARNING, $this->blockList, 'FastFrame_Template_Error', true);
+            return PEAR::raiseError(null, FASTFRAME_TEMPLATE_PARSE_ERROR, null, E_USER_WARNING, $this->blockList, 'FF_Template_Error', true);
         }
 
         $this->templateLoaded = true;
@@ -434,7 +434,7 @@ class FastFrame_Template {
         if (is_array($in_blockName)) {
             $trouble = false;
             foreach($in_blockName as $blockName) {
-                if (FastFrame_Template::isError($result = $this->assignBlockData(array(), $blockName))) {
+                if (FF_Template::isError($result = $this->assignBlockData(array(), $blockName))) {
                     $trouble = true;
                     $this->errorStack[] = $result;
                 }
@@ -464,7 +464,7 @@ class FastFrame_Template {
      */
     function assignBlockData($in_variableMap, $in_blockName = null, $in_advance = true)
     {
-        if (FastFrame_Template::isError($blockName = $this->_validate_block($in_blockName, $this->currentBlockName))) {
+        if (FF_Template::isError($blockName = $this->_validate_block($in_blockName, $this->currentBlockName))) {
             return $blockName;
         }
 
@@ -526,7 +526,7 @@ class FastFrame_Template {
         if (is_array($in_blockName)) {
             $trouble = false;
             foreach($in_blockName as $in_blockNameCurrent) {
-                if (FastFrame_Template::isError($result = $this->cycleBlock($in_blockNameCurrent))) {
+                if (FF_Template::isError($result = $this->cycleBlock($in_blockNameCurrent))) {
                     $trouble = true;
                     $this->errorStack[] = $result;
                 }
@@ -535,13 +535,13 @@ class FastFrame_Template {
             return $trouble;
         }
 
-        if (FastFrame_Template::isError($blockName = $this->_validate_block($in_blockName, $this->currentBlockName))) {
+        if (FF_Template::isError($blockName = $this->_validate_block($in_blockName, $this->currentBlockName))) {
             return $blockName;
         }
         
         // get the reference to this block in the parent
         if ($blockName == $this->globalBlockName) {
-            return PEAR::raiseError(null, FASTFRAME_TEMPLATE_CYCLE_NOT_ALLOWED, null, E_USER_NOTICE, null, 'FastFrame_Template_Error', true); 
+            return PEAR::raiseError(null, FASTFRAME_TEMPLATE_CYCLE_NOT_ALLOWED, null, E_USER_NOTICE, null, 'FF_Template_Error', true); 
         }
         else {
             $blockReference =& $this->blockList[$this->blockList[$blockName]['parent']]['children'][$blockName];
@@ -574,7 +574,7 @@ class FastFrame_Template {
      */
     function assignBlockCallback($in_function, $in_args = array(), $in_blockName = null, $in_contentsIndex = 0)
     {
-        if (FastFrame_Template::isError($blockName = $this->_validate_block($in_blockName, $this->currentBlockName))) {
+        if (FF_Template::isError($blockName = $this->_validate_block($in_blockName, $this->currentBlockName))) {
             return $blockName;
         }
         
@@ -622,7 +622,7 @@ class FastFrame_Template {
      */
     function render($in_blockName = null, $in_clearResult = true) 
     {
-        if (FastFrame_Template::isError($blockName = $this->_validate_block($in_blockName, $this->globalBlockName))) {
+        if (FF_Template::isError($blockName = $this->_validate_block($in_blockName, $this->globalBlockName))) {
             return $blockName;
         }
 
@@ -693,7 +693,7 @@ class FastFrame_Template {
      */
     function setBlock($in_blockName = null)
     {
-        if (FastFrame_Template::isError($blockName = $this->_validate_block($in_blockName, $this->globalBlockName))) {
+        if (FF_Template::isError($blockName = $this->_validate_block($in_blockName, $this->globalBlockName))) {
             return $blockName;
         }
 
@@ -728,7 +728,7 @@ class FastFrame_Template {
 
     function branchBlock($in_replaceVariable, $in_blockName, $in_template, $in_type = 'file', $in_delimiter = null)
     {
-        return FastFrame_Template::isError($result = $this->branchBlockNS($in_replaceVariable, $in_blockName, $in_template, $in_type, $in_delimiter, false)) ? $result : true;
+        return FF_Template::isError($result = $this->branchBlockNS($in_replaceVariable, $in_blockName, $in_template, $in_type, $in_delimiter, false)) ? $result : true;
     }
 
     // }}}
@@ -758,7 +758,7 @@ class FastFrame_Template {
 
         // make sure this new block has a valid name
         if (!preg_match($this->blockValidatePattern, $in_blockName)) {
-            return PEAR::raiseError(null, FASTFRAME_TEMPLATE_INVALID_BLOCK_NAME, null, E_USER_WARNING, $in_blockName, 'FastFrame_Template_Error', true);
+            return PEAR::raiseError(null, FASTFRAME_TEMPLATE_INVALID_BLOCK_NAME, null, E_USER_WARNING, $in_blockName, 'FF_Template_Error', true);
         } 
 
         // we add a fixed length namespace so it does not interfere with other branched blocks
@@ -821,7 +821,7 @@ class FastFrame_Template {
      */
     function clearResult($in_blockName = null)
     {
-        if (FastFrame_Template::isError($error = $this->render($in_blockName))) {
+        if (FF_Template::isError($error = $this->render($in_blockName))) {
             return $error;
         }
 
@@ -939,7 +939,7 @@ class FastFrame_Template {
                 // we have encountered a duplicate block, record error and skip to next iteration
                 // maybe we should remove it? not sure
                 if (isset($this->blockList[$blockName])) {
-                    $this->errorStack[] = PEAR::raiseError(null, FASTFRAME_TEMPLATE_DUPLICATE_BLOCK, null, E_USER_NOTICE, $blockName, 'FastFrame_Template_Error', true);
+                    $this->errorStack[] = PEAR::raiseError(null, FASTFRAME_TEMPLATE_DUPLICATE_BLOCK, null, E_USER_NOTICE, $blockName, 'FF_Template_Error', true);
                     $this->flagBlockTrouble = true;
                     continue;
                 }
@@ -1095,7 +1095,7 @@ class FastFrame_Template {
         $filename = strpos($in_filename, '/') === 0 || strpos($in_filename, './') === 0 ? $in_filename : $this->fileRoot . $in_filename;
 
         if (!($fp = @fopen($filename, 'r'))) {
-            return PEAR::raiseError(null, FASTFRAME_TEMPLATE_FILE_NOT_FOUND, null, E_USER_ERROR, $filename, 'FastFrame_Template_Error', true);
+            return PEAR::raiseError(null, FASTFRAME_TEMPLATE_FILE_NOT_FOUND, null, E_USER_ERROR, $filename, 'FF_Template_Error', true);
         }
 
         $content = fread($fp, filesize($filename));
@@ -1112,7 +1112,7 @@ class FastFrame_Template {
             return $in_default;
         }
         elseif (!isset($this->blockList[$in_blockName])) {
-            return PEAR::raiseError(null, FASTFRAME_TEMPLATE_BLOCK_NOT_FOUND, null, E_USER_WARNING, $in_blockName, 'FastFrame_Template_Error', true);
+            return PEAR::raiseError(null, FASTFRAME_TEMPLATE_BLOCK_NOT_FOUND, null, E_USER_WARNING, $in_blockName, 'FF_Template_Error', true);
         }
         else {
             return $in_blockName;
@@ -1153,33 +1153,33 @@ class FastFrame_Template {
 
     // }}}
 }
-// {{{ class FastFrame_Template_Error
+// {{{ class FF_Template_Error
 
 /**
- * Error class for the FastFrame_Template interface, which just prepares some variables and spawns PEAR_Error
+ * Error class for the FF_Template interface, which just prepares some variables and spawns PEAR_Error
  *
  * @version  Revision: 1.0
  * @author   Dan Allen <dan@mojavelinux.com>
  * @access   public
  * @since    PHP 4.2.1
- * @package  FastFrame_Template
+ * @package  FF_Template
  */
 
 // }}}
-class FastFrame_Template_Error extends PEAR_Error {
+class FF_Template_Error extends PEAR_Error {
     // {{{ properties 
 
     /**
      * Message in front of the error message
      * @var string $error_message_prefix
      */
-    var $error_message_prefix = 'FastFrame_Template Error: ';
+    var $error_message_prefix = 'FF_Template Error: ';
     
     // }}}
     // {{{ constructor
 
     /**
-     * Creates an FastFrame_Template error object, extending the PEAR_Error class
+     * Creates an FF_Template error object, extending the PEAR_Error class
      *
      * @param int   $code the xpath error code
      * @param int   $mode the reaction to the error, either return, die or trigger/callback
@@ -1188,11 +1188,11 @@ class FastFrame_Template_Error extends PEAR_Error {
      *
      * @access private
      */
-    function FastFrame_Template_Error($code = FASTFRAME_TEMPLATE_ERROR, $mode = PEAR_ERROR_RETURN, 
+    function FF_Template_Error($code = FASTFRAME_TEMPLATE_ERROR, $mode = PEAR_ERROR_RETURN, 
                          $level = E_USER_NOTICE, $debuginfo = null) 
     {
         if (is_int($code)) {
-            $this->PEAR_Error(FastFrame_Template::errorMessage($code), $code, $mode, $level, $debuginfo);
+            $this->PEAR_Error(FF_Template::errorMessage($code), $code, $mode, $level, $debuginfo);
         } 
         else {
             $this->PEAR_Error("Invalid error code: $code", FASTFRAME_TEMPLATE_ERROR, $mode, $level, $debuginfo);

@@ -1,5 +1,5 @@
 <?php
-/** $Id: DOM.php,v 1.3 2003/02/08 00:10:56 jrust Exp $ */
+/** $Id: DOM.php,v 1.4 2003/03/19 00:36:01 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -20,10 +20,10 @@
 // +----------------------------------------------------------------------+
 
 // }}}
-// {{{ class FastFrame_Menu_DOM
+// {{{ class FF_Menu_DOM
 
 /**
- * The FastFrame_Menu_DOM:: class generates the javascript for the domMenu. 
+ * The FF_Menu_DOM:: class generates the javascript for the domMenu. 
  *
  * @see http://mojavelinux.com/forum/viewtopic.php?t=141
  * @version Revision: 1.0 
@@ -33,7 +33,7 @@
  */
 
 // }}}
-class FastFrame_Menu_DOM extends FastFrame_Menu {
+class FF_Menu_DOM extends FF_Menu {
     // {{{ constructor()
 
     /**
@@ -42,9 +42,9 @@ class FastFrame_Menu_DOM extends FastFrame_Menu {
      * @access public
      * @return void
      */
-    function FastFrame_Menu_DOM()
+    function FF_Menu_DOM()
     {
-        parent::FastFrame_Menu();
+        parent::FF_Menu();
     }
 
     // }}}
@@ -88,7 +88,7 @@ class FastFrame_Menu_DOM extends FastFrame_Menu {
     {
         if (!$this->isMenuVarsImported()) {
             $mxd_return = $this->importMenuVars();
-            if (FastFrame_Error::isError($mxd_return)) {
+            if (FF_Error::isError($mxd_return)) {
                 FastFrame::fatal($mxd_return, __FILE__, __LINE__); 
             }
         }

@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.8 2003/03/15 01:26:57 jrust Exp $ */
+/** $Id: List.php,v 1.9 2003/03/19 00:36:01 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -31,7 +31,7 @@ require_once dirname(__FILE__) . '/../Output/Table.php';
 // {{{ class FF_Action_List
 
 /**
- * The FF_Action_List:: class creates a list of items by using the FastFrame_List class
+ * The FF_Action_List:: class creates a list of items by using the FF_List class
  *
  * @author  Jason Rust <jrust@codejanitor.com>
  * @version Revision: 1.0 
@@ -102,7 +102,7 @@ class FF_Action_List extends FF_Action_Form {
      */
     function initList()
     {
-        $this->o_list =& new FastFrame_List(
+        $this->o_list =& new FF_List(
             $this->getDefaultSortField(), 
             $this->getDefaultSortOrder(),
             $this->getDefaultDisplayLimit(),
@@ -126,7 +126,7 @@ class FF_Action_List extends FF_Action_Form {
      */
     function createListTable()
     {
-        $o_table =& new FastFrame_Output_Table();
+        $o_table =& new FF_Output_Table();
         $o_table->setTableHeaderText($this->getTableHeaderText());
         $o_table->setNumColumns(count($this->o_list->getColumnData()));
         $o_table->beginTable();

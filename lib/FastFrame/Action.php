@@ -1,5 +1,5 @@
 <?php
-/** $Id: Action.php,v 1.4 2003/03/15 01:26:57 jrust Exp $ */
+/** $Id: Action.php,v 1.5 2003/03/19 00:36:00 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -84,9 +84,9 @@ class FF_Action {
      */
     function FF_Action(&$in_model)
     {
-        $this->o_output =& FastFrame_Output::singleton();
+        $this->o_output =& FF_Output::singleton();
         $this->o_nextAction =& new FF_NextAction();
-        $this->o_registry =& FastFrame_Registry::singleton();
+        $this->o_registry =& FF_Registry::singleton();
         $this->o_model =&  $in_model;
     }
 
