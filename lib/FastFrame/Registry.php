@@ -186,14 +186,14 @@ class FF_Registry {
         // Make sure we have the fastframe configuration loaded
         if (empty($this->config)) {
             $this->config = array();
-            include_once FASTFRAME_ROOT . '/config/conf.php';
+            include_once FASTFRAME_ROOT . 'config/conf.php';
             $this->config[FASTFRAME_DEFAULT_APP] =& $conf;
         } 
 
         // Make sure we have the apps loaded
         if (empty($this->apps)) {
             $this->apps = array();
-            include_once FASTFRAME_ROOT . '/config/apps.php';
+            include_once FASTFRAME_ROOT . 'config/apps.php';
             $this->apps =& $apps;
             // Add the default app which might not be in the apps file
             // since it is sort of a pseudo app
