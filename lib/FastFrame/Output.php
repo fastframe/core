@@ -200,7 +200,8 @@ class FF_Output {
         require_once dirname(__FILE__) . '/FileCache.php';
         $o_fileCache =& FF_FileCache::singleton();
         $s_cssTemplateFile = $in_themeDir . '/style.tpl';
-        $s_browser = Net_UserAgent_Detect::getBrowser(array('ie', 'gecko'));
+        $o_net =& Net_UserAgent_Detect::singleton();
+        $s_browser = $o_net->getBrowser(array('ie', 'gecko'));
         // All other browsers get treated as gecko
         if (is_null($s_browser)) {
             $s_browser = 'gecko';
@@ -762,7 +763,8 @@ class FF_Output {
     {
         if ($this->menuType != 'none') {
             // Non-javascript enabled browsers must use StaticList
-            if (!Net_UserAgent_Detect::hasFeature('javascript')) {
+            $o_net =& Net_UserAgent_Detect::singleton();
+            if (!$o_net->hasFeature('javascript')) {
                 $this->setMenuType('StaticList');
             }
 

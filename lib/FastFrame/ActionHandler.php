@@ -530,9 +530,10 @@ class FF_ActionHandler {
         $o_error->setDateFormat('[Y-m-d H:i:s]');
         $o_error->setExcludeObjects(false);
         $o_error->setFileUrl($this->o_registry->getConfigParam('error/file_url'));
+        $o_net =& Net_UserAgent_Detect::singleton();
         foreach ($this->o_registry->getConfigParam('error/reporters', array()) as $s_type => $a_reporter) {
             // Text-based browsers can't use console method
-            if ($s_type == 'console' && !Net_UserAgent_Detect::hasFeature('javascript')) {
+            if ($s_type == 'console' && !$o_net->hasFeature('javascript')) {
                 $s_type = 'browser';
             }
 
