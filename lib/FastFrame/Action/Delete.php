@@ -1,5 +1,5 @@
 <?php
-/** $Id: Delete.php,v 1.5 2003/03/13 18:37:35 jrust Exp $ */
+/** $Id: Delete.php,v 1.6 2003/03/15 01:26:57 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -43,12 +43,14 @@ class FF_Action_Delete extends FF_Action {
     /**
      * Set variables on class initialization.
      *
+     * @param object $in_model The model object
+     *
      * @access public
      * @return void
      */
-    function FF_Action_Delete()
+    function FF_Action_Delete(&$in_model)
     {
-        FF_Action::FF_Action();
+        FF_Action::FF_Action($in_model);
     }
 
     // }}}

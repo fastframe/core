@@ -1,5 +1,5 @@
 <?php
-/** $Id: LoginSubmit.php,v 1.4 2003/02/22 02:08:25 jrust Exp $ */
+/** $Id: LoginSubmit.php,v 1.5 2003/03/15 01:26:57 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -46,19 +46,21 @@ class FF_Action_LoginSubmit extends FF_Action {
      * @type object
      */
     var $o_auth;
-
+    
     // }}}
     // {{{ constructor
 
     /**
      * Set variables on class initialization.
      *
+     * @param object $in_model The model object
+     *
      * @access public
      * @return void
      */
-    function FF_Action_LoginSubmit()
+    function FF_Action_LoginSubmit(&$in_model)
     {
-        FF_Action::FF_Action();
+        FF_Action::FF_Action($in_model);
         $this->o_auth =& FastFrame_Auth::singleton();
     }
 

@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.7 2003/03/13 18:36:52 jrust Exp $ */
+/** $Id: List.php,v 1.8 2003/03/15 01:26:57 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -61,12 +61,14 @@ class FF_Action_List extends FF_Action_Form {
     /**
      * Set variables on class initialization.
      *
+     * @param object $in_model The model object
+     *
      * @access public
      * @return void
      */
-    function FF_Action_List()
+    function FF_Action_List(&$in_model)
     {
-        FF_Action_Form::FF_Action_Form();
+        FF_Action_Form::FF_Action_Form($in_model);
     }
 
     // }}}

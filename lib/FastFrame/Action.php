@@ -1,5 +1,5 @@
 <?php
-/** $Id: Action.php,v 1.3 2003/03/13 18:41:35 jrust Exp $ */
+/** $Id: Action.php,v 1.4 2003/03/15 01:26:57 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -42,7 +42,7 @@ class FF_Action {
     // {{{ properties
 
     /**
-     * FastFrame_Registry instance
+     * The registry object
      * @type object
      */
     var $o_registry;
@@ -77,14 +77,17 @@ class FF_Action {
     /**
      * Set variables on class initialization.
      *
+     * @param object $in_model The model object
+     *
      * @access public
      * @return void
      */
-    function FF_Action()
+    function FF_Action(&$in_model)
     {
-        $this->o_registry =& FastFrame_Registry::singleton();
         $this->o_output =& FastFrame_Output::singleton();
         $this->o_nextAction =& new FF_NextAction();
+        $this->o_registry =& FastFrame_Registry::singleton();
+        $this->o_model =&  $in_model;
     }
 
     // }}}
@@ -115,22 +118,6 @@ class FF_Action {
     function setCurrentActionId($in_actionId)
     {
         $this->currentActionId = $in_actionId;
-    }
-
-    // }}}
-    // {{{ setModelObject()
-
-    /**
-     * Sets the primary model object that we are working with
-     *
-     * @param object $in_model The model object
-     *
-     * @access public
-     * @return void
-     */
-    function setModelObject(&$in_model)
-    {
-        $this->o_model =& $in_model;
     }
 
     // }}}

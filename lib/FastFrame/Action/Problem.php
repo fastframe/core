@@ -1,5 +1,5 @@
 <?php
-/** $Id: Problem.php,v 1.5 2003/02/22 02:08:25 jrust Exp $ */
+/** $Id: Problem.php,v 1.6 2003/03/15 01:26:57 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -44,12 +44,14 @@ class FF_Action_Problem extends FF_Action {
     /**
      * Set variables on class initialization.
      *
+     * @param object $in_model The model object
+     *
      * @access public
      * @return void
      */
-    function FF_Action_Problem()
+    function FF_Action_Problem(&$in_model)
     {
-        FF_Action::FF_Action();
+        FF_Action::FF_Action($in_model);
     }
 
     // }}}

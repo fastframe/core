@@ -1,5 +1,5 @@
 <?php
-/** $Id: FormSubmit.php,v 1.3 2003/03/13 18:37:35 jrust Exp $ */
+/** $Id: FormSubmit.php,v 1.4 2003/03/15 01:26:57 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -44,12 +44,14 @@ class FF_Action_FormSubmit extends FF_Action {
     /**
      * Set variables on class initialization.
      *
+     * @param object $in_model The model object
+     *
      * @access public
      * @return void
      */
-    function FF_Action_FormSubmit()
+    function FF_Action_FormSubmit(&$in_model)
     {
-        FF_Action::FF_Action();
+        FF_Action::FF_Action($in_model);
     }
 
     // }}}
@@ -64,8 +66,7 @@ class FF_Action_FormSubmit extends FF_Action {
     function run()
     {
         $this->fillModelWithSubmitData();
-        $o_validate =& $this->getValidateObject();
-        $o_result =& $o_validate->validate();
+        $o_result =& $this->validateInput();
         if (!$o_result->isSuccess()) {
             $o_result->addMessage($this->getProblemMessage());
             $this->o_output->setMessage($o_result->getMessages(), FASTFRAME_ERROR_MESSAGE);
@@ -194,15 +195,15 @@ class FF_Action_FormSubmit extends FF_Action {
     }
 
     // }}}
-    // {{{ getValidateObject()
+    // {{{ validateInput()
 
     /**
-     * Gets the validate object that corresponds to this model
+     * Validates the input, usually using a validate object 
      *
      * @access public
-     * @return object The validate object
+     * @return object A result object 
      */
-    function &getValidateObject()
+    function &validateInput()
     {
         // interface
     }

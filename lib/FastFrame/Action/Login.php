@@ -1,5 +1,5 @@
 <?php
-/** $Id: Login.php,v 1.7 2003/02/22 02:08:24 jrust Exp $ */
+/** $Id: Login.php,v 1.8 2003/03/15 01:26:57 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -43,12 +43,14 @@ class FF_Action_Login extends FF_Action_Form {
     /**
      * Set variables on class initialization.
      *
+     * @param object $in_model The model object
+     *
      * @access public
      * @return void
      */
-    function FF_Action_Login()
+    function FF_Action_Login(&$in_model)
     {
-        FF_Action_Form::FF_Action_Form();
+        FF_Action_Form::FF_Action_Form($in_model);
     }
 
     // }}}
