@@ -145,14 +145,29 @@ class FastFrame {
      * Perform the necessary action to cause the page to reload with the
      * new url as the location.
      *
-     * @param  string $in_url new location
+     * @param string $in_url new location
+     * @param bool $in_htmlRedirect (optional) Use html to redirect the page
+     *        instead of a Location header?  Useful to supress IE alerts
+     *        when moving from https to http
      *
      * @access public
      * @return void
      */
-    function redirect($in_url)
+    function redirect($in_url, $in_htmlRedirect = false)
     {
-        header('Location: ' . $in_url, true);
+        if ($in_htmlRedirect) {
+            echo '<html><head>
+                  <script type="text/javascript">document.location.replace("' . $in_url . '"); window.onload = function() { document.body.style.display = "none"; }</script>
+                  <noscript><meta http-equiv="Refresh" content="0; url=' . $in_url . '"></noscript>
+                  </head><body>
+                  ' . _('If you are seeing this page, your browser settings prevent you from automatically redirecting to a new URL.') . '<br /><br />
+                  ' . sprintf(_('Please <a href="%s">click here</a> to continue.'), $in_url) . '
+                  </body</html>';
+        }
+        else {
+            header('Location: ' . $in_url, true);
+        }
+
         exit;
     }
 
