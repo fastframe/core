@@ -1,5 +1,5 @@
 <?php
-/** $Id: DataAccess.php,v 1.6 2003/04/08 21:15:33 jrust Exp $ */
+/** $Id: DataAccess.php,v 1.7 2003/04/08 23:02:42 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -79,6 +79,65 @@ class FF_DataAccess {
     {
         $this->o_registry =& FF_Registry::singleton(); 
         $this->connect();
+    }
+
+    // }}}
+    // {{{ factory()
+
+    /**
+     * Attempts to return a concrete DataAccess instance based on $in_app and the type of
+     * database driver specified in the config.
+     *
+     * @param string $in_module The module which is used to determine name of file and class
+     *               name.
+     * @param string $in_app (optional) The application.  Uses current app if not specified
+     *
+     * @access public
+     * @return object The newly created concrete DataAccess instance
+     */
+    function &factory($in_module, $in_app = null)
+    {
+        static $a_instances;
+        if (!isset($a_instances)) {
+            $a_instances = array();
+        }
+
+        list($pth_dao, $s_class) = FF_DataAccess::getDaoInfo($in_module, $in_app);
+        if (!isset($a_instances[$s_class])) {
+            if (file_exists($pth_dao)) { 
+                require_once $pth_dao;
+                $a_instances[$s_class] = new $s_class();
+            }
+            else {
+                FastFrame::fatal("Unable to instantiate DataAccess object for module: $in_module (file: $pth_dao)", __FILE__, __LINE__);
+            }
+        }
+
+        return $a_instances[$s_class];
+    }
+
+    // }}}
+    // {{{ getDaoInfo()
+
+    /**
+     * Returns the path and class name based on the module, app, and driver for a DataAccess
+     * object.
+     *
+     * @param string $in_module The module which is used to determine name of file and class
+     *               name.
+     * @param string $in_app (optional) The application.  Uses current app if not specified
+     *
+     * @access public
+     * @return array The path and the class name 
+     */
+    function getDaoInfo($in_module, $in_app = null)
+    {
+        $o_registry =& FF_Registry::singleton();
+        $s_app = is_null($in_app) ? $o_registry->getCurrentApp() : $in_app;
+        $s_driver = strtolower($o_registry->getConfigParam('data/type', 'mysql', array('app' => $s_app)));
+        $pth_dao = $o_registry->getAppFile("DataAccess/$s_driver/$in_module.php", $s_app, 'libs');
+        $s_class = 'FF_DataAccess_' . $in_module . '_' . $s_driver;
+        return array($pth_dao, $s_class);
     }
 
     // }}}
