@@ -74,7 +74,8 @@ class FastFrame {
         }
 
         // Add the session to the array list if it is configured to do so
-        if ($o_registry->getConfigParam('session/append')) {
+        if ($o_registry->getConfigParam('session/append') ||
+            !isset($_COOKIE[session_name()])) {
             $sessName = session_name(); 
             // make sure it was not already set (like set to nothing)
             if (!isset($in_vars[$sessName])) {

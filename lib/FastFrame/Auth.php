@@ -122,8 +122,8 @@ class FF_Auth {
             return FF_Request::getParam('__auth__[\'registered\']', 's', false);
         }
 
+        $o_registry =& FF_Registry::singleton();
         if (FF_Request::getParam('__auth__', 's', false) !== false) {
-            $o_registry =& FF_Registry::singleton();
             if (FF_Request::getParam('__auth__[\'timestamp\']', 's', false) &&
                 ($expire = $o_registry->getConfigParam('session/expire')) > 0 && 
                 (FF_Request::getParam('__auth__[\'timestamp\']', 's') + $expire) < time()) {
@@ -151,7 +151,6 @@ class FF_Auth {
             }
         }
         else {
-            $o_registry =& FF_Registry::singleton();
             $a_sources = (array) $o_registry->getConfigParam('auth/sources');
             foreach ($a_sources as $a_source) {
                 $o_authSource =& FF_Auth::getAuthSourceObject($a_source['name']);
@@ -167,7 +166,8 @@ class FF_Auth {
          * If they don't have this cookie it means they either they
          * deleted it or they sent the link to someone.
          */
-        if (!FF_Request::getParam(FF_Auth::_getSessionAnchor(), 'c')) {
+        if ($o_registry->getConfigParam('session/append') && 
+            !FF_Request::getParam(FF_Auth::_getSessionAnchor(), 'c')) {
             FF_Auth::_setStatus(FASTFRAME_AUTH_NO_ANCHOR);
             return false;
         }
@@ -228,11 +228,13 @@ class FF_Auth {
         $in_credentials['username'] = $in_username;
         FF_Request::setParam('__auth__[\'credentials\']', $in_credentials, 's');
         
-        // set the anchor for this browser to never expire
+        // set the anchor for this browser
         $o_registry =& FF_Registry::singleton();
-        FF_Request::setCookies(array(FF_Auth::_getSessionAnchor() => 1), 0,
-            $o_registry->getConfigParam('cookie/path'),
-            $o_registry->getConfigParam('cookie/domain'));
+        if ($o_registry->getConfigParam('session/append')) {
+            FF_Request::setCookies(array(FF_Auth::_getSessionAnchor() => 1), 0,
+                $o_registry->getConfigParam('cookie/path'),
+                $o_registry->getConfigParam('cookie/domain'));
+        }
     }
 
     // }}}
@@ -342,12 +344,11 @@ class FF_Auth {
          */
         if ($s_status != FASTFRAME_AUTH_NO_ANCHOR) {
             FF_Auth::clearAuth();
-            FF_Auth::_setStatus(FASTFRAME_AUTH_LOGOUT);
-            FF_Auth::_sessionEnd();
+            @session_destroy();
         }
 
         // Start session again so we don't end up with an empty session_id
-        FF_Auth::sessionStart();
+        FF_Auth::sessionStart(true);
         return $o_result;
     }
 
@@ -397,12 +398,13 @@ class FF_Auth {
      *
      * This function determines if a session has been started and if not, starts
      * the session, using the value from the registry for the name of the session.
-     * It also disables the cookie params for sessions since they suck.
+     *
+     * @param bool $in_clean (optional) Start a clean session?
      *
      * @access public 
      * @return void
      */
-    function sessionStart() 
+    function sessionStart($in_clean = false) 
     {
         static $isStarted;
         
@@ -414,21 +416,31 @@ class FF_Auth {
             }
             else {
                 ini_alter('session.use_cookies', 1);
-                session_set_cookie_params(0, $o_registry->getConfigParam('webserver/web_root'),
-                        $o_registry->getConfigParam('webserver/hostname'));
+                session_set_cookie_params($o_registry->getConfigParam('session/idle'), 
+                            $o_registry->getConfigParam('cookie/path'),
+                            $o_registry->getConfigParam('cookie/domain'),
+                            $o_registry->getConfigParam('webserver/use_ssl') ? 1 : 0);
             }
 
             // Use a common session name for all apps
-            session_name($o_registry->getConfigParam('session/name')); 
+            session_name(urlencode($o_registry->getConfigParam('session/name'))); 
             // Don't transparently track session ID, since we handle it.
             // Can't ini_set session.use_trans_sid, so we just empty what it searches for
-            ini_set('url_rewriter.tags', '');
-            // set the cacheing 
+            ini_set('url_rewriter.tags', 0);
+            // set the caching 
             session_cache_limiter($o_registry->getConfigParam('session/cache', 'nocache'));
             $isStarted = true;
         }
 
         @session_start();
+        if ($in_clean) {
+            if (function_exists('session_regenerate_id')) {
+                session_regenerate_id();
+            }
+            else {
+                session_id(md5(uniqid(mt_rand(), true)));
+            }
+        }
     }
 
     // }}}
@@ -458,20 +470,6 @@ class FF_Auth {
     }
 
     // }}}
-    // {{{ _sessionEnd()
-
-    /**
-     * End a session.
-     *
-     * @access private
-     * @return bool
-     */
-    function _sessionEnd() 
-    {
-        @session_destroy();
-    }
-
-    // }}}
     // {{{ _getSessionAnchor()
 
     /**
@@ -488,7 +486,7 @@ class FF_Auth {
      */
     function _getSessionAnchor()
     {
-        return @md5(FF_Request::getParam('__auth__[\'username\']', 's'));
+        return @md5(FF_Request::getParam('__auth__[\'username\']', 's') . @$_SERVER['HTTP_USER_AGENT']);
     }
 
     // }}}
