@@ -5,7 +5,7 @@
 // +----------------------------------------------------------------------+
 // | FastFrame Application Framework                                      |
 // +----------------------------------------------------------------------+
-// | Copyright (c) 2002-2004 The Codejanitor Group                        |
+// | Copyright (c) 2002-2005 The Codejanitor Group                        |
 // +----------------------------------------------------------------------+
 // | This source file is subject to the GNU Lesser Public License (LGPL), |
 // | that is bundled with this package in the file LICENSE, and is        |

@@ -5,8 +5,8 @@
 // +----------------------------------------------------------------------+
 // | FastFrame Application Framework                                      |
 // +----------------------------------------------------------------------+
-// | Copyright 2003-2004 Chuck Hagenbuch <chuck@horde.org>                |
-// | Copyright 2003-2004 Jan Schneider <jan@horde.org>                    |
+// | Copyright 2003-2005 Chuck Hagenbuch <chuck@horde.org>                |
+// | Copyright 2003-2005 Jan Schneider <jan@horde.org>                    |
 // | Copyright (c) 2004 The Codejanitor Group                             |
 // +----------------------------------------------------------------------+
 // | This source file is subject to the GNU Lesser Public License (LGPL), |
