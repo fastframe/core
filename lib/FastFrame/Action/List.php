@@ -106,12 +106,15 @@ class FF_Action_List extends FF_Action_Form {
      */
     function initList()
     {
+        $o_actionHandler =& FF_ActionHandler::singleton();
         $this->o_list =& new FF_List(
+            // a unique id for this list
+            $o_actionHandler->getAppId() . $o_actionHandler->getModuleId() . $this->currentActionId,
             $this->getDefaultSortField(), 
             $this->getDefaultSortOrder(),
-            $this->getDefaultDisplayLimit(),
-            $this->getPersistentData()
+            $this->getDefaultDisplayLimit()
         );
+        $this->o_list->setPersistentData($this->getPersistentData());
         $this->processFieldMapForList($this->getFieldMap());
     }
 

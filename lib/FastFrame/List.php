@@ -75,6 +75,12 @@ class FF_List {
     var $allFieldsKey = '**all**'; 
 
     /**
+     * The id of the current list
+     * @var string
+     */
+    var $listId;
+
+    /**
      * The total number of records in the data set 
      * @var int
      */
@@ -140,41 +146,27 @@ class FF_List {
     /**
      * Set variables on class initialization.
      *
-     * @param string $in_defaultSortField The default field to sort on
-     * @param int $in_defaultSortOrder The default sort order (1 = ASC, 0 = DESC)
-     * @param int $in_defaultDisplayLimit The default display limit
-     * @param array $in_persistentData (optional) Persistent data in the form of 'name' =>
-     *              'value' that should be passed on, such as the actionId
-     * @param array $in_columnData (optional) A multidimensional array with the primary keys 
-     *              in the order the columns are to be displayed.  
-     *              e.g. $colVars[0] = array('name' => 'Col 1', 'sort' => 'field1');
-     *              Leave out the sort column if the column is not to be sorted.  
-     *              If not passed in then we assume that columnData and searchableFields
-     *              will be set with their respective methods, or with importFieldMap()
+     * @param string $in_listId The id for this list.  Used to keep track of session
+     *               variables (e.g. displayLimit, searchString) for each specific list.
+     * @param string $in_sortField The default field to sort on
+     * @param int $in_sortOrder The default sort order (1 = ASC, 0 = DESC)
+     * @param int $in_displayLimit The default display limit
      *
      * @access public
      * @return void
      */
-    function FF_List($in_defaultSortField, $in_defaultSortOrder, 
-            $in_defaultDisplayLimit, $in_persistentData = array(), 
-            $in_columnData = null)
+    function FF_List($in_listId, $in_sortField, $in_sortOrder, $in_displayLimit)
     {
         $this->o_output =& FF_Output::singleton();
-        if (!is_null($in_columnData)) {
-            $this->setColumnData($in_columnData);
-            // set up the default search fields as the column fields, can be overridden later
-            $this->setSearchableFields($this->getColumnData());
-        }
-
+        $this->listId = $in_listId;
         // set all the fields with their default values
-        $this->persistentData = $in_persistentData;
-        $this->setSortField($in_defaultSortField);
-        $this->setSortOrder($in_defaultSortOrder);
+        $this->setSortField($in_sortField);
+        $this->setSortOrder($in_sortOrder);
         $this->setSearchString();
         $this->setSearchField();
         $this->setSearchBoxType();
         $this->setPageOffset();
-        $this->setDisplayLimit($in_defaultDisplayLimit);
+        $this->setDisplayLimit($in_displayLimit);
     }
 
     // }}}
@@ -194,19 +186,6 @@ class FF_List {
     {
         // {{{ variable preparation
 
-        // set up sortable fields
-        $a_sortFields = array();
-        foreach ($this->getColumnData() as $a_val) {
-            if (isset($a_val['sort'])) {
-                $a_sortFields[$a_val['sort']] = $a_val['name'];
-            }
-        }
-
-        $a_searchFields = array();
-        foreach ($this->getSearchableFields() as $a_val) {
-            $a_searchFields[$a_val['search']] = $a_val['name'];
-        }
-        
         // }}}
         // {{{ quickform preparation
 
@@ -217,72 +196,107 @@ class FF_List {
         
         // Need to set page offset to one when we search or change limit
         $tmp_onclick = ($this->getTotalPages() > 1) ? 
-            'document.search_box.pageOffset.options[0].selected = true;' :
+            ($a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE ? 
+                "document.search_box['pageOffset[$this->listId]'].value = 1;" :
+                "document.search_box['pageOffset[$this->listId]'].options[0].selected = true;") :
             'void(0);';
 
         // Add form elements which go only on advanced list in normal mode
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
-            $o_form->addElement('text', 'displayLimit', null, 
+            // set up sortable fields
+            $a_sortFields = array();
+            foreach ($this->getColumnData() as $a_val) {
+                if (isset($a_val['sort'])) {
+                    $a_sortFields[$a_val['sort']] = $a_val['name'];
+                }
+            }
+
+            $o_form->addElement('text', "displayLimit[$this->listId]", null, 
                     array('style' => 'vertical-align: middle;', 'size' => 3, 'maxlength' => 3));
             $o_form->addElement('submit', 'displayLimit_submit', _('Update'), 
                     array('style' => 'vertical-align: middle;', 'onclick' => $tmp_onclick));
-            $o_form->addElement('select', 'sortOrder', null, array(0 => 'DESC', 1 => 'ASC'));
-            $o_form->addElement('select', 'sortField', null, $a_sortFields);
+            $o_form->addElement('select', "sortOrder[$this->listId]", null, array(0 => 'DESC', 1 => 'ASC'));
+            $o_form->addElement('select', "sortField[$this->listId]", null, $a_sortFields);
             $o_form->addElement('submit', 'sort_submit', _('Sort'));
+            $o_form->addRule("displayLimit[$this->listId]", _('Limit must be a positive integer'), 
+                    'nonzero', null, 'client', true); 
         }
         else {
-            $o_form->addElement('hidden', 'displayLimit');
-            $o_form->addElement('hidden', 'sortOrder');
-            $o_form->addElement('hidden', 'sortField');
+            $o_form->addElement('hidden', "displayLimit[$this->listId]");
+            $o_form->addElement('hidden', "sortOrder[$this->listId]");
+            $o_form->addElement('hidden', "sortField[$this->listId]");
         }
 
         // Add form elements which go in advanced list or simple mode
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED ||
             $a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
-            $o_form->addElement('select', 'searchField', null, $a_searchFields, 
-                    array('style' => 'vertical-align: text-top;')); 
-            $o_form->addElement('text', 'searchString', null, 
+            $o_form->addElement('text', "searchString[$this->listId]", null, 
                     array('size' => 15, 'style' => 'vertical-align: text-top;', 'onfocus' => 'this.value = ""'));
             $o_form->addElement('submit', 'query_submit', _('Search'), 
                     array('onclick' => $tmp_onclick, 'style' => 'vertical-align: middle;'));
             $o_form->addElement('submit', 'listall_submit', _('List All'), 
-                    array('onclick' => 'document.search_box.searchString.value = \'\';' . $tmp_onclick, 
+                    array('onclick' => "document.search_box['searchString[$this->listId]'].value = '';" . $tmp_onclick, 
                         'style' => 'vertical-align: middle;'));
         }
         else {
-            $o_form->addElement('hidden', 'searchField');
-            $o_form->addElement('hidden', 'searchString');
+            $o_form->addElement('hidden', "searchString[$this->listId]");
+        }
+
+        if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
+            $a_searchFields = array();
+            foreach ($this->getSearchableFields() as $a_val) {
+                $a_searchFields[$a_val['search']] = $a_val['name'];
+            }
+            
+            $o_form->addElement('select', "searchField[$this->listId]", null, $a_searchFields, 
+                    array('style' => 'vertical-align: text-top;')); 
+        }
+        else {
+            $o_form->addElement('hidden', "searchField[$this->listId]");
         }
 
         if ($a_listVars['searchBoxType'] != SEARCH_BOX_SIMPLE) {
             $o_form->addElement('advcheckbox', 'searchBoxType', null, _('Advanced List'), 
-                    array('onclick' => 'if (this.checked) { this.form.submit(); } else if (validate_search_box()) { document.search_box.searchString.value = \'\'; this.form.submit(); } else { return false; }'),
+                    array('onclick' => "if (this.checked) { this.form.submit(); } else if (typeof(validate_search_box) != 'function' || validate_search_box()) { document.search_box['searchString[$this->listId]'].value = ''; this.form.submit(); } else { return false; }"),
                     array(SEARCH_BOX_NORMAL, SEARCH_BOX_ADVANCED));
         }
 
-        // common rules
-        $o_form->addRule('displayLimit', _('Limit must be an integer'), 'nonzero', null, 'client', true); 
+        $s_numListed = min(($this->getMatchedRecords() - $this->getRecordOffset()), 
+                $this->getDisplayLimit(), $this->getMatchedRecords());
+        if ($a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
+            $o_form->addElement('hidden', "pageOffset[$this->listId]");
+            if ($this->getMatchedRecords() > 0) {
+                $s_pagination = sprintf(_('%1$d to %2$d of %3$d'),
+                        $this->getRecordOffset() + 1,
+                        $this->getRecordOffset() + $s_numListed,
+                        $this->getMatchedRecords());
+            }
+            else {
+                $s_pagination = '0 found'; 
+            }
+        }
+        else {
+            // Construct the menu ring for jumping to different blocks of table
+            if ($this->getTotalPages() > 1) {
+                foreach (range(1, $this->getTotalPages()) as $i) {
+                    $a_pageOptions[$i] = sprintf(_('%1$d of %2$d'), $i, $this->getTotalPages());
+                }
+
+                // You can't change anything when changing pages...doesn't make sense, so
+                // reset the form before going on to the next page
+                $o_form->addElement('select', "pageOffset[$this->listId]", null, $a_pageOptions, 
+                        array('style' => 'vertical-align: middle;', 'onchange' => 'var tmp = this.selectedIndex; this.form.reset(); this.options[tmp].selected = true; if (typeof(validate_search_box) != "function" || validate_search_box()) { this.form.submit(); } else { return false; }'));
+                $s_pagination = $o_renderer->elementToHtml("pageOffset[$this->listId]");
+            }
+            else {
+                $o_form->addElement('hidden', "pageOffset[$this->listId]");
+                $s_pagination = sprintf(_('1 of 1'), 1, 1);
+            }
+        }
 
         // add as hidden elements any persistent data
         foreach ($this->persistentData as $s_key => $s_val) {
             $o_form->addElement('hidden', $s_key, $s_val);
-        }
-
-        // Construct the menu ring for jumping to different blocks of table
-        if ($this->getTotalPages() > 1) {
-            foreach (range(1, $this->getTotalPages()) as $i) {
-                $a_pageOptions[$i] = sprintf(_('%1$d of %2$d'), $i, $this->getTotalPages());
-            }
-
-            // You can't change anything when changing pages...doesn't make sense, so
-            // reset the form before going on to the next page
-            $o_form->addElement('select', 'pageOffset', null, $a_pageOptions, 
-                    array('style' => 'vertical-align: middle;', 'onchange' => 'var tmp = this.selectedIndex; this.form.reset(); this.options[tmp].selected = true; if (validate_search_box()) { this.form.submit(); } else { return false; }'));
-            $s_pagination = $o_renderer->elementToHtml('pageOffset');
-        }
-        else {
-            $o_form->addElement('hidden', 'pageOffset');
-            $s_pagination = sprintf(_('%1$d of %2$d'), 1, 1) . $o_renderer->elementToHtml('pageOffset');
         }
 
         // }}}
@@ -290,60 +304,55 @@ class FF_List {
 
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
             $o_searchWidget =& $this->o_output->getWidgetObject('searchTableSimple');
+            $o_searchWidget->assignBlockData(array(
+                        'T_search_header' => sprintf(_('Search Results (%s)'), $s_pagination)),
+                    $this->o_output->getGlobalBlockName());
         }
         else {
             $o_searchWidget =& $this->o_output->getWidgetObject('searchTable');
-        }
-
-        $s_foundText = sprintf(_('%1$d Found (%2$d%%), %3$d Listed out of %4$d Total %5$s'), 
-                $this->getMatchedRecords(), 
-                $this->getMatchedRecordsPercentage(), 
-                min(($this->getMatchedRecords() - $this->getRecordOffset()), 
-                    $this->getDisplayLimit(), $this->getMatchedRecords()),
-                $this->totalRecords, 
-                $this->totalRecords == 1 ? $in_singularLang : $in_pluralLang);
-
-        $o_searchWidget->assignBlockData(
-                array(
-                    'T_search_header' => _('Search Options'),
-                    'T_search_viewing' => sprintf(_('Viewing Page %s'), $s_pagination),
-                    'T_search_found' => $s_foundText), 
-                $this->o_output->getGlobalBlockName());
-
-        if ($a_listVars['searchBoxType'] != SEARCH_BOX_SIMPLE) {
             $s_printLink = $this->o_output->link(
-                    FastFrame::selfURL($this->persistentData, $this->getAllListVariables(), 
+                    FastFrame::selfURL($this->persistentData, $a_listVars, 
                         array('printerFriendly' => 1)), 
                     _('Printer Friendly'));
 
+            $s_foundText = sprintf(_('%1$d Found (%2$d%%), %3$d Listed out of %4$d Total %5$s'), 
+                    $this->getMatchedRecords(), 
+                    $this->getMatchedRecordsPercentage(),
+                    $s_numListed,
+                    $this->totalRecords, 
+                    $this->totalRecords == 1 ? $in_singularLang : $in_pluralLang);
+
             $o_searchWidget->assignBlockData(
-                array('T_search_options' => $o_renderer->elementToHtml('searchBoxType') . ' | ' . $s_printLink),
-                $this->o_output->getGlobalBlockName());
+                    array(
+                        'T_search_header' => _('Search Options'),
+                        'T_search_viewing' => sprintf(_('Viewing Page %s'), $s_pagination),
+                        'T_search_options' => $o_renderer->elementToHtml('searchBoxType') . ' | ' . $s_printLink,
+                        'T_search_found' => $s_foundText), 
+                    $this->o_output->getGlobalBlockName());
         }
 
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
             $s_limitText = sprintf(_('%1$s rows per page %2$s'), 
-                    $o_renderer->elementToHtml('displayLimit'), 
+                    $o_renderer->elementToHtml("displayLimit[$this->listId]"), 
                     $o_renderer->elementToHtml('displayLimit_submit'));
 
-            $s_sortText = $o_renderer->elementToHtml('sortOrder') . ' ' .
-                          $o_renderer->elementToHtml('sortField') . ' ' .
+            $s_sortText = $o_renderer->elementToHtml("sortOrder[$this->listId]") . ' ' .
+                          $o_renderer->elementToHtml("sortField[$this->listId]") . ' ' .
                           $o_renderer->elementToHtml('sort_submit');
 
-            $o_searchWidget->assignBlockData(
-                    array('T_search_limit' => $s_limitText, 'T_search_sort' => $s_sortText), 
+            $o_searchWidget->assignBlockData(array(
+                        'T_search_limit' => $s_limitText, 'T_search_sort' => $s_sortText), 
                     $this->o_output->getGlobalBlockName());
         }
 
         if ($a_listVars['searchBoxType'] != SEARCH_BOX_NORMAL) {
             $tmp_help = _('Find items in the list by entering a search term in the box to the right.  If you want to only search a particular field then select it from the drop down list.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy');
-            $s_findText = sprintf(_('%1$s %2$s %3$s in %4$s'), 
-                    $this->o_output->getHelpLink($tmp_help, _('Search Help')), 
-                    _('Find'), 
-                    $o_renderer->elementToHtml('searchString'), 
-                    $o_renderer->elementToHtml('searchField') . ' ' .
-                    $o_renderer->elementToHtml('query_submit') . ' ' .
-                    $o_renderer->elementToHtml('listall_submit'));
+            $s_searchField = $a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED ?
+                sprintf(_('in %s'), $o_renderer->elementToHtml("searchField[$this->listId]")) : '';
+            $s_findText = $this->o_output->getHelpLink($tmp_help, _('Search Help')) . ' ' . 
+                _('Find') . ' ' . $o_renderer->elementToHtml("searchString[$this->listId]") . ' ' . 
+                $s_searchField . ' ' . $o_renderer->elementToHtml('query_submit') . ' ' . 
+                $o_renderer->elementToHtml('listall_submit');
 
             $o_searchWidget->assignBlockData(
                     array('T_search_find' => $s_findText),
@@ -370,12 +379,12 @@ class FF_List {
     function generateNavigationLinks()
     {
         // language constructs used for navigation
-        $lang_firstPage = array('title' => _('First'),    'status' => _('Jump to First Page'));
-        $lang_nextPage  = array('title' => _('Next'),     'status' => _('Jump to Next Page'));
-        $lang_prevPage  = array('title' => _('Previous'), 'status' => _('Jump to Previous Page'));
-        $lang_lastPage  = array('title' => _('Last'),     'status' => _('Jump to Last Page'));
-        $lang_atFirst   = array('title' => _('Disabled'), 'status' => _('Already at First Page'));
-        $lang_atLast    = array('title' => _('Disabled'), 'status' => _('Already at Last Page'));
+        $lang_firstPage = array('title' => _('Go to First Page'));
+        $lang_nextPage  = array('title' => _('Go to Next Page'));
+        $lang_prevPage  = array('title' => _('Go to Previous Page'));
+        $lang_lastPage  = array('title' => _('Go to Last Page'));
+        $lang_atFirst   = array('title' => _('Disabled'));
+        $lang_atLast    = array('title' => _('Disabled'));
       
         $a_urlVars = array_merge($this->persistentData, $this->getAllListVariables());
         // set up the four actions
@@ -383,7 +392,7 @@ class FF_List {
         $a_navigation['first']    = $this->getPageOffset() > 1 ? 
                                     $this->o_output->link(
                                             FastFrame::selfURL($a_urlVars, array(
-                                                    'pageOffset' => $this->getPageID('first'))), 
+                                                    "pageOffset[$this->listId]" => $this->getPageId('first'))), 
                                             $this->o_output->imgTag('first.gif', 'arrows'), 
                                             $lang_firstPage) : 
                                     $this->o_output->imgTag('first-gray.gif', 'arrows', $lang_atFirst);
@@ -391,23 +400,23 @@ class FF_List {
         $a_navigation['previous'] = $this->getPageOffset() > 1 ?
                                     $this->o_output->link(
                                             FastFrame::selfURL($a_urlVars, array(
-                                                    'pageOffset' => $this->getPageID('previous'))), 
+                                                    "pageOffset[$this->listId]" => $this->getPageId('previous'))), 
                                             $this->o_output->imgTag('prev.gif', 'arrows'), 
                                             $lang_prevPage) : 
                                     $this->o_output->imgTag('prev-gray.gif', 'arrows', $lang_atFirst);
 
-        $a_navigation['next']     = $this->getPageOffset() < $this->getPageID('last') ? 
+        $a_navigation['next']     = $this->getPageOffset() < $this->getPageId('last') ? 
                                     $this->o_output->link(
                                             FastFrame::selfURL($a_urlVars, array(
-                                                    'pageOffset' => $this->getPageID('next'))), 
+                                                    "pageOffset[$this->listId]" => $this->getPageId('next'))), 
                                             $this->o_output->imgTag('next.gif', 'arrows'), 
                                             $lang_nextPage) : 
                                     $this->o_output->imgTag('next-gray.gif', 'arrows', $lang_atLast);
 
-        $a_navigation['last']     = $this->getPageOffset() < $this->getPageID('last') ? 
+        $a_navigation['last']     = $this->getPageOffset() < $this->getPageId('last') ? 
                                     $this->o_output->link(
                                             FastFrame::selfURL($a_urlVars, array(
-                                                    'pageOffset' => $this->getPageID('last'))), 
+                                                    "pageOffset[$this->listId]" => $this->getPageId('last'))), 
                                             $this->o_output->imgTag('last.gif', 'arrows'), 
                                             $lang_lastPage) : 
                                     $this->o_output->imgTag('last-gray.gif', 'arrows', $lang_atLast);
@@ -426,6 +435,7 @@ class FF_List {
      */
     function generateSortFields()
     {
+        $a_listVars = array_merge($this->persistentData, $this->getAllListVariables());
         foreach ($this->getColumnData() as $a_colData) {
             // Check to see if it is searchable and we're not in print mode.
             // If so build a link to sort on the column
@@ -440,22 +450,13 @@ class FF_List {
                     $tmp_sort = $this->getSortOrder();
                 }
 
-                // modify the two get variables for this sort
-                $a_listVars = array_merge($this->persistentData, $this->getAllListVariables(), array('sortField' => $a_colData['sort'], 'sortOrder' => $tmp_sort));
-
-                $tmp_title = sprintf(
-                                _('Sort %1$s (%2$s)'), 
-                                $a_colData['name'], 
-                                $tmp_sort ? _('Ascending') : _('Descending')
-                            ); 
-
-                $tmp_href = $this->o_output->link(
-                    FastFrame::selfURL($a_listVars), 
-                    $a_colData['name'],
-                    array(
-                        'title' => $tmp_title, 
-                    )
-                );
+                // Modify the two get variables for this sort
+                $a_listVars["sortField[$this->listId]"] = $a_colData['sort'];
+                $a_listVars["sortOrder[$this->listId]"] = $tmp_sort;
+                $tmp_title = sprintf(_('Sort %1$s (%2$s)'), $a_colData['name'], 
+                        $tmp_sort ? _('Ascending') : _('Descending')); 
+                $tmp_href = $this->o_output->link(FastFrame::selfURL($a_listVars), 
+                        $a_colData['name'], array('title' => $tmp_title ));
 
                 // see if we should display an arrow 
                 if ($this->getSortField() == $a_colData['sort']) {
@@ -463,7 +464,8 @@ class FF_List {
                     $tmp_img = $this->getSortOrder() ? 
                         $this->o_output->imgTag('up.gif', 'arrows', array('align' => 'middle')) : 
                         $this->o_output->imgTag('down.gif', 'arrows', array('align' => 'middle'));
-                    $tmp_href .= ' ' . $this->o_output->link(FastFrame::selfURL($a_listVars), $tmp_img, array('title' => $tmp_title)); 
+                    $tmp_href .= ' ' . $this->o_output->link(FastFrame::selfURL($a_listVars), 
+                            $tmp_img, array('title' => $tmp_title)); 
                 }
                 
                 $a_fieldCells[] = $tmp_href;
@@ -477,7 +479,7 @@ class FF_List {
     }
 
     // }}}
-    // {{{ getPageID()
+    // {{{ getPageId()
 
     /**
      * Calculates one of the four available page ID's.
@@ -488,7 +490,7 @@ class FF_List {
      * @access public
      * @return int The page ID
      */
-    function getPageID($in_type)
+    function getPageId($in_type)
     {
         switch ($in_type) {
             case 'first':
@@ -598,8 +600,8 @@ class FF_List {
      */
     function setDisplayLimit($in_limit)
     {
-        $this->displayLimit = (int) abs(FastFrame::getCGIParam('displayLimit', 'gps', $in_limit));
-        $_SESSION['displayLimit'] = $this->displayLimit;
+        $this->displayLimit = (int) abs(FastFrame::getCGIParam("displayLimit[$this->listId]", 'gps', $in_limit));
+        $_SESSION['displayLimit'][$this->listId] = $this->displayLimit;
     }
 
     // }}}
@@ -631,11 +633,13 @@ class FF_List {
     function setPageOffset($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->pageOffset = (int) abs(FastFrame::getCGIParam('pageOffset', 'gps', 1));  
+            $this->pageOffset = (int) abs(FastFrame::getCGIParam("pageOffset[$this->listId]", 'gps', 1));  
         }
         else {
             $this->pageOffset = (int) $in_value;
         }
+
+        $_SESSION['pageOffset'][$this->listId] = $this->pageOffset;
     }
 
     // }}}
@@ -682,7 +686,8 @@ class FF_List {
      */
     function setSortOrder($in_sort)
     {
-        $this->sortOrder = (int) FastFrame::getCGIParam('sortOrder', 'gps', $in_sort);
+        $this->sortOrder = (int) FastFrame::getCGIParam("sortOrder[$this->listId]", 'gps', $in_sort);
+        $_SESSION['sortOrder'][$this->listId] = $this->sortOrder;
     }
 
     // }}}
@@ -713,7 +718,8 @@ class FF_List {
      */
     function setSortField($in_field)
     {
-        $this->sortField = FastFrame::getCGIParam('sortField', 'gps', $in_field);
+        $this->sortField = FastFrame::getCGIParam("sortField[$this->listId]", 'gps', $in_field);
+        $_SESSION['sortField'][$this->listId] = $this->sortField;
     }
 
     // }}}
@@ -734,7 +740,7 @@ class FF_List {
     // {{{ setSearchString()
 
     /**
-     * Sets the search string variable from $in_value or GET/POST if not passed in,
+     * Sets the search string variable from $in_value or GET/POST/SESSION if not passed in,
      * defaulting to empty string if not present.
      *
      * @param string $in_value (optional) What string to search for. 
@@ -745,11 +751,13 @@ class FF_List {
     function setSearchString($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->searchString = FastFrame::getCGIParam('searchString', 'gp', '');
+            $this->searchString = FastFrame::getCGIParam("searchString[$this->listId]", 'gps', '');
         }
         else {
             $this->searchString = $in_value;
         }
+
+        $_SESSION['searchString'][$this->listId] = $this->searchString;
     }
 
     // }}}
@@ -770,7 +778,7 @@ class FF_List {
     // {{{ setSearchField()
 
     /**
-     * Sets the search field variable from $in_value or GET/POST if not passed in,
+     * Sets the search field variable from $in_value or GET/POST/SESSION if not passed in,
      * defaulting to empty field if not present.
      *
      * @param string $in_value (optional) What field to search on. 
@@ -781,11 +789,13 @@ class FF_List {
     function setSearchField($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->searchField = FastFrame::getCGIParam('searchField', 'gp', $this->getAllFieldsKey());
+            $this->searchField = FastFrame::getCGIParam("searchField[$this->listId]", 'gps', $this->getAllFieldsKey());
         }
         else {
             $this->searchField = $in_value;
         }
+
+        $_SESSION['searchField'][$this->listId] = $this->searchField;
     }
 
     // }}}
@@ -933,6 +943,23 @@ class FF_List {
     }
 
     // }}}
+    // {{{ setPersistentData()
+
+    /**
+     * Sets any persistent data that should be passed from page to page of the list, such as
+     * actionId.
+     *
+     * @param array $in_persistentData (optional) Data in the form of 'name' => 'value'
+     *
+     * @access public
+     * @return void
+     */
+    function setPersistentData($in_persistentData)
+    {
+        $this->persistentData = $in_persistentData;
+    }
+
+    // }}}
     // {{{ getAllListVariables()
 
     /**
@@ -945,14 +972,14 @@ class FF_List {
     function getAllListVariables()
     {
         $a_vars = array();
-        $a_vars['sortField'] = $this->getSortField();
-        $a_vars['sortOrder'] = $this->getSortOrder();
-        $a_vars['sortField'] = $this->getSortField();
-        $a_vars['searchString'] = $this->getSearchString();
-        $a_vars['searchField'] = $this->getSearchField();
+        $a_vars["sortField[$this->listId]"] = $this->getSortField();
+        $a_vars["sortOrder[$this->listId]"] = $this->getSortOrder();
+        $a_vars["sortField[$this->listId]"] = $this->getSortField();
+        $a_vars["searchString[$this->listId]"] = $this->getSearchString();
+        $a_vars["searchField[$this->listId]"] = $this->getSearchField();
+        $a_vars["pageOffset[$this->listId]"] = $this->getPageOffset();
+        $a_vars["displayLimit[$this->listId]"] = $this->getDisplayLimit();
         $a_vars['searchBoxType'] = $this->getSearchBoxType();
-        $a_vars['pageOffset'] = $this->getPageOffset();
-        $a_vars['displayLimit'] = $this->getDisplayLimit();
         return $a_vars;
     }
 
