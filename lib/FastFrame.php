@@ -1,5 +1,5 @@
 <?php
-/** $Id: FastFrame.php,v 1.3 2003/01/15 00:58:45 jrust Exp $ */
+/** $Id: FastFrame.php,v 1.4 2003/01/16 01:03:11 jrust Exp $ */
 // {{{ includes
 
 require_once dirname(__FILE__) . '/FastFrame/Registry.php';
@@ -681,6 +681,47 @@ function $funcName(field_name, value) {";
         }
         
         return $link;
+    }
+
+    // }}}
+    // {{{ array   getPersistentData()
+    
+    /**
+     * Looks through the $a_persistent array and returns the key => value array.
+     *
+     * @access public
+     * @return array The array of persistent data.
+     */
+    function getPersistentData()
+    {
+        if (isset($GLOBALS['a_persistent'])) {
+            return (array) $GLOBALS['a_persistent'];
+        }
+        else {
+            return array();
+        }
+    }
+
+    // }}}
+    // {{{ array   setPersistentData()
+    
+    /**
+     * Set a persistent data variable.  Use this to set values that should be passed on to
+     * other pages when, for example, a form is generated with the List class. 
+     * 
+     * @param string $in_key The key for the value.
+     * @param string $in_value They value
+     *
+     * @access public
+     * @return void 
+     */
+    function setPersistentData($in_key, $in_value)
+    {
+        if (!isset($GLOBALS['a_persistent'])) {
+            $GLOBALS['a_persistent'] = array();
+        }
+
+        $GLOBALS['a_persistent'][$in_key] = $in_value;
     }
 
     // }}}
