@@ -1,5 +1,11 @@
 <?php
-/** $Id: List.php,v 1.6 2003/01/23 21:44:18 jrust Exp $ */
+/** $Id: List.php,v 1.7 2003/02/06 18:53:25 jrust Exp $ */
+// {{{ requires
+
+require_once dirname(__FILE__) . '/Output.php';
+require_once 'HTML/QuickForm.php';
+
+// }}}
 // {{{ class FastFrame_List
 
 /**
@@ -20,98 +26,98 @@ class FastFrame_List {
     // {{{ properties
 
     /**
-     * FastFrame_HTML instance
-     * @var object $FastFrame_HTML
+     * Output instance
+     * @type object
      */
-    var $FastFrame_HTML;
+    var $o_output;
 
     /**
      * The column data. 
-     * @var array $columnData
+     * @type array
      */
     var $columnData = array();
 
     /**
      * The searchable fields. 
-     * @var array $searchableFields
+     * @type array
      */
     var $searchableFields = array();
 
     /**
      * The key for searching all fields
-     * @var string $allFieldsKey
+     * @type string
      */
     var $allFieldsKey = '**all**'; 
 
     /**
      * The total number of records in the data set 
-     * @var int $totalRecords
+     * @type int
      */
     var $totalRecords = 0;
 
     /**
      * The total number of matched records in the data set 
-     * @var int $matchedRecords
+     * @type int
      */
     var $matchedRecords = 0;
 
     /**
      * The total number of records displayed on the page
-     * @var int $displayedRecords
+     * @type int
      */
     var $displayedRecords = 0;
 
     /**
      * The default number of items displayed on a page if not available from GPC vars 
-     * @var int $defaultDisplayLimit
+     * @type int
      */
     var $defaultDisplayLimit = 30;
 
     /**
      * The default sort order on a page if none is specified 
-     * @var int $defaultSortOrder
+     * @type int
      */
     var $defaultSortOrder = 1;
 
     /**
      * The current sort field 
-     * @var string $sortField
+     * @type string
      */
     var $sortField;
 
     /**
      * The current sort order (1 = ASC, 0 = DESC)
-     * @var int $sortOrder
+     * @type int
      */
     var $sortOrder;
 
     /**
      * The current search string 
-     * @var int $searchString
+     * @type int
      */
     var $searchString;
 
     /**
      * The current field being searched 
-     * @var int $searchField
+     * @type int
      */
     var $searchField;
 
     /**
      * Whether or not we are in the advanced list page 
-     * @var bool $advancedList
+     * @type bool
      */
     var $advancedList;
 
     /**
      * The current page offset 
-     * @var int $pageOffset
+     * @type int
      */
     var $pageOffset;
 
     /**
      * The current limit of items per page
-     * @var int $displayLimit
+     * @type int
      */
     var $displayLimit;
 
@@ -133,7 +139,7 @@ class FastFrame_List {
      */
     function FastFrame_List($in_columnData = null)
     {
-        $this->FastFrame_HTML =& FastFrame_HTML::singleton();
+        $this->o_output =& FastFrame_Output::singleton();
         // see if they want their default data set up
         if (!is_null($in_columnData)) {
             $this->setColumnData($in_columnData);
@@ -185,8 +191,9 @@ class FastFrame_List {
         // }}}
         // {{{ quickform preparation
 
-        $o_form =& $this->FastFrame_HTML->quickFormFactory('search_box');
         $a_listVars = $this->getAllListVariables();
+        $o_form =& new HTML_QuickForm('search_box', 'POST', FastFrame::selfURL(), '_self');
+        $o_form->clearAllTemplates();
         $o_form->setConstants($a_listVars);
         
         // make sure our display displayLimit is not to big so the page will render
@@ -223,7 +230,7 @@ class FastFrame_List {
 
         // common elements on all pages
         $o_form->addElement('checkbox', 'advancedList', null, _('Advanced List'), array('onclick' => 'if (this.checked) { this.form.submit(); } else if (validate_search_box()) { document.search_box.searchString.value = \'\'; this.form.submit(); } else { return false; }'));
-        $o_form->addElement('hidden','actionID');
+        $o_form->addElement('hidden','actionId');
 
         // common rules
         $o_form->addRule('displayLimit', _('Limit must be an integer'), 'nonzero', null, 'client', true); 
@@ -252,11 +259,11 @@ class FastFrame_List {
         // }}}
         // {{{ template preparation
 
-        $this->FastFrame_HTML->touchBlock('switch_search_box');
-        $s_namespace = $this->FastFrame_HTML->branchBlockNS('SEARCH_BOX', 'search_box', 'genericTable.tpl', 'file');
-        $this->FastFrame_HTML->assignBlockCallback(array(&$o_form, 'toHtml'), array(), 'search_box');
+        $this->o_output->touchBlock('switch_search_box');
+        $s_namespace = $this->o_output->branchBlockNS('SEARCH_BOX', 'search_box', 'genericTable.tpl', 'file');
+        $this->o_output->assignBlockCallback(array(&$o_form, 'toHtml'), array(), 'search_box');
 
-        $this->FastFrame_HTML->assignBlockData(
+        $this->o_output->assignBlockData(
             array(
                 'S_TABLE_COLUMNS'        => 3,
                 'T_table_header'         => _('Search Results and Options'),
@@ -265,20 +272,20 @@ class FastFrame_List {
             'search_box'
         );
 
-        $this->FastFrame_HTML->touchBlock($s_namespace . 'switch_table_header');
+        $this->o_output->touchBlock($s_namespace . 'switch_table_header');
 
         // Add the data to the second row
-        $this->FastFrame_HTML->assignBlockData(
+        $this->o_output->assignBlockData(
             array(
                 'S_table_field_cell' => 'style="text-align: center; vertical-align: middle; width: 33%;"',
             ),
             $s_namespace . 'table_row'
         );
 
-        $this->FastFrame_HTML->cycleBlock($s_namespace . 'table_content_cell');
-        $this->FastFrame_HTML->cycleBlock($s_namespace . 'table_field_cell');
+        $this->o_output->cycleBlock($s_namespace . 'table_content_cell');
+        $this->o_output->cycleBlock($s_namespace . 'table_field_cell');
 
-        $this->FastFrame_HTML->assignBlockData(
+        $this->o_output->assignBlockData(
             array(
                 'T_table_field_cell' => sprintf(_('Viewing Page %s'), $s_pagination),
             ),
@@ -294,14 +301,14 @@ class FastFrame_List {
                         $this->totalRecords == 1 ? $in_singularLang : $in_pluralLang
                     );
 
-        $this->FastFrame_HTML->assignBlockData(
+        $this->o_output->assignBlockData(
             array(
                 'T_table_field_cell' => $tmp_text,
             ),
             $s_namespace . 'table_field_cell'
         );
 
-        $this->FastFrame_HTML->assignBlockData(
+        $this->o_output->assignBlockData(
             array(
                 'T_table_field_cell' => $o_form->renderElement('advancedList', true),
                 'S_table_field_cell' => 'style="white-space: nowrap"',
@@ -312,14 +319,14 @@ class FastFrame_List {
         // Add the data to the first row
         if ($this->getAdvancedList()) {
             // assigns attributes to all cells in the row
-            $this->FastFrame_HTML->assignBlockData(
+            $this->o_output->assignBlockData(
                 array(
                     'S_table_content_cell' => 'style="text-align: center; vertical-align: middle; width: 33%; white-space: nowrap;"',
                 ),
                 $s_namespace . 'table_row'
             );
 
-            $this->FastFrame_HTML->cycleBlock($s_namespace . 'table_content_cell');
+            $this->o_output->cycleBlock($s_namespace . 'table_content_cell');
             
             $tmp_text = sprintf(
                             _('%1$s rows per page %2$s'), 
@@ -327,7 +334,7 @@ class FastFrame_List {
                             $o_form->renderElement('displayLimit_submit', true)
                         );
 
-            $this->FastFrame_HTML->assignBlockData(
+            $this->o_output->assignBlockData(
                 array(
                     'T_table_content_cell' => $tmp_text,
                 ), 
@@ -342,14 +349,14 @@ class FastFrame_List {
                             $o_form->renderElement('listall_submit', true)
                         );
 
-            $this->FastFrame_HTML->assignBlockData(
+            $this->o_output->assignBlockData(
                 array(
                     'T_table_content_cell' => $tmp_text,
                 ), 
                 $s_namespace . 'table_content_cell'
             );
 
-            $this->FastFrame_HTML->assignBlockData(
+            $this->o_output->assignBlockData(
                 array(
                     'T_table_content_cell' => $o_form->renderElement('sortOrder', true) . ' ' .
                                               $o_form->renderElement('sortField', true) . ' ' .
@@ -389,36 +396,36 @@ class FastFrame_List {
         // set up the four actions
         $a_navigation = array();
         $a_navigation['first']    = $this->getPageOffset() > 1 ? 
-                                    $this->FastFrame_HTML->link(
+                                    $this->o_output->link(
                                         FastFrame::selfURL($a_urlVars, array('pageOffset' => $this->getPageID('first'))), 
-                                        $this->FastFrame_HTML->imgTag('first.gif', 'arrows'), 
+                                        $this->o_output->imgTag('first.gif', 'arrows'), 
                                         $lang_firstPage
                                     ) : 
-                                    $this->FastFrame_HTML->imgTag('first-gray.gif', 'arrows', $lang_atFirst);
+                                    $this->o_output->imgTag('first-gray.gif', 'arrows', $lang_atFirst);
         $a_navigation['previous'] = $this->getPageOffset() > 1 ?
-                                    $this->FastFrame_HTML->link(
+                                    $this->o_output->link(
                                         FastFrame::selfURL($a_urlVars, array('pageOffset' => $this->getPageID('previous'))), 
-                                        $this->FastFrame_HTML->imgTag('prev.gif', 'arrows'), 
+                                        $this->o_output->imgTag('prev.gif', 'arrows'), 
                                         $lang_prevPage
                                     ) : 
-                                    $this->FastFrame_HTML->imgTag('prev-gray.gif', 'arrows', $lang_atFirst);
+                                    $this->o_output->imgTag('prev-gray.gif', 'arrows', $lang_atFirst);
         $a_navigation['next']     = $this->getPageOffset() < $this->getPageID('last') ? 
-                                    $this->FastFrame_HTML->link(
+                                    $this->o_output->link(
                                         FastFrame::selfURL($a_urlVars, array('pageOffset' => $this->getPageID('next'))), 
-                                        $this->FastFrame_HTML->imgTag('next.gif', 'arrows'), 
+                                        $this->o_output->imgTag('next.gif', 'arrows'), 
                                         $lang_nextPage
                                     ) : 
-                                    $this->FastFrame_HTML->imgTag('next-gray.gif', 'arrows', $lang_atLast);
+                                    $this->o_output->imgTag('next-gray.gif', 'arrows', $lang_atLast);
         $a_navigation['last']     = $this->getPageOffset() < $this->getPageID('last') ? 
-                                    $this->FastFrame_HTML->link(
+                                    $this->o_output->link(
                                         FastFrame::selfURL($a_urlVars, array('pageOffset' => $this->getPageID('last'))), 
-                                        $this->FastFrame_HTML->imgTag('last.gif', 'arrows'), 
+                                        $this->o_output->imgTag('last.gif', 'arrows'), 
                                         $lang_lastPage
                                     ) : 
-                                    $this->FastFrame_HTML->imgTag('last-gray.gif', 'arrows', $lang_atLast);
+                                    $this->o_output->imgTag('last-gray.gif', 'arrows', $lang_atLast);
         
         if ($in_register) {
-            $this->FastFrame_HTML->assignBlockData(
+            $this->o_output->assignBlockData(
                 array(
                     'I_navigation_first'    => $a_navigation['first'],
                     'I_navigation_previous' => $a_navigation['previous'],
@@ -471,7 +478,7 @@ class FastFrame_List {
                                 $tmp_sort ? _('Ascending') : _('Descending')
                             ); 
 
-                $tmp_href = $this->FastFrame_HTML->link(
+                $tmp_href = $this->o_output->link(
                     FastFrame::selfURL($a_listVars), 
                     $a_colData['name'],
                     array(
@@ -483,9 +490,9 @@ class FastFrame_List {
                 if ($this->getSortField() == $a_colData['sort']) {
                     // Determine which image to display
                     $tmp_img = $this->getSortOrder() ? 
-                        $this->FastFrame_HTML->imgTag('up.gif', 'arrows', array('align' => 'middle')) : 
-                        $this->FastFrame_HTML->imgTag('down.gif', 'arrows', array('align' => 'middle'));
-                    $tmp_href .= ' ' . $this->FastFrame_HTML->link(FastFrame::selfURL($a_listVars), $tmp_img, array('title' => $tmp_title)); 
+                        $this->o_output->imgTag('up.gif', 'arrows', array('align' => 'middle')) : 
+                        $this->o_output->imgTag('down.gif', 'arrows', array('align' => 'middle'));
+                    $tmp_href .= ' ' . $this->o_output->link(FastFrame::selfURL($a_listVars), $tmp_img, array('title' => $tmp_title)); 
                 }
                 
                 $a_fieldCells[] = $tmp_href;
@@ -497,11 +504,11 @@ class FastFrame_List {
 
         // now register the sort fields if that was specified
         if (!is_null($in_tableNamespace)) {
-            $this->FastFrame_HTML->touchBlock($in_tableNamespace . 'table_row');
-            $this->FastFrame_HTML->cycleBlock($in_tableNamespace . 'table_field_cell');
-            $this->FastFrame_HTML->cycleBlock($in_tableNamespace . 'table_content_cell');
+            $this->o_output->touchBlock($in_tableNamespace . 'table_row');
+            $this->o_output->cycleBlock($in_tableNamespace . 'table_field_cell');
+            $this->o_output->cycleBlock($in_tableNamespace . 'table_content_cell');
             foreach ($a_fieldCells as $s_cell) {
-                $this->FastFrame_HTML->assignBlockData(
+                $this->o_output->assignBlockData(
                     array(
                         'T_table_field_cell' => $s_cell,
                     ),
@@ -1091,129 +1098,5 @@ class FastFrame_List {
     }
 
     // }}}
-    // {{{ importFieldMap()
-
-    /**
-     * Imports the field map configuration used by FastFrame into the columnData and
-     * searchableFields properties. 
-     *
-     * @param array $in_fieldMap The field map used by FastFrame apps.
-     *
-     * @access public
-     * @return void 
-     */
-    function importFieldMap($in_fieldMap)
-    {
-        $a_colData = array();
-        foreach ($in_fieldMap as $a_val) {
-            if (isset($a_val['field'])){
-                $a_colData[] = array('sort' => $a_val['field'], 'name' => $a_val['description']);
-            }
-            // not a sortable column
-            else {
-                $a_colData[] = array('name' => $a_val['description']);
-            }
-        }
-        
-        $this->setColumnData($a_colData);
-        $this->setSearchableFields($this->getColumnData());
-    }
-
-    // }}}
-    // {{{ getWhereCondition()
-
-    /**
-     * Creates a condition that can be added to a SQL WHERE clause.  This is uses the search
-     * fields and strings and is suitable for grabbing the fields that should be present in
-     * this list.
-     *
-     * @param object $in_db The DataObject database object
-     *
-     * @access public
-     * @return string A WHERE condition 
-     */
-    function getWhereCondition($in_db)
-    {
-        $s_searchField = $this->getSearchField();
-        $s_searchCondition = '%field% LIKE ' . $in_db->quote('%' . $this->getSearchString() . '%');
-        if (!empty($s_searchField)) {
-            $tmp_fields = array();
-            if ($s_searchField == $this->getAllFieldsKey()) {
-                foreach ($this->getSearchableFields(true) as $a_val) {
-                    $tmp_fields[] = str_replace('%field%', $a_val['search'], $s_searchCondition);
-                }
-            }
-            else {
-                $tmp_fields[] = str_replace('%field%', $s_searchField, $s_searchCondition);
-            }
-
-            $s_where = implode(" OR \n", $tmp_fields);
-        }
-        else {
-            $s_where = '1=1';
-        }
-
-        return $s_where;
-    }
-
-    // }}}
-    // {{{ getData()
-
-    /**
-     * Gets the data that should be displayed on this list page.  Utilizes the DB_DataObject
-     * methods to fetch the data.
-     *
-     * @param object $in_obj_data The data object
-     *
-     * @access public
-     * @return array An array of DataObject results
-     */
-    function getData(&$in_obj_data)
-    {
-        $in_obj_data->whereAdd($this->getWhereCondition($in_obj_data->getDatabaseConnection()));
-        $in_obj_data->limit($this->getRecordOffset(), $this->getDisplayLimit());
-        $in_obj_data->orderBy($this->getSortField() . ' ' . FastFrame_SQL::getOrderString($this->getSortOrder()));
-        $a_data = array();
-        $s_numFound = $in_obj_data->find();
-        if ($s_numFound) {
-            while ($in_obj_data->fetch()) {
-                $a_data[] = $in_obj_data->__clone();
-            }
-        }
-
-        return $a_data;
-    }
-
-    // }}}
-    // {{{ getCellData()
-
-    /**
-     * Gets the cell data using the database connection and the field map.
-     *
-     * @param object $in_obj_data The data object
-     * @param array $in_arr_fieldMapElement The field map element
-     *
-     * @access public
-     * @return string The text to put in the cell in the list.
-     */
-    function getCellData(&$in_obj_data, $in_arr_fieldMapElement)
-    {
-        if (isset($in_arr_fieldMapElement['method']) && 
-            method_exists($in_obj_data, $in_arr_fieldMapElement['method'])) {
-            $s_cellData = $in_obj_data->$in_arr_fieldMapElement['method']();
-        }
-        else {
-            if (!isset($in_arr_fieldMapElement['field']) || 
-                !isset($in_obj_data->$in_arr_fieldMapElement['field'])) {
-                $s_cellData = sprintf(_('Warning: field property for %s is not set!'), $in_arr_fieldMapElement['description']);
-            }
-            else {
-                $s_cellData = $in_obj_data->$in_arr_fieldMapElement['field'];
-            }
-        }
-
-        return $s_cellData;
-    }
-
-    // }}}
 }
+?>
