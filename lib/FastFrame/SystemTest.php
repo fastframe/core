@@ -157,6 +157,11 @@ class FF_SystemTest {
                 'name' => 'PEAR DB Module',
                 'errorMsg' => _('You do not have PEAR DB 1.6.0RC5 or greater installed.'),
                 'successMsg' => _('You have the PEAR DB module.')),
+            'pear_db_ldap' => array(
+                'method' => '_checkPEARDBLdap',
+                'name' => 'PEAR DB_ldap Module',
+                'errorMsg' => _('You do not have PEAR DB_ldap installed.  It is required if you want to have an LDAP backend to the phonelist application.'),
+                'successMsg' => _('You have the PEAR DB_ldap module.')),
             'pear_file' => array(
                 'method' => '_checkPEARFile',
                 'name' => 'PEAR File Module',
@@ -242,6 +247,21 @@ class FF_SystemTest {
     {
         @include_once 'DB/common.php';
         return is_callable(array('DB_common', 'quoteIdentifier'));
+    }
+
+    // }}}
+    // {{{ _checkPEARDBLdap()
+
+    /**
+     * Tests to see if the PEAR DB_ldap module is loaded.
+     *
+     * @access private
+     * @return bool True if it succeeds, false otherwise
+     */
+    function _checkPEARDBLdap()
+    {
+        @include_once 'DB/ldap.php';
+        return class_exists('DB_ldap');
     }
 
     // }}}
