@@ -114,28 +114,26 @@ class FF_AuthSource_ldap extends FF_AuthSource {
      * @param string $in_password The password 
      *
      * @access public
-     * @return boolean determines if login was successfull
+     * @return object A result object
      */
     function authenticate($in_username, $in_password)
     {
         if (!$this->_connect()) {
-            return false;
+            return $this->o_result;
         }
 
         if (($s_dn = $this->_getUserDn($in_username)) === false) {
-            return false;
+            return $this->o_result;
         }
 
         // Attempt to bind to the LDAP server as the user.
         $bind = @ldap_bind($this->ldap, $s_dn, $in_password);
         if ($bind != false) {
-            @ldap_close($this->ldap);
-            return true;
-        } 
-        else {
-            @ldap_close($this->ldap);
-            return false;
+            $this->o_result->setSuccess(true);
         }
+
+        @ldap_close($this->ldap);
+        return $this->o_result;
     }
 
     // }}}
@@ -176,20 +174,20 @@ class FF_AuthSource_ldap extends FF_AuthSource {
      * Attempts to connect to the ldap server.
      *
      * @access private
-     * @return bool True if success, false otherwise
+     * @return bool True on connect, false otherwise
      */
     function _connect()
     {
         $this->ldap = @ldap_connect($this->serverName);
         if (!$this->ldap) {
-            trigger_error(_('Failed to connect to LDAP server'), E_USER_ERROR);
+            $this->o_result->addMessage(_('Failed to connect to LDAP server.  Please try again later.'));
             return false;
         }
 
         if (!empty($this->binddn)) {
             $bind = @ldap_bind($this->ldap, $this->binddn, $this->password);
             if (!$bind) {
-                trigger_error(_('Could not bind to LDAP server'), E_USER_ERROR);
+                $this->o_result->addMessage(_('Could not bind to LDAP server.'));
                 return false;
             }
         }
@@ -215,9 +213,10 @@ class FF_AuthSource_ldap extends FF_AuthSource {
                                $this->uid . '=' . $in_username,
                                array($this->uid));
         if ($search === false) {
-            // Search failed,  fail check
+            // Search failed
             return false;
         }
+
         $entry = ldap_first_entry($this->ldap, $search);
         if ($entry === false) {
             // Couldn't find username

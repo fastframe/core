@@ -84,14 +84,18 @@ class FF_AuthSource_profile extends FF_AuthSource {
      * @param string $in_password The corresponding password.
      *
      * @access public
-     * @return boolean True if login was successful
+     * @return object A result object
      */
     function authenticate($in_username, $in_password)
     {
         $this->o_model->setPassword($in_password);
         $this->o_model->setUserName($in_username);
         $this->o_model->setAuthSource($this->getName());
-        return $this->o_model->authenticate();
+        if ($this->o_model->authenticate()) {
+            $this->o_result->setSuccess(true);
+        }
+
+        return $this->o_result;
     }
 
     // }}}

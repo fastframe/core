@@ -102,7 +102,7 @@ class FF_AuthSource_website extends FF_AuthSource {
      * @param string $in_password The password
      *
      * @access public
-     * @return boolean determines if login was successfull
+     * @return object A result object
      */
     function authenticate($in_username, $in_password)
     {
@@ -115,16 +115,16 @@ class FF_AuthSource_website extends FF_AuthSource {
 
         $result = $this->http->sendRequest();
         if (is_a($result, 'PEAR_Error')) {
-            return false;
+            $this->o_result->addMessage(_('Error loading authentication website.  Please try again later.'));
+            return $this->o_result;
         } 
 
         $result = $this->http->getResponseBody();
-        if (strpos($result, $this->matchString) === false) {
-            return false;
+        if (strpos($result, $this->matchString) !== false) {
+            $this->o_result->setSuccess(true);
         }
-        else {
-            return true;
-        }
+
+        return $this->o_result;
     }
 
     // }}}

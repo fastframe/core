@@ -108,7 +108,7 @@ class FF_AuthSource_sql extends FF_AuthSource {
      * @param string $in_password The corresponding password.
      *
      * @access public
-     * @return boolean True if login was successful
+     * @return object A result object
      */
     function authenticate($in_username, $in_password)
     {
@@ -121,8 +121,8 @@ class FF_AuthSource_sql extends FF_AuthSource {
                     'hostspec' => $o_registry->getConfigParam('data/host'),
                     'database' => $o_registry->getConfigParam('data/database')));
         if (DB::isError($o_data)) {
-            trigger_error($o_data->getMessage(), E_USER_ERROR);
-            return false;
+            $this->o_result->addMessage(_('There was an error connecting to the database.  Please try again later.'));
+            return $this->o_result;
         }
 
         $s_query = sprintf('SELECT COUNT(*) FROM %s WHERE %s=%s AND %s=%s',
@@ -130,15 +130,13 @@ class FF_AuthSource_sql extends FF_AuthSource {
                               $this->userField,
                               $o_data->quoteSmart($in_username),
                               $this->passField,
-                              $o_data->quoteSmart(FF_Auth::encryptPassword($in_password, $this->encryptionType))
-                          );
+                              $o_data->quoteSmart(FF_Auth::encryptPassword($in_password, $this->encryptionType)));
         $s_result = $o_data->getOne($s_query);
         if ($s_result == 1) {
-            return true;
+            $this->o_result->setSuccess(true);
         }
-        else {
-            return false;
-        }
+
+        return $this->o_result;
     }
 
     // }}}

@@ -68,7 +68,7 @@ class FF_Auth {
      * @param string $in_password The corresponding password.
      *
      * @access public
-     * @return bool determines if login was successfull
+     * @return object A result object
      */
     function authenticate($in_username, $in_password) 
     {
@@ -77,22 +77,28 @@ class FF_Auth {
         $b_authenticated = false;
         $a_credentials = array('apps' => array('*'));
         $a_sources = (array) $o_registry->getConfigParam('auth/sources');
+        $o_result =& new FF_Result();
+        $o_result->setSuccess(false);
         foreach ($a_sources as $a_source) {
             $o_authSource =& FF_Auth::getAuthSourceObject($a_source['name']);
-            if ($o_authSource->authenticate($in_username, $in_password)) {
+            if (($tmp_result = $o_authSource->authenticate($in_username, $in_password)) &&
+                $tmp_result->isSuccess()) {
                 $a_credentials['authSource'] = $o_authSource->getName();
                 $b_authenticated = true;
+                $o_result->addMessage($tmp_result->getMessages());
+                $o_result->setSuccess(true);
                 break;
+            }
+            else {
+                $o_result->addMessage($tmp_result->getMessages());
             }
         }
 
         if ($b_authenticated) {
             FF_Auth::setAuth($in_username, $a_credentials);
-            return true;
         }
-        else {
-            return false;
-        }
+
+        return $o_result;
     }
 
     // }}}

@@ -98,18 +98,17 @@ class FF_AuthSource_imap extends FF_AuthSource {
      * @param string $in_password The password 
      *
      * @access public
-     * @return boolean determines if login was successfull
+     * @return object A result object
      */
     function authenticate($in_username, $in_password)
     {
         $s_imapString = '{' . $this->serverName . ':' . $this->serverPort . $this->serverOptions . '}';
         if (($result = @imap_open($s_imapString, $in_username . $this->usernameAppend, $in_password))) {
             @imap_close($result);
-            return true;
+            $this->o_result->setSuccess(true);
         }
-        else {
-            return false;
-        }
+
+        return $this->o_result;
     }
 
     // }}}

@@ -56,6 +56,12 @@ class FF_AuthSource {
             'updateusername' => false,
             'transparent' => false);
 
+    /**
+     * The result object
+     * @var object
+     */
+    var $o_result;
+
     // }}}
     // {{{ constructor
     
@@ -71,6 +77,8 @@ class FF_AuthSource {
     function FF_AuthSource($in_name, $in_params)
     {
         $this->name = $in_name;
+        $this->o_result =& new FF_Result();
+        $this->o_result->setSuccess(false);
     }
 
     // }}}
@@ -110,11 +118,11 @@ class FF_AuthSource {
      * Perform the login procedure.
      *
      * @access public
-     * @return bool determines if login was successfull
+     * @return object A result object
      */
     function authenticate($username, $password)
     {
-        return false;
+        return $this->o_result;
     }
 
     // }}}
