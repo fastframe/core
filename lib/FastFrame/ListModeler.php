@@ -70,6 +70,12 @@ class FF_ListModeler {
     var $filterName = null;
 
     /**
+     * The associated data or flags that go with the filter
+     * @var array
+     */
+    var $filterData = array();
+
+    /**
      * The current row count
      * @var int
      */
@@ -90,16 +96,18 @@ class FF_ListModeler {
      * @param object $in_listObject The list object
      * @param object $in_modelObject The model object
      * @param string $in_filter The name of the filter to apply to the list
+     * @param array $in_filterData Any extra data or flags that goes with the filter
      *
      * @access public
      * @return void
      */
-    function FF_ListModeler(&$in_listObject, &$in_modelObject, $in_filter)
+    function FF_ListModeler(&$in_listObject, &$in_modelObject, $in_filter, $in_filterData)
     {
         $this->o_list =& $in_listObject;
         $this->o_model =& $in_modelObject;
         $this->o_dataAccess =& $this->o_model->getDataAccessObject();
         $this->filterName = $in_filter;
+        $this->filterData = $in_filterData;
         $this->currentRow = $this->o_list->getRecordOffset();
         $this->endRow = $this->currentRow + $this->o_list->getDisplayLimit();
     }
@@ -223,7 +231,8 @@ class FF_ListModeler {
         $s_filter = $this->o_dataAccess->getListFilter(
                 $s_searchString,
                 $a_searchFields, 
-                $this->filterName);
+                $this->filterName,
+                $this->filterData);
         return $s_filter;
     }
 

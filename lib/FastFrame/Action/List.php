@@ -129,7 +129,8 @@ class FF_Action_List extends FF_Action_Form {
      */
     function queryData()
     {
-        $this->o_listModeler =& new FF_ListModeler($this->o_list, $this->o_model, $this->getFilter());
+        list($s_filter, $a_filterData) = $this->getFilter();
+        $this->o_listModeler =& new FF_ListModeler($this->o_list, $this->o_model, $s_filter, $a_filterData);
         if (!$this->o_listModeler->performSearch()) {
             $this->o_output->setMessage(_('Unable to query data'), FASTFRAME_ERROR_MESSAGE);
             $this->o_nextAction->setNextActionId(ACTION_PROBLEM);
@@ -231,7 +232,7 @@ class FF_Action_List extends FF_Action_Form {
             $in_tableWidget->cycleBlock('table_content_cell');
             $in_tableWidget->assignBlockData(
                 array(
-                    'T_table_content_cell' => $this->getEmptySetText(),
+                    'T_table_content_cell' => $this->getNoResultText(),
                     'S_table_content_cell' => 'style="font-style: italic; text-align: center;" colspan="' . count($this->o_list->getColumnData()) . '"', 
                 ),
                 'table_content_cell'
@@ -302,14 +303,15 @@ class FF_Action_List extends FF_Action_Form {
     // {{{ getFilter()
 
     /**
-     * Gets the filter for the list.  Default is to have no filter on the list.
+     * Gets the filter for the list and any associated data or flags that go with that
+     * filter.  Default is to have no filter on the list.
      *
      * @access public
-     * @return string The name of the filter to apply to the list
+     * @return array First element is filter name, second element is an array of extra data
      */
     function getFilter()
     {
-        // interface
+        return array(null, array());
     }
 
     // }}}
@@ -419,15 +421,15 @@ class FF_Action_List extends FF_Action_Form {
     }
 
     // }}}
-    // {{{ getEmptySetText()
+    // {{{ getNoResultText()
 
     /**
-     * Returns the text for when there is an empty data set
+     * Returns the text for when there no results were returned.
      *
      * @access public
      * @return string
      */
-    function getEmptySetText()
+    function getNoResultText()
     {
         return sprintf(_('No %s were found.'), strtolower($this->getPluralText()));
     }

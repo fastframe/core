@@ -341,12 +341,14 @@ class FF_DataAccess {
      * @param array $in_searchFields The array of fields to search.
      * @param string $in_filter The name of an additional filter to apply in case the list
      *               needs to be further limited. 
-     * @param string $in_tableAlias (optional) The table alias to give the fields
+     * @param array $in_filterData Any associated data or flags that go with the filter.
+     *              tableName can be passed in if the field need to have a table name given
+     *              to them.
      *
      * @access public 
      * @return string A WHERE condition for the list data
      */
-    function getListFilter($in_searchString, $in_searchFields, $in_filter, $in_tableAlias = null)
+    function getListFilter($in_searchString, $in_searchFields, $in_filter, $in_filterData)
     {
         // handle dates (formats of mm/dd/yyyy and mm-dd-yyyy).
         // to search between two days: date1 - date2
@@ -369,14 +371,18 @@ class FF_DataAccess {
             $s_searchCondition = '`%field%` LIKE ' . $this->o_data->quote('%' . $in_searchString . '%');
         }
 
-        if (!is_null($in_tableAlias)) {
-            $in_tableAlias .= '.';
+        if (isset($in_filterData['tableName'])) {
+            $in_filterData['tableName'] .= '.';
+        }
+        else {
+            $in_filterData['tableName'] = '';
         }
 
         if (count($in_searchFields) != 0 && !empty($in_searchString)) {
             $tmp_fields = array();
             foreach ($in_searchFields as $s_field) {
-                $tmp_fields[] = str_replace('`%field%`', $in_tableAlias . '`' . $s_field . '`', $s_searchCondition);
+                $tmp_fields[] = str_replace('`%field%`', 
+                        $in_filterData['tableName'] .  '`' . $s_field . '`', $s_searchCondition);
             }
 
             $s_where = implode(" OR \n", $tmp_fields);
