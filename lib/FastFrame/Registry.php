@@ -1,5 +1,5 @@
 <?php
-/** $Id: Registry.php,v 1.3 2003/01/09 22:44:36 jrust Exp $ */
+/** $Id: Registry.php,v 1.4 2003/01/15 01:01:22 jrust Exp $ */
 // {{{ constants/globals
 
 // types of filepaths that can be generated
@@ -29,12 +29,13 @@ $GLOBALS['_FASTFRAME_PATH'] = array(
     'app_libs'        => '%app%/lib',
     'app_graphics'    => '%app%/graphics',
     'app_language'    => '%app%/locale',
+    'app_config'      => '%app%/config',
 );
 
 // }}}
 // {{{ includes
 
-require_once dirname(__FILE__) . '/Auth.php';
+require_once dirname(__FILE__) . '/Error.php';
 
 // }}}
 // {{{ class FastFrame_Registry
@@ -358,7 +359,7 @@ class FastFrame_Registry {
             $s_service = '%app%';
         }
         elseif (is_null($s_service = $this->getAppParam('app_' . $in_service))) {
-            return null;
+            return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "The app service 'app_$in_service' could not be found.", 'FastFrame_Error', true);
         }
 
         $s_app = !is_null($in_app) ? $in_app : $this->getCurrentApp();
@@ -683,6 +684,26 @@ class FastFrame_Registry {
         $url = FastFrame::url($this->getAppParam('initial_page', null, array('app' => 'fastframeold'), false), array($this->getConfigParam('session/name') => false), $in_queryVars, true); 
 
         return $url;
+    }
+
+    // }}}
+    // {{{ getApps()
+
+    /**
+     * Gets a list of the available apps.
+     *
+     * @access public
+     * @return array An array of the apps.
+     */
+
+    function getApps()
+    {
+        $a_apps = array();
+        foreach ($this->apps as $s_app => $a_vals) {
+            $a_apps[] = $s_app;
+        }
+
+        return $a_apps;
     }
 
     // }}}
