@@ -593,7 +593,9 @@ class FF_Output {
                 unset($in_options['title']);
             }
             else {
-                $a_events['onmouseover'] = $a_events['onmousemove'] = $a_events['onclick'] = '';
+                $a_events['onmouseover'] = isset($in_options['onmouseover']) ? $in_options['onmouseover'] : '';
+                $a_events['onmousemove'] = isset($in_options['onmousemove']) ? $in_options['onmousemove'] : '';
+                $a_events['onclick'] = isset($in_options['onclick']) ? $in_options['onclick'] : '';
             }
 
             $s_tag = '<';
