@@ -520,7 +520,7 @@ class FF_ActionHandler {
         $o_reporter->setDateFormat('[Y-m-d H:i:s]');
         $o_reporter->setStrictContext(false);
         $o_reporter->setExcludeObjects(false);
-        foreach ($this->o_registry->getConfigParam('error/reporters') as $s_type => $a_reporter) {
+        foreach ($this->o_registry->getConfigParam('error/reporters', array()) as $s_type => $a_reporter) {
             // Text-based browsers can't use console method
             if ($s_type == 'console' && !Net_UserAgent_Detect::hasFeature('javascript')) {
                 $s_type = 'browser';
