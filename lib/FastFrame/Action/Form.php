@@ -254,21 +254,6 @@ class FF_Action_Form extends FF_Action {
     }
 
     // }}}
-    // {{{ getFormFieldsFromModel()
-
-    /**
-     * Converts the model to the appropriate form fields.  Returns an array of 'field' =>
-     * 'value'
-     *
-     * @access public
-     * @return array The array of fields and values
-     */
-    function getFormFieldsFromModel()
-    {
-        return array();
-    }
-
-    // }}}
     // {{{ setSubmitActionId()
 
     /**
@@ -360,7 +345,7 @@ class FF_Action_Form extends FF_Action {
      */
     function getFormDefaults()
     {
-        return $this->getFormFieldsFromModel(); 
+        return array();
     }
 
     // }}}
