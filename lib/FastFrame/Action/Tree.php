@@ -107,7 +107,7 @@ class FF_Action_Tree extends FF_Action {
         $this->renderAdditionalLinks();
         $this->openFolders = FastFrame::getCGIParam($this->getSessionKey(), 's', array());
         $this->doFolderAction();
-        $a_nodes = $this->o_model->getRootNodes();
+        $a_nodes = $this->getRootNodes();
         $this->numRootNodes = count($a_nodes);
         if ($this->numRootNodes == 0) {
             $this->renderContainer($this->getEmptySetText());
@@ -201,11 +201,11 @@ class FF_Action_Tree extends FF_Action {
             }
 
             $b_isOpen = isset($this->openFolders[$this->o_model->getId()]);
-            $b_hasChildren = ($this->o_model->getLeftId() != ($this->o_model->getRightId() - 1)) ? true : false;
-            $in_html .= $this->renderNodeFolder($in_level, $b_hasChildren, $b_isOpen, $s_count, $in_nodeCounts, $b_lastRoot);
+            $b_hasChildren = $this->doesNodeHaveChildren();
+            $in_html .= $this->renderNode($in_level, $b_hasChildren, $b_isOpen, $s_count, $in_nodeCounts, $b_lastRoot);
             if ($b_isOpen && $b_hasChildren) {
                 $in_html = $this->renderNodes(
-                    $this->o_model->getChildren($this->o_model->getId()),
+                    $this->getChildren(),
                     $in_level + 1, 
                     $in_nodeCounts,
                     $in_html
@@ -217,10 +217,10 @@ class FF_Action_Tree extends FF_Action {
     }
 
     // }}}
-    // {{{ renderNodeFolder()
+    // {{{ renderNode()
 
     /**
-     * Renders a folder for a node
+     * Renders an individual node
      *
      * @param int $in_level The level the folder is at
      * @param bool $in_hasChildren Does this folder have children?
@@ -232,7 +232,7 @@ class FF_Action_Tree extends FF_Action {
      * @access public 
      * @return void
      */
-    function renderNodeFolder($in_level, $in_hasChildren, $in_isOpen, $in_count, $in_nodeCounts, $in_lastRoot)
+    function renderNode($in_level, $in_hasChildren, $in_isOpen, $in_count, $in_nodeCounts, $in_lastRoot)
     {
         $s_html = '<div style="white-space: nowrap;">';
         // add branches to the level we are at
@@ -261,7 +261,7 @@ class FF_Action_Tree extends FF_Action {
         $s_branch = $in_hasChildren ? ($in_isOpen ? 'minus' : 'plus') : 'branch';
         $s_branch .= $s_position; 
         $s_branch = $this->getIcon($s_branch);
-        $s_folder = ($in_hasChildren && $in_isOpen) ? $this->getIcon('folder-expanded') : $this->getIcon('folder');
+        $s_folder = $this->getNodeIcon($in_hasChildren, $in_isOpen) . ' ';
         if ($in_hasChildren) {
             $s_expand = $in_isOpen ? 0 : 1;
             $s_branch = $this->o_output->link(
@@ -284,6 +284,22 @@ class FF_Action_Tree extends FF_Action {
     }
 
     // }}}
+    // {{{ getNodeIcon()
+
+    /**
+     * Gets the icon for the node
+     *
+     * @param bool $in_hasChildren Does this node have children?
+     * @param bool $in_isOpen Is this node open?
+     *
+     * @return string The url for the icon
+     */
+    function getNodeIcon($in_hasChildren, $in_isOpen)
+    {
+        return ($in_hasChildren && $in_isOpen) ? $this->getIcon('folder-expanded') : $this->getIcon('folder');
+    }
+
+    // }}}
     // {{{ getNodeData()
 
     /**
@@ -295,6 +311,20 @@ class FF_Action_Tree extends FF_Action {
     function getNodeData()
     {
         return $this->o_model->getId();
+    }
+
+    // }}}
+    // {{{ doesNodeHaveChildren()
+
+    /**
+     * Checks to see if the node has children
+     *
+     * @access public
+     * @return bool True if it has children, false otherwise
+     */
+    function doesNodeHaveChildren()
+    {
+        return ($this->o_model->getLeftId() != ($this->o_model->getRightId() - 1)) ? true : false;
     }
 
     // }}}
@@ -333,6 +363,34 @@ class FF_Action_Tree extends FF_Action {
         }
 
         $_SESSION[$this->getSessionKey()] = $this->openFolders;
+    }
+
+    // }}}
+    // {{{ getRootNodes()
+    
+    /**
+     * Returns an array of the root nodes
+     *
+     * @access public
+     * @return array The array of root nodes
+     */
+    function getRootNodes()
+    {
+        return $this->o_model->getRootNodes();
+    }
+
+    // }}}
+    // {{{ getChildren()
+
+    /**
+     * Gets the children of the currently loaded id. 
+     *
+     * @access public
+     * @return array The array of children
+     */
+    function getChildren()
+    {
+        return $this->o_model->getChildren();
     }
 
     // }}}
