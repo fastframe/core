@@ -130,9 +130,9 @@ class FF_AuthSource_sql extends FF_AuthSource {
         $s_query = sprintf('SELECT COUNT(*) FROM %s WHERE %s=%s AND %s=%s',
                               $this->table,
                               $this->userField,
-                              $o_data->quote($in_username),
+                              $o_data->quoteSmart($in_username),
                               $this->passField,
-                              $o_data->quote($s_encryptPass)
+                              $o_data->quoteSmart($s_encryptPass)
                           );
         $s_result = $o_data->getOne($s_query);
         if ($s_result == 1) {

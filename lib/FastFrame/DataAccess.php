@@ -218,7 +218,7 @@ class FF_DataAccess {
         $s_query = sprintf('DELETE FROM %s WHERE %s=%s',
                               $this->table,
                               $s_field,
-                              $this->o_data->quote($in_value));
+                              $this->o_data->quoteSmart($in_value));
         if (DB::isError($result = $this->o_data->query($s_query))) {
             $o_result->addMessage($result->getMessage());
             $o_result->setSuccess(false);
@@ -249,11 +249,11 @@ class FF_DataAccess {
         $s_query = sprintf('SELECT COUNT(*) FROM %s WHERE %s=%s',
                               $this->table,
                               $in_dataField,
-                              $this->o_data->quote($in_data));
+                              $this->o_data->quoteSmart($in_data));
         if ($in_isUpdate) {
             $s_query .= sprintf(' AND %s!=%s',
                                    $this->primaryKey,
-                                   $this->o_data->quote($in_id));
+                                   $this->o_data->quoteSmart($in_id));
         }
 
         if (!is_null($in_where)) {
@@ -374,7 +374,7 @@ class FF_DataAccess {
             $s_searchCondition = '`%field%` BETWEEN ' . $s_startDate . ' AND ' . $s_endDate; 
         }
         else {
-            $s_searchCondition = '`%field%` LIKE ' . $this->o_data->quote('%' . $in_searchString . '%');
+            $s_searchCondition = '`%field%` LIKE ' . $this->o_data->quoteSmart('%' . $in_searchString . '%');
         }
 
         if (isset($in_filterData['tableName'])) {
@@ -388,7 +388,7 @@ class FF_DataAccess {
             $tmp_fields = array();
             foreach ($in_searchFields as $s_field) {
                 $tmp_fields[] = str_replace('`%field%`', 
-                        $in_filterData['tableName'] .  $this->_quoteFieldName( $s_field) , $s_searchCondition);
+                        $in_filterData['tableName'] .  $this->o_data->quoteIdentifier($s_field) , $s_searchCondition);
             }
 
             $s_where = implode(" OR \n", $tmp_fields);
@@ -443,7 +443,7 @@ class FF_DataAccess {
                 $in_fields,
                 $this->table,
                 $this->primaryKey,
-                $this->o_data->quote($in_id));
+                $this->o_data->quoteSmart($in_id));
 
         if (DB::isError($result = $this->o_data->getAll($s_query))) {
             return array();
@@ -476,7 +476,7 @@ class FF_DataAccess {
                 $in_field,
                 $this->table,
                 $this->primaryKey,
-                $this->o_data->quote($in_id));
+                $this->o_data->quoteSmart($in_id));
 
         if (DB::isError($result = $this->o_data->getOne($s_query))) {
             return null; 
@@ -554,27 +554,6 @@ class FF_DataAccess {
         else {
             return (bool) $in_order ? 'ASC' : 'DESC';
         }
-    }
-
-    // }}}
-    // {{{ _quoteFieldName()
-
-    /**
-     * Approprietly quotes the name of a db field
-     *
-     * @param mixed $in_field The field
-     *
-     * @access private 
-     * @return string Either ASC or DESC
-     */
-    function _quoteFieldName($in_field)
-    {
-        if ($this->connectParams['phptype']=='pgsql') 
-            return "\"$in_field\"";
-        else if ($this->connectParams['phptype']=='mysql')
-            return "`$in_field`";
-        else
-            return $in_field;
     }
 
     // }}}

@@ -152,6 +152,11 @@ class FF_SystemTest {
                 'name' => 'PEAR',
                 'errorMsg' => sprintf(_('You do not have PEAR installed.  Include path that PEAR searches: %s'), ini_get('include_path')),
                 'successMsg' => sprintf(_('You have PEAR.  Include path that PEAR searches: %s'), ini_get('include_path'))),
+            'pear_db' => array(
+                'method' => '_checkPEARDB',
+                'name' => 'PEAR DB Module',
+                'errorMsg' => _('You do not have PEAR DB 1.6.0RC5 or greater installed.'),
+                'successMsg' => _('You have the PEAR DB module.')),
             'pear_file' => array(
                 'method' => '_checkPEARFile',
                 'name' => 'PEAR File Module',
@@ -160,7 +165,7 @@ class FF_SystemTest {
             'pear_html_quickform' => array(
                 'method' => '_checkPEARHTMLQuickForm',
                 'name' => 'PEAR HTML_QuickForm',
-                'errorMsg' => _('You do not have the HTML_QuickForm 3.1.1 or greater.'),
+                'errorMsg' => _('You do not have HTML_QuickForm 3.1.1 or greater.'),
                 'successMsg' => _('You have the PEAR HTML_QuickForm module.')),
             'pear_net_useragent_detect' => array(
                 'method' => '_checkPEARNetUserAgentDetect',
@@ -222,6 +227,21 @@ class FF_SystemTest {
     {
         @include_once 'PEAR.php';
         return class_exists('PEAR');
+    }
+
+    // }}}
+    // {{{ _checkPEARDB()
+
+    /**
+     * Tests to see if the PEAR DB module is loaded.
+     *
+     * @access private
+     * @return bool True if it succeeds, false otherwise
+     */
+    function _checkPEARDB()
+    {
+        @include_once 'DB/common.php';
+        return is_callable(array('DB_common', 'quoteIdentifier'));
     }
 
     // }}}
