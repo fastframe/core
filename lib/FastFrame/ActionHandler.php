@@ -164,18 +164,44 @@ class FF_ActionHandler {
         // Always set the locale to a guaranteed language first so that a custom language
         // (i.e. en_BIP) will work
         FF_Locale::setLang('en_US');
+        
         if (FF_Request::getParam('actionId', 'pg') == '' &&
             FF_Request::getParam('module', 'pg') == '' &&
             FF_Request::getParam('app', 'pg') == '' &&
             is_array($a_init = FF_Auth::getCredential('initPage'))) {
-            $this->setActionId(@$a_init['actionId']);
-            $this->setModuleId(@$a_init['module']);
-            $this->setAppId($a_init['app']);
+    
+                $this->setActionId(@$a_init['actionId']);
+                $this->setModuleId(@$a_init['module']);
+                $this->setAppId($a_init['app']);
+                
+                foreach ($this->o_registry->getApps() as $s_app) {
+                    $m_hosts = $this->o_registry->getAppParam('hostnames',array(), $s_app); 
+                    if ( is_array($m_hosts) ) {
+                        foreach ($m_hosts as $s_host ) {
+                            if ($_SERVER['HTTP_HOST'] == $s_host ) {
+                                $this->setActionId('');
+                                $this->setModuleId('');
+                                $this->setAppId($s_app);
+                                break;
+                            }    
+                        }
+                    }
+                    else {
+                        if ($_SERVER['HTTP_HOST'] == $m_hosts ) {
+                            $this->setActionId('');
+                            $this->setModuleId('');
+                            $this->setAppId($s_app);
+                            break;
+                        }
+                    }
+                }           
+                   
         }
         else {
-            $this->setActionId(FF_Request::getParam('actionId', 'pg'));
-            $this->setModuleId(FF_Request::getParam('module', 'pg'));
-            $this->setAppId(FF_Request::getParam('app', 'pg'));
+            
+                $this->setActionId(FF_Request::getParam('actionId', 'pg'));
+                $this->setModuleId(FF_Request::getParam('module', 'pg'));
+                $this->setAppId(FF_Request::getParam('app', 'pg'));
         }
 
         $this->_makeDefaultPathsAbsolute();
