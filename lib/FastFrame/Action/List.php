@@ -406,7 +406,7 @@ class FF_Action_List extends FF_Action_Form {
      */
     function getDefaultDisplayLimit()
     {
-        return 20;
+        return FF_Request::getParam('defDispLimit', 's');
     }
 
     // }}}

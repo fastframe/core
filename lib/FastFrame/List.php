@@ -234,7 +234,11 @@ class FF_List {
 
             // Construct the menu ring for jumping to different blocks of table
             if ($this->getTotalPages() > 1) {
-                foreach (range(1, $this->getTotalPages()) as $i) {
+                // Only want the ring to go 10 before and behind so it
+                // doesn't get too big with large datasets
+                $s_start = max($this->getPageOffset() - 10, 1);
+                $s_end = min($this->getPageOffset() + 10, $this->getTotalPages());
+                for ($i = $s_start; $i <= $s_end; $i++) {
                     $a_pageOptions[$i] = sprintf(_('%1$d of %2$d'), $i, $this->getTotalPages());
                 }
 
@@ -312,10 +316,16 @@ class FF_List {
                     'T_search_submit' => $s_searchSubmit));
 
         if ($a_listVars['searchBoxType'] != SEARCH_BOX_ONLYSEARCH) {
-            $s_foundText = sprintf(_('Results %1$d - %2$d of %3$d results.'), 
-                    ($s_numListed == 0 ? 0 : $this->getRecordOffset() + 1),
-                    $this->getRecordOffset() + $s_numListed,
-                    $this->getMatchedRecords());
+            if ($s_numListed == 0) {
+                $s_foundText = _('No Results');
+            }
+            else {
+                $s_foundText = sprintf(_('Results %1$d - %2$d of %3$d results.'), 
+                        $this->getRecordOffset() + 1,
+                        $this->getRecordOffset() + $s_numListed,
+                        $this->getMatchedRecords());
+            }
+
             $o_searchWidget->assign(array('T_search_found' => $s_foundText));
         }
 

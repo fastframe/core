@@ -182,7 +182,7 @@ class FF_Action_Form extends FF_Action {
 
         require_once dirname(__FILE__) . '/../List.php';
         $o_actionHandler =& FF_ActionHandler::singleton();
-        $o_list =& new FF_List($o_actionHandler->getAppId() . $o_actionHandler->getModuleId() . $this->persistentData['actionId']);
+        $o_list =& new FF_List($o_actionHandler->getAppId() . $o_actionHandler->getModuleId() . $this->persistentData['actionId'], null, null, FF_Request::getParam('defDispLimit', 's'));
         $o_list->setSearchBoxType(SEARCH_BOX_ONLYSEARCH, false);
         $o_list->setPersistentData($this->persistentData);
         $this->o_output->o_tpl->assign(array('has_search_box' => true, 

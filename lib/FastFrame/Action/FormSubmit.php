@@ -251,7 +251,7 @@ class FF_Action_FormSubmit extends FF_Action {
      */
     function setSuccessActionId()
     {
-        $this->o_nextAction->setNextActionId(ACTION_EDIT);
+        $this->o_nextAction->setNextActionId(ACTION_LIST);
     }
 
     // }}}
