@@ -438,7 +438,11 @@ class FF_ErrorHandler {
         $s_message = str_replace(array_keys($a_replace), $a_replace, $this->templates['sourceMessage']);
         $a_replace = array('%header%' => $s_message, '%id%' => 'src_' . $in_error['signature']);
         $s_message = "\n" . str_replace(array_keys($a_replace), $a_replace, $this->templates['header']);
-        $s_message .= str_replace('%source%', str_replace('  ', '&nbsp; ', str_replace('&nbsp;', ' ', @highlight_string(stripslashes($in_error['context']['source']), true))), $this->templates['source']);
+        // Highlight source and highlight the line with the problem
+        $s_source = preg_replace("/(.*)(<font color.*?>{$in_error['line']}<\/font><.*?>:.*?<br \/>)/", 
+                '\\1<span style="background-color: #efbfbf;">\\2</span>', 
+                @highlight_string(stripslashes($in_error['context']['source']), true));
+        $s_message .= str_replace('%source%', str_replace('  ', '&nbsp; ', str_replace('&nbsp;', ' ', $s_source)), $this->templates['source']);
         $s_message .= $this->_getBacktrace($in_error);
         $variables = $this->_exportVariables($in_error['variables'], $in_error['context']['variables'], $in_error['level']);
         if ($variables !== false) {
