@@ -238,12 +238,12 @@ class FF_List {
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED ||
             $a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
             $o_form->addElement('text', "searchString[$this->listId]", null, 
-                    array('size' => 15, 'style' => 'vertical-align: text-top;', 'onfocus' => 'this.value = ""'));
+                    array('size' => 15, 'style' => 'vertical-align: middle;', 'onfocus' => 'this.value = ""'));
             $o_form->addElement('submit', 'query_submit', _('Search'), 
-                    array('style' => 'vertical-align: middle;'));
+                    array('style' => 'vertical-align: bottom;'));
             $o_form->addElement('submit', 'listall_submit', _('List All'), 
                     array('onclick' => "document.search_box['searchString[$this->listId]'].value = '';", 
-                        'style' => 'vertical-align: middle;'));
+                        'style' => 'vertical-align: bottom;'));
         }
         else {
             $o_form->addElement('hidden', "searchString[$this->listId]");
@@ -251,7 +251,7 @@ class FF_List {
 
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
             $o_form->addElement('select', "searchField[$this->listId]", null, $a_searchFields, 
-                    array('style' => 'vertical-align: text-top;')); 
+                    array('style' => 'vertical-align: middle;')); 
         }
         else {
             $o_form->addElement('hidden', "searchField[$this->listId]");
@@ -259,7 +259,7 @@ class FF_List {
 
         if ($a_listVars['searchBoxType'] != SEARCH_BOX_SIMPLE) {
             $o_form->addElement('advcheckbox', 'searchBoxType', null, _('Advanced List'), 
-                    array('onclick' => "if (this.checked) { this.form.submit(); } else if (typeof(validate_search_box) != 'function' || validate_search_box()) { document.search_box['searchString[$this->listId]'].value = ''; this.form.submit(); } else { return false; }"),
+                    array('onclick' => "if (this.checked) { this.form.submit(); } else if (typeof(validate_search_box) != 'function' || validate_search_box()) { document.search_box['searchString[$this->listId]'].value = ''; this.form.submit(); } else { return false; }", 'style' => 'vertical-align: middle;'),
                     array(SEARCH_BOX_NORMAL, SEARCH_BOX_ADVANCED));
         }
 
