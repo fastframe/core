@@ -154,13 +154,16 @@ class FF_Action_ContactSubmit extends FF_Action {
     {
         $s_text = "\n\n";
         $s_text .= _('User Information:') . "\n";
+        $s_text .= "\t" . _('Name') . ': ' . FF_Request::getParam('name', 'p') . "\n"; 
+        $s_text .= "\t" . _('Email') . ': ' . FF_Request::getParam('email', 'p') . "\n"; 
+        $s_text .= "\t" . _('Phone') . ': ' . FF_Request::getParam('phone', 'p') . "\n"; 
         if (FF_Auth::checkAuth()) {
             $s_text .= "\t" . _('Username') . ': ' . FF_Auth::getCredential('username') . "\n"; 
         }
 
-        $s_text .= "\tServer Name: " . $_SERVER['SERVER_NAME'] . "\n";
-        $s_text .= "\tReferer: " . FF_Request::getParam('http_referer', 'p') . "\n";
-        $s_text .= "\tUser Agent: " . $_SERVER['HTTP_USER_AGENT'];
+        $s_text .= "\t" . _('Server Name') . ': ' . $_SERVER['SERVER_NAME'] . "\n";
+        $s_text .= "\t" . _('Referer') . ': ' . FF_Request::getParam('http_referer', 'p') . "\n";
+        $s_text .= "\t" . _('User Agent') . ': ' . $_SERVER['HTTP_USER_AGENT'];
         return $s_text;
     }
 

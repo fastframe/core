@@ -56,6 +56,7 @@ class FF_Action_Contact extends FF_Action_Form {
         $this->o_form->addElement('text', 'name', null, array('maxlength' => 150, 'size' => 30));
         $this->o_form->addElement('text', 'subject', null, array('maxlength' => 150, 'size' => 30));
         $this->o_form->addElement('text', 'email', null, array('maxlength' => 150, 'size' => 30));
+        $this->o_form->addElement('text', 'phone', null, array('maxlength' => 30, 'size' => 30));
         $this->o_form->addElement('textarea', 'message', null, array('cols' => 50, 'rows' => 10));
         $this->o_form->addRule('name', _('Name cannot be blank.'), 'required', null, 'client');
         $this->o_form->addRule('email', _('Invalid email address entered.'), 'email', null, 'client');
@@ -135,6 +136,10 @@ class FF_Action_Contact extends FF_Action_Form {
             'title' => '* ' . _('Email Address:'),
 			'titleStyle' => 'style="font-weight: bold;"',
             'data' => $this->o_renderer->elementToHtml('email'), 
+        );
+        $a_headers[] = array(
+            'title' => _('Phone:'),
+            'data' => $this->o_renderer->elementToHtml('phone'), 
         );
         $a_headers[] = array(
             'title' => '* ' . _('Subject:'),
