@@ -141,9 +141,6 @@ class FF_ActionHandler {
         ACTION_EDIT_SUBMIT=> array('Action/FormSubmit.php', 'FF_Action_FormSubmit'),
         ACTION_DELETE     => array('Action/Delete.php', 'FF_Action_Delete'),
         ACTION_LIST       => array('Action/List.php', 'FF_Action_List'),
-        ACTION_LOGIN      => array('Action/Login.php', 'FF_Action_Login'),
-        ACTION_LOGIN_SUBMIT=> array('Action/LoginSubmit.php', 'FF_Action_LoginSubmit'),
-        ACTION_LOGOUT     => array('Action/Logout.php', 'FF_Action_Logout'),
         ACTION_DISPLAY    => array('Action/Display.php', 'FF_Action_Display'),
         ACTION_TREE       => array('Action/Tree.php', 'FF_Action_Tree'),
     );
