@@ -1,5 +1,5 @@
 <?php
-/** $Id: init.inc.php,v 1.5 2003/01/16 01:02:39 jrust Exp $ */
+/** $Id: init.inc.php,v 1.6 2003/01/21 01:23:26 jrust Exp $ */
 /**
  * If you want to use the FastFrame application framework in your application,
  * you have to specify the path, either full or relative to get to the
@@ -26,7 +26,6 @@ require_once 'PEAR.php';
 require_once 'Net/UserAgent/Detect.php';
 require_once 'HTML/QuickForm.php';
 require_once 'XML/XPath.php';
-require_once 'MDB.php';
 require_once 'File.php';
 
 // FastFrame specific libraries (we use dirname() here so it doesn't conflict with PEAR libraries)
