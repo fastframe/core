@@ -1,5 +1,5 @@
 <?php
-/** $Id: Form.php,v 1.6 2003/03/19 00:36:01 jrust Exp $ */
+/** $Id: Form.php,v 1.7 2003/04/02 00:21:15 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -107,6 +107,10 @@ class FF_Action_Form extends FF_Action {
      */
     function run()
     {
+        if (!$this->checkPerms()) {
+            return $this->o_nextAction;
+        }
+
         $this->setSubmitActionId();
         $b_result = $this->fillModelWithData();
         // see if we encountered an error.
@@ -114,6 +118,7 @@ class FF_Action_Form extends FF_Action {
             return $this->o_nextAction;
         }
 
+        $this->o_output->setPageName($this->getPageName());
         $this->o_form->setConstants($this->getFormConstants());
         $this->o_form->setDefaults($this->getFormDefaults());
         $this->createFormElements();
@@ -154,9 +159,9 @@ class FF_Action_Form extends FF_Action {
      * Renders the table and form
      *
      * @access public
-     * @return void
+     * @return The table object 
      */
-    function renderFormTable()
+    function &renderFormTable()
     {
         require_once dirname(__FILE__) . '/../Output/Table.php';
         $o_table =& new FF_Output_Table();
@@ -165,6 +170,7 @@ class FF_Action_Form extends FF_Action {
         $o_table->renderTwoColumnTable();
         $this->o_output->assignBlockCallback(array(&$this->o_form, 'toHtml'), array(), $o_table->getTableName());
         $this->renderSubmitRow($o_table);
+        return $o_table;
     }
 
     // }}}
@@ -207,6 +213,20 @@ class FF_Action_Form extends FF_Action {
             }
         }
 
+        return true;
+    }
+
+    // }}}
+    // {{{ checkPerms()
+
+    /**
+     * Check the permissions on this action.
+     *
+     * @access public
+     * @return bool True if everything is ok, false if a new action has been set
+     */
+    function checkPerms()
+    {
         return true;
     }
 
@@ -372,6 +392,20 @@ class FF_Action_Form extends FF_Action {
     function getSingularText()
     {
         return _('Item');
+    }
+
+    // }}}
+    // {{{ getPageName()
+
+    /**
+     * Returns the page name for this action 
+     *
+     * @access public
+     * @return string The page name
+     */
+    function getPageName()
+    {
+        return $this->getTableHeaderText();
     }
 
     // }}}
