@@ -574,20 +574,9 @@ class FF_Output extends FF_Template {
             $in_options['align'] = 'middle';
         }
 
-        // Prepare the options from the options array
-        $in_options['align']   = isset($in_options['align']) ? " align=\"{$in_options['align']}\"" : '';
-        $in_options['hspace']  = isset($in_options['hspace']) ? " hspace=\"{$in_options['hspace']}\"" : '';
-        $in_options['vspace']  = isset($in_options['vspace']) ? " vspace=\"{$in_options['vspace']}\"" : '';
-        $in_options['width']  = isset($in_options['width']) ? " width=\"{$in_options['width']}\"" : '';
-        $in_options['height']  = isset($in_options['height']) ? " height=\"{$in_options['height']}\"" : '';
-        $in_options['title']   = isset($in_options['title']) ? htmlspecialchars($in_options['title']) : '';
-        $in_options['style'] = isset($in_options['style']) ? " style=\"{$in_options['style']}\"" : '';
-        $in_options['onclick'] = isset($in_options['onclick']) ? " onclick=\"{$in_options['onclick']}\"" : '';
-        $in_options['title'] = isset($in_options['title']) ? " title=\"{$in_options['title']}\" alt=\"{$in_options['title']}\"" : '';
-        $in_options['border'] = isset($in_options['border']) ? " border=\"{$in_options['border']}\"" : 'border="0"';
-
         // set status to title if status does not exist
         $b_useStatus = isset($in_options['b_useStatus']) ? $in_options['b_useStatus'] : true;
+        $in_options['title']   = isset($in_options['title']) ? htmlspecialchars($in_options['title']) : '';
         if ($b_useStatus) {
             $status = isset($in_options['status']) ? 
                 addcslashes($in_options['status'], '\'') : 
@@ -595,6 +584,17 @@ class FF_Output extends FF_Template {
             $statusOver = 'window.status=\'' . $status . '\';';
             $statusOut = 'window.status=\'\';';
         }
+
+        // Prepare the options from the options array
+        $in_options['align']   = isset($in_options['align']) ? " align=\"{$in_options['align']}\"" : '';
+        $in_options['hspace']  = isset($in_options['hspace']) ? " hspace=\"{$in_options['hspace']}\"" : '';
+        $in_options['vspace']  = isset($in_options['vspace']) ? " vspace=\"{$in_options['vspace']}\"" : '';
+        $in_options['width']  = isset($in_options['width']) ? " width=\"{$in_options['width']}\"" : '';
+        $in_options['height']  = isset($in_options['height']) ? " height=\"{$in_options['height']}\"" : '';
+        $in_options['style'] = isset($in_options['style']) ? " style=\"{$in_options['style']}\"" : '';
+        $in_options['onclick'] = isset($in_options['onclick']) ? " onclick=\"{$in_options['onclick']}\"" : '';
+        $in_options['title'] = !empty($in_options['title']) ? " title=\"{$in_options['title']}\" alt=\"{$in_options['title']}\"" : '';
+        $in_options['border'] = isset($in_options['border']) ? " border=\"{$in_options['border']}\"" : 'border="0"';
 
         if (isset($in_options['fullPath']) && 
             $in_options['fullPath'] &&
