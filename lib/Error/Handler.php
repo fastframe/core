@@ -1,6 +1,9 @@
 <?php
 // [!] make it work in IE [!]
 // [!] close button on console window [!]
+// [!] SYSTEM_LOG = Off doesn't seem to work [!]
+// [!] display more info in output such as user's ip, referer, etc. [!]
+// [!] send mail logs in one big batch [!]
 // {{{ constants
 
 define('SYSTEM_LOG', 0);
@@ -38,6 +41,12 @@ class Error_Handler extends PEAR
     * @var string $consoleLink
     */
     var $consoleLink = '<div style="position: absolute; right: 0px; top: 1px;"><a style="%s" href="javascript: void(0);" onclick="return showErrors();">%s</a></div>';
+
+   /**
+    * The number of lines to allow for a variable in a context report
+    * @var int $numContextLines
+    */
+    var $numContextLines = 15;
 
    /**
     * console javascript
@@ -165,7 +174,7 @@ otherwise <a href="%1$s">click here</a>.';
     function Error_Handler($inifile = ERRORHANDLER_INI) 
     {
         // call this so that our deconstructor can be registered
-        $this->PEAR();
+        $this->Pear();
 
         // names of the built-in sections to be recognized
         $this->_section = array('CONTEXT', 'LOGGING', 'REPLACE', 'SOURCE', 'STYLES');
@@ -618,7 +627,7 @@ otherwise <a href="%1$s">click here</a>.';
             $context = stripslashes($context);
         }
         $this->_log_all(E_DEBUG, $file_name, $message . $context . "\n");
-        $this->_output($message, array(), array('==> CONTEXT REPORT', $context));
+        $this->_output($message, array(), array('==> CONTEXT REPORT', $context), false);
     }
 
     // }}}
@@ -920,11 +929,12 @@ otherwise <a href="%1$s">click here</a>.';
      * @param  string $message message that the error generated
      * @param  array  $source section of source code to be highlighted
      * @param  array  $context the variable dumps of the souce code
+     * @param  bool   $in_truncateContext (optional) Truncate the context variables?
      *
      * @access private
      * @return void
      */
-    function _output($message, $source, $context)
+    function _output($message, $source, $context, $in_truncateContext = true)
     {
         // concat the error message with the prepend and append settings from php.ini
         $report = ini_get('error_prepend_string').nl2br($message).ini_get('error_append_string');
@@ -937,8 +947,16 @@ otherwise <a href="%1$s">click here</a>.';
 
         // opens an output buffer to gather formatted context
         if (!empty($context[0])) {
+            $contextArr = explode("\n", $context[1]);
+
+            // truncate the context variable, since some of them are huge
+            if ($in_truncateContext && count($contextArr) > $this->numContextLines) {
+                array_splice($contextArr, $this->numContextLines);
+                $contextArr[] = '--> Variable Truncated due to Excessive Length <--';
+            }
+
             // add php tags so that the highlighting will work
-            $output = @highlight_string('<?php' . $context[1] . '?>', true);
+            $output = @highlight_string('<?php' . implode("\n", $contextArr) . '?>', true);
             // strip the php tags
             $output = preg_replace(':<font[^>]*>&lt;\?php</font>:', '', $output);
             $output = preg_replace(':<font[^>]*>\?&gt;</font>:', '', $output);
@@ -946,7 +964,7 @@ otherwise <a href="%1$s">click here</a>.';
         }
 
         // append reports to the console buffer as a javascript instruction
-        $this->_console .= @sprintf("Error_Handler.document.writeln('<div id=\"error{$this->_error_count}\" style=\"float: right;\">Error Number: {$this->_error_count} | <a href=\"javascript: errorJump({$this->_error_count}, -1);\">prev</a> | <a href=\"javascript: errorJump({$this->_error_count}, 1);\">next</a></div>%s<div style=\"height: 1px; background-color: black; border: 0; margin-bottom: 5px; line-height: 1px;\"><br /></div>');\n", @strtr($report, $this->_escchrs));
+        $this->_console .= @sprintf("Error_Handler.document.writeln('<div id=\"error{$this->_error_count}\" style=\"float: right;\">Error Number: {$this->_error_count} | <a href=\"javascript: errorJump({$this->_error_count}, -1);\">prev</a> | <a href=\"javascript: errorJump({$this->_error_count}, 1);\">next</a></div>%s<div style=\"height: 1px; line-height: 1px; background-color: black; border: 0; margin-bottom: 5px;\"><br /></div>');\n", @strtr($report, $this->_escchrs));
     }
 
     // }}}
