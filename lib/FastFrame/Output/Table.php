@@ -137,6 +137,7 @@ class FF_Output_Table {
         <style type="text/css">
         td.fieldCell {
           width: 50%;
+          text-align: right;
         }
         </style>';
         // make the cells even in width
