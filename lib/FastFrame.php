@@ -111,11 +111,8 @@ class FastFrame {
                 if (!FastFrame::isEmpty(session_id())) {
                     $getVars[$sessName] = session_id();
                 }
-                elseif (isset($_REQUEST[$sessName])) {
+                elseif (isset($_REQUEST[$sessName]) && !empty($_REQUEST[$sessName])) {
                     $getVars[$sessName] = $_REQUEST[$sessName]; 
-                }
-                else {
-                    unset($getVars[$sessName]);
                 }
             }
             // if it was set to false then remove it

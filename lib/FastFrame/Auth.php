@@ -99,7 +99,6 @@ class FF_Auth {
 
         if ($b_authenticated) {
             FF_Auth::setAuth($in_username, $a_credentials, true);
-            $GLOBALS['o_error']->debug($_SESSION, 'in_username', __FILE__, __LINE__);
             return true;
         }
         else {
@@ -335,6 +334,8 @@ class FF_Auth {
         }
 
         if ($in_return) {
+            // Start session again so we don't end up with an empty session_id
+            FF_Auth::sessionStart();
             return true;
         }
         else {
@@ -386,7 +387,8 @@ class FF_Auth {
      * @access public 
      * @return void
      */
-    function sessionStart() {
+    function sessionStart() 
+    {
         static $isStarted;
         
         if (!isset($isStarted)) {
@@ -407,9 +409,10 @@ class FF_Auth {
             ini_set('session.use_trans_sid', 0);
             // set the cacheing 
             session_cache_limiter($o_registry->getConfigParam('session/cache', 'nocache'));
-            session_start();
             $isStarted = true;
         }
+
+        @session_start();
     }
 
     // }}}
