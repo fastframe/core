@@ -26,12 +26,11 @@
 
 define('FASTFRAME_AUTH_OK',        0);
 define('FASTFRAME_AUTH_IDLED',     1);
-define('FASTFRAME_AUTH_EXPIRED',   2);
-define('FASTFRAME_AUTH_NO_LOGIN',  3);
-define('FASTFRAME_AUTH_BAD_APP',   4);
-define('FASTFRAME_AUTH_NO_ANCHOR', 5);
-define('FASTFRAME_AUTH_BROWSER',   6);
-define('FASTFRAME_AUTH_LOGOUT',    7);
+define('FASTFRAME_AUTH_NO_LOGIN',  2);
+define('FASTFRAME_AUTH_BAD_APP',   3);
+define('FASTFRAME_AUTH_NO_ANCHOR', 4);
+define('FASTFRAME_AUTH_BROWSER',   5);
+define('FASTFRAME_AUTH_LOGOUT',    6);
 
 // }}}
 // {{{ includes
@@ -98,6 +97,8 @@ class FF_Auth {
         if ($b_authenticated) {
             // Clear session data in case the previous user hadn't actually logged out
             $_SESSION = array();
+            // Prevent session fixation
+            session_regenerate_id();
             FF_Auth::setAuth($in_username, $a_credentials);
         }
 
@@ -137,13 +138,6 @@ class FF_Auth {
                 FF_Auth::_setStatus(FASTFRAME_AUTH_BROWSER);
                 return false;
             }
-            elseif (FF_Request::getParam('__auth__[\'timestamp\']', 's', false) &&
-                ($expire = $o_registry->getConfigParam('session/expire')) > 0 && 
-                (FF_Request::getParam('__auth__[\'timestamp\']', 's') + $expire) < time()) {
-                FF_Auth::_setStatus(FASTFRAME_AUTH_EXPIRED);
-                FF_Auth::_updateIdle();
-                return false;
-            }
             elseif (FF_Request::getParam('__auth__[\'idle\']', 's', false) &&
                     ($idle = $o_registry->getConfigParam('session/idle')) > 0 && 
                     (FF_Request::getParam('__auth__[\'idle\']', 's') + $idle) < time()) {
@@ -177,10 +171,9 @@ class FF_Auth {
 
         /** 
          * If they don't have this cookie it means they either they
-         * deleted it or they sent the link to someone.
+         * deleted it, they sent the link to someone, or worse ;)
          */
-        if ($o_registry->getConfigParam('session/append') && 
-            !FF_Request::getParam(FF_Auth::_getSessionAnchor(), 'c')) {
+        if (!FF_Request::getParam(FF_Auth::_getSessionAnchor(), 'c')) {
             FF_Auth::_setStatus(FASTFRAME_AUTH_NO_ANCHOR);
             return false;
         }
@@ -204,20 +197,6 @@ class FF_Auth {
     }
 
     // }}}
-    // {{{ getIdle()
-
-    /**
-     * Return the current idle time 
-     *
-     * @access public
-     * @return int The idle timestamp  
-     */
-    function getIdle()
-    {
-        return FF_Request::getParam('__auth__[\'idle\']', 's');
-    }
-
-    // }}}
     // {{{ setAuth()
 
     /**
@@ -236,7 +215,6 @@ class FF_Auth {
             'registered' => true,
             'status'     => FASTFRAME_AUTH_OK,
             'username'   => $in_username,
-            'remote_addr'=> isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : null,
             'browser'    => isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : null,
             'timestamp'  => time(),
             'idle'       => time()), 's');
@@ -245,11 +223,9 @@ class FF_Auth {
         
         // set the anchor for this browser
         $o_registry =& FF_Registry::singleton();
-        if ($o_registry->getConfigParam('session/append')) {
-            FF_Request::setCookies(array(FF_Auth::_getSessionAnchor() => 1), 0,
-                $o_registry->getConfigParam('cookie/path'),
-                $o_registry->getConfigParam('cookie/domain'));
-        }
+        FF_Request::setCookies(array(FF_Auth::_getSessionAnchor() => 1), 0,
+            $o_registry->getConfigParam('cookie/path'),
+            $o_registry->getConfigParam('cookie/domain'));
     }
 
     // }}}
@@ -322,9 +298,6 @@ class FF_Auth {
             case FASTFRAME_AUTH_IDLED:
                 $o_result->addMessage(_('To protect your security you have been logged out due to inactivity.'));
             break;
-            case FASTFRAME_AUTH_EXPIRED:
-                $o_result->addMessage(_('Your have been logged out because your session has expired.'));
-            break;
             case FASTFRAME_AUTH_BAD_APP:
                 $o_result->addMessage(_('You have been logged out because you have tried to access a protected application.'));
             break;
@@ -347,7 +320,7 @@ class FF_Auth {
         }
 
         // Start session again so we don't end up with an empty session_id
-        FF_Auth::startSession(true);
+        FF_Auth::startSession();
         return $o_result;
     }
 
@@ -398,12 +371,10 @@ class FF_Auth {
      * This function determines if a session has been started and if not, starts
      * the session, using the value from the registry for the name of the session.
      *
-     * @param bool $in_clean (optional) Start a clean session?
-     *
      * @access public 
      * @return void
      */
-    function startSession($in_clean = false) 
+    function startSession()
     {
         static $isStarted;
         
@@ -415,7 +386,7 @@ class FF_Auth {
             }
             else {
                 ini_alter('session.use_cookies', 1);
-                session_set_cookie_params($o_registry->getConfigParam('session/expire'), 
+                session_set_cookie_params(0,
                             $o_registry->getConfigParam('cookie/path'),
                             $o_registry->getConfigParam('cookie/domain'),
                             $o_registry->getConfigParam('webserver/use_ssl') ? 1 : 0);
@@ -432,14 +403,6 @@ class FF_Auth {
         }
 
         @session_start();
-        if ($in_clean) {
-            if (function_exists('session_regenerate_id')) {
-                session_regenerate_id();
-            }
-            else {
-                session_id(md5(uniqid(mt_rand(), true)));
-            }
-        }
     }
 
     // }}}
@@ -493,18 +456,16 @@ class FF_Auth {
     /**
      * Generate a unique key that will link the session to the browser.
      *
-     * We don't want people to simply pass around links, but at the same time
-     * cookie-based sessionIDs suck because you cannot have multiple sessions
-     * Why? ...because you get stuck in the 'Which comes first?' debate.
-     * So, it is absolutely necessary to use the query string for the sessionID
-     * but then we need to anchor that session ID to this browser.
+     * In the case that someone is able to fixate the session or pass
+     * the session id to someone else this adds the security measure of
+     * having a unique cookie that also ties the user to the browser.
      *
      * @access private
-     * @return string unique cookie name to be set for this browser
+     * @return string Unique cookie name to be set for this browser
      */
     function _getSessionAnchor()
     {
-        return @md5(FF_Request::getParam('__auth__[\'username\']', 's') . @$_SERVER['HTTP_USER_AGENT']);
+        return @md5(FF_Request::getParam('__auth__[\'timestamp\']', 's') . @$_SERVER['HTTP_USER_AGENT']);
     }
 
     // }}}
@@ -532,4 +493,14 @@ class FF_Auth {
 
     // }}}
 }
+
+// {{{ session_regenerate_id()
+
+if (!function_exists('session_regenerate_id')) {
+    function session_regenerate_id() { 
+        session_id(md5(uniqid(mt_rand(), true)));
+    }
+}
+
+// }}}
 ?>
