@@ -147,7 +147,7 @@ class FF_Output extends FF_Template {
      */
     function load($in_theme)
     {
-        $this->theme = FastFrame::getCGIParam('printerFriendly', 'gp', false) ? 
+        $this->theme = FF_Request::getParam('printerFriendly', 'gp', false) ? 
             $this->o_registry->getConfigParam('general/print_theme') : $in_theme;
         $s_directory = $this->o_registry->getRootFile($this->theme, 'themes');
         // See if theme has its own main template
@@ -164,12 +164,12 @@ class FF_Output extends FF_Template {
         $this->setMenuType($this->o_registry->getConfigParam('menu/type'));
 
         // If it's printer friendly we have no menu
-        if (FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
+        if (FF_Request::getParam('printerFriendly', 'gp', false)) {
             $this->setMenuType('none');
         }
 
         // Set popup type 
-        if (FastFrame::getCGIParam('isPopup', 'gp', false)) {
+        if (FF_Request::getParam('isPopup', 'gp', false)) {
             $this->setPageType('popup');
         }
         

@@ -438,7 +438,7 @@ class FF_List {
             // Check to see if it is searchable and we're not in print mode.
             // If so build a link to sort on the column
             if (!empty($a_colData['sort']) && 
-                !FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
+                !FF_Request::getParam('printerFriendly', 'gp', false)) {
                 // if we previously sorted on this field, reverse the sort direction
                 if ($this->getSortField() == $a_colData['sort']) {
                     $tmp_sort = $this->getSortOrder() ? 0 : 1;
@@ -569,7 +569,7 @@ class FF_List {
     function setSearchBoxType($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->searchBoxType = FastFrame::getCGIParam('searchBoxType', 'gps', SEARCH_BOX_NORMAL);
+            $this->searchBoxType = FF_Request::getParam('searchBoxType', 'gps', SEARCH_BOX_NORMAL);
         }
         else {
             $this->searchBoxType = $in_value;
@@ -581,7 +581,7 @@ class FF_List {
             $this->searchBoxType = SEARCH_BOX_NORMAL;
         }
 
-        $_SESSION['searchBoxType'] = $this->searchBoxType;
+        FF_Request::setParam('searchBoxType', $this->searchBoxType, 's');
     }
 
     // }}}
@@ -612,8 +612,8 @@ class FF_List {
      */
     function setDisplayLimit($in_limit)
     {
-        $this->displayLimit = (int) abs(FastFrame::getCGIParam("displayLimit[$this->listId]", 'gps', $in_limit));
-        $_SESSION['displayLimit'][$this->listId] = $this->displayLimit;
+        $this->displayLimit = (int) abs(FF_Request::getParam("displayLimit[$this->listId]", 'gps', $in_limit));
+        FF_Request::setParam('displayLimit[\'' . $this->listId . '\']', $this->displayLimit, 's');
     }
 
     // }}}
@@ -645,13 +645,13 @@ class FF_List {
     function setPageOffset($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->pageOffset = (int) abs(FastFrame::getCGIParam("pageOffset[$this->listId]", 'gps', 1));  
+            $this->pageOffset = (int) abs(FF_Request::getParam("pageOffset[$this->listId]", 'gps', 1));  
         }
         else {
             $this->pageOffset = (int) $in_value;
         }
 
-        $_SESSION['pageOffset'][$this->listId] = $this->pageOffset;
+        FF_Request::setParam('pageOffset[\'' . $this->listId . '\']', $this->pageOffset, 's');
     }
 
     // }}}
@@ -698,8 +698,8 @@ class FF_List {
      */
     function setSortOrder($in_sort)
     {
-        $this->sortOrder = (int) FastFrame::getCGIParam("sortOrder[$this->listId]", 'gps', $in_sort);
-        $_SESSION['sortOrder'][$this->listId] = $this->sortOrder;
+        $this->sortOrder = (int) FF_Request::getParam("sortOrder[$this->listId]", 'gps', $in_sort);
+        FF_Request::setParam('sortOrder[\'' . $this->listId . '\']', $this->sortOrder, 's');
     }
 
     // }}}
@@ -730,8 +730,8 @@ class FF_List {
      */
     function setSortField($in_field)
     {
-        $this->sortField = FastFrame::getCGIParam("sortField[$this->listId]", 'gps', $in_field);
-        $_SESSION['sortField'][$this->listId] = $this->sortField;
+        $this->sortField = FF_Request::getParam("sortField[$this->listId]", 'gps', $in_field);
+        FF_Request::setParam('sortField[\'' . $this->listId . '\']', $this->sortField, 's');
     }
 
     // }}}
@@ -763,13 +763,13 @@ class FF_List {
     function setSearchString($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->searchString = FastFrame::getCGIParam("searchString[$this->listId]", 'gps');
+            $this->searchString = FF_Request::getParam("searchString[$this->listId]", 'gps');
         }
         else {
             $this->searchString = $in_value;
         }
 
-        $_SESSION['searchString'][$this->listId] = $this->searchString;
+        FF_Request::setParam('searchString[\'' . $this->listId . '\']', $this->searchString, 's');
     }
 
     // }}}
@@ -801,13 +801,13 @@ class FF_List {
     function setSearchField($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->searchField = FastFrame::getCGIParam("searchField[$this->listId]", 'gps', $this->getAllFieldsKey());
+            $this->searchField = FF_Request::getParam("searchField[$this->listId]", 'gps', $this->getAllFieldsKey());
         }
         else {
             $this->searchField = $in_value;
         }
 
-        $_SESSION['searchField'][$this->listId] = $this->searchField;
+        FF_Request::setParam('searchField[\'' . $this->listId . '\']', $this->searchField, 's');
     }
 
     // }}}

@@ -107,7 +107,7 @@ class FF_Action_Tree extends FF_Action {
 
         $this->o_output->setPageName($this->getPageName());
         $this->renderAdditionalLinks();
-        $this->openFolders = FastFrame::getCGIParam($this->getSessionKey(), 's', array());
+        $this->openFolders = FF_Request::getParam($this->getSessionKey(), 's', array());
         $this->doFolderAction();
         $a_nodes = $this->getRootNodes();
         $this->numRootNodes = count($a_nodes);
@@ -357,8 +357,8 @@ class FF_Action_Tree extends FF_Action {
      */
     function doFolderAction()
     {
-        if (($s_id = FastFrame::getCGIParam('nodeId', 'g', false)) !== false) {
-            if (FastFrame::getCGIParam('expand', 'g', false)) {
+        if (($s_id = FF_Request::getParam('nodeId', 'g', false)) !== false) {
+            if (FF_Request::getParam('expand', 'g', false)) {
                 $this->openFolders[$s_id] = true;
             }
             else {
@@ -366,7 +366,7 @@ class FF_Action_Tree extends FF_Action {
             }
         }
 
-        $_SESSION[$this->getSessionKey()] = $this->openFolders;
+        FF_Request::setParam($this->getSessionKey(), $this->openFolders, 's');
     }
 
     // }}}

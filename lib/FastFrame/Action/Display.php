@@ -88,7 +88,7 @@ class FF_Action_Display extends FF_Action {
      */
     function fillModelWithData()
     {
-        $b_result = $this->o_model->fillById(FastFrame::getCGIParam('objectId', 'gp'));
+        $b_result = $this->o_model->fillById(FF_Request::getParam('objectId', 'gp'));
         if (!$b_result) {
             $this->o_output->setMessage(
                 sprintf(_('Could not find the specified %s'), $this->getSingularText()), 

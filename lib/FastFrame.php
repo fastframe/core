@@ -99,13 +99,7 @@ class FastFrame {
         // getVars will be a name=>value pair hash of get variables
         $getVars = array();
         foreach($argv as $getVarList) {
-            settype($getVarList, 'array');
-            // if we are dealing with one of the gpc arrays, then disable magic quotes
-            if ($getVarList === $_GET || $getVarList === $_POST || $getVarList === $_COOKIE) {
-                $getVarList = FastFrame::disableMagicQuotes($getVarList);    
-            }
-
-            $getVars = array_merge($getVars, $getVarList);
+            $getVars = array_merge($getVars, (array) $getVarList);
         }
 
         // add the session to the array list if it is configured to do so
@@ -192,7 +186,7 @@ class FastFrame {
                     'actionId' => $o_actionHandler->getActionId())); 
 
         // Add on isPopup if it is set
-        if (FastFrame::getCGIParam('isPopup', 'gp', false)) {
+        if (FF_Request::getParam('isPopup', 'gp', false)) {
             array_unshift($argv, array('isPopup' => 1));
         }
 
@@ -453,169 +447,6 @@ HTML;
     }
     
     // }}}
-    // {{{ mixed   getCGIParam()
-
-    /**
-     * Get the the gpc variable.
-     *
-     * Since servers have gpc_magic_quotes enabled, we need to make an easy way to
-     * strip them off when we grab form data for display.  
-     *
-     * @param  string $in_varName name of the variable
-     * @param  string $in_type (optional) type of variable (get, post, cookie, session,
-     *                file)
-     * @param  string $in_default (optional) default value if no value is found
-     * @param  bool $in_emptyStringValid (optional) Does an empty string count as the 
-     *              value not being set?
-     *
-     * @access public
-     * @return string Value of the variable or default value
-     */
-    function getCGIParam($in_varname, $in_type = 'gpc', $in_default = null, $in_emptyStringValid = true)
-    {
-        if (function_exists('version_compare')) {
-            $b_autoGlobal = true;
-            $arr_types = array(
-                'c' => '$_COOKIE',
-                'p' => '$_POST',
-                'g' => '$_GET',
-                's' => '$_SESSION',
-                'f' => '$_FILES',
-            );
-        }
-        else {
-            $b_autoGlobal = false;
-            $arr_types = array(
-                'c' => '$HTTP_COOKIE_VARS',
-                'p' => '$HTTP_POST_VARS',
-                'g' => '$HTTP_GET_VARS',
-                's' => '$HTTP_SESSION_VARS',
-                'f' => '$HTTP_POST_FILES',
-            );
-        }
-
-        // can't have single quotes in variable name
-        $tmp_str_varname = str_replace("'", '', $in_varname);
-
-        // make a key reference for the variable array out of the variable
-        if ($tmp_pos = strpos($tmp_str_varname, '[')) {
-            $tmp_str_varname = '[\'' . substr($tmp_str_varname, 0, $tmp_pos) . '\']' . str_replace(array('[', ']'), array('[\'', '\']'), substr($tmp_str_varname, $tmp_pos));
-        }
-        else {
-            $tmp_str_varname = '[\'' . $tmp_str_varname . '\']';
-        }
-
-        // find the variable in the requested types
-        foreach ($arr_types as $tmp_str_abbr => $tmp_str_varArray) {
-            if (!$b_autoGlobal) {
-                eval('global ' . $tmp_str_varArray . ';');
-            }
-
-            $tmp_str_variable = $tmp_str_varArray . $tmp_str_varname;
-            $tmp_condition = $in_emptyStringValid ? '' : ' && ' . $tmp_str_variable . ' != \'\'';
-            if (stristr($in_type, $tmp_str_abbr) && eval('return isset(' . $tmp_str_variable . ')' . $tmp_condition . ';')) {
-                $mix_data = eval('return ' . $tmp_str_variable . ';');
-                break;
-            }
-        }
-
-        // {!} no check for type of data here {!}
-        if (isset($mix_data)) {
-            $mix_data = FastFrame::disableMagicQuotes($mix_data);
-        }
-        else {
-            $mix_data = $in_default;
-        }
-
-        return $mix_data;
-    }
-
-    // }}}
-    // {{{ string  disableMagicQuotes()
-
-    /**
-     * If magic_quotes_gpc is in use, strip the slashes
-     *
-     * Some servers have strings automatically escaped when submitted from a form.
-     * Here will strip any that exist on a non-array
-     *
-     * @param  mixed $in_var The string or array to un-quote, if necessary.
-     *
-     * @access public
-     * @return mixed variable minus any magic quotes.
-     */
-    function disableMagicQuotes($in_var)
-    {
-        static $magic_quotes_enabled;
-
-        if (!isset($magic_quotes_enabled)) {
-            $magic_quotes_enabled = get_magic_quotes_gpc();
-        }
-
-        if ($magic_quotes_enabled) {
-            if (is_array($in_var)) {
-                $in_var = FastFrame::array_deep_map($in_var, 'stripslashes');
-            }
-            else {
-                // stripslashes make false turn to empty
-                if (!is_bool($in_var)) {
-                    $in_var = stripslashes($in_var);
-                }
-            }
-        }
-
-        return $in_var;
-    }
-
-    // }}}
-    // {{{ void    unsetCookies()
-
-    /**
-     * Clear the values of a cookie list
-     *
-     * Since there is no clean way to do this in php, we provide this
-     * function to force set the cookie to a zero value and in the past.
-     *
-     * @param  mixed  $in_names Name of the cookie or array of string names
-     *
-     * @access public
-     * @return void
-     */
-    function unsetCookies($in_names, $in_path = '/', $in_domain = '') 
-    {
-        foreach ((array) $in_names as $name) {
-            setcookie($name, '', time() - 3600, $in_path, $in_domain); 
-            unset($_COOKIE[$name]);
-        }
-    }
-
-    // }}}
-    // {{{ void    setCookies()
-
-    /**
-     * Set each of the cookies.
-     *
-     * Run through the associative array and set the cookies, running the php
-     * cookie function an additionally adding them to the $_COOKIE array for
-     * immediate use
-     *
-     * @param  array  $in_nameValues name => value pairs of the cookies to be set
-     * @param  int    $in_expire (optional) when the cookie will expire
-     * @param  string $in_path (optional) path for the cookie
-     * @param  string $in_domain (optional) domain for the cookie
-     *
-     * @access public
-     * @return void
-     */
-    function setCookies($in_nameValues, $in_expire = 0, $in_path = '/', $in_domain = '')
-    {
-        foreach((array) $in_nameValues as $name => $value) {
-            setcookie($name, $value, $in_expire, $in_path, $in_domain); 
-            $_COOKIE[$name] = $value;
-        }
-    }
-
-    // }}}
     // {{{ string  getRandomString()
 
     /**
@@ -683,46 +514,6 @@ HTML;
     {
         $var = $in_countWhiteSpace || is_array($in_var) ? $in_var : trim($in_var);
         return (!isset($var) || (is_array($var) && empty($var)) || $var === '') ? true : false;
-    }
-
-    // }}}
-    // {{{ array   array_deep_map()
-
-
-    /**
-     * Similar to array_map except it works on recursive arrays.
-     *
-     * @param array $in_array The array to modify
-     * @param string $in_func The function to apply to the array elements
-     * @param array $in_args (optional) Used for the recursive functionality.
-     * @param array $in_index (optional) Used for the recursive functionality.
-     *
-     * @access public
-     * @return array The modified array
-     */
-    function array_deep_map(&$in_array, $in_func, $in_args = array(), $in_index = 1) {
-        // fix people from messing up the index of the value
-        if ($in_index < 1) {
-           $in_index = 1;
-        }
-
-        foreach (array_keys($in_array) as $key) {
-            // we need a reference, not a copy, normal foreach won't do
-            $value =& $in_array[$key];
-            // we need to copy args because we are doing manipulation on it farther down
-            $args = $in_args;
-            if (is_array($value)) {
-                FastFrame::array_deep_map($value, $in_func, $in_args, $in_index);
-            }
-            else {
-                if (!is_null($value)) {
-                    array_splice($args, $in_index - 1, $in_index - 1, $value);
-                    $value = call_user_func_array($in_func, $args);
-                }
-            }
-        }
-
-        return $in_array;
     }
 
     // }}}

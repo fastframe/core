@@ -75,7 +75,7 @@ class FF_Action_List extends FF_Action_Form {
             return $this->o_nextAction;
         }
 
-        if (!FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
+        if (!FF_Request::getParam('printerFriendly', 'gp', false)) {
             $this->renderAdditionalLinks();
             $this->o_output->assignBlockData(
                     array('W_search_box' => $this->o_list->renderSearchBox(
@@ -165,7 +165,7 @@ class FF_Action_List extends FF_Action_Form {
             $o_tableWidget->assignBlockData(array('T_table_field_cell' => $s_cell), 'table_field_cell');
         }
 
-        if (!FastFrame::getCGIParam('printerFriendly', 'gp', false)) {
+        if (!FF_Request::getParam('printerFriendly', 'gp', false)) {
             $a_data = $this->o_list->generateNavigationLinks();
             $o_navWidget =& $this->o_output->getWidgetObject('navigationRow');
             $o_navWidget->assignBlockData(array(

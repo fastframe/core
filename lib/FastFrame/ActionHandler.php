@@ -26,6 +26,7 @@ define('ECLIPSE_ROOT', dirname(__FILE__) . '/../eclipse/');
 require_once dirname(__FILE__) . '/../Error/Error.php';
 require_once 'File.php';
 require_once dirname(__FILE__) . '/../FastFrame.php';
+require_once dirname(__FILE__) . '/Request.php';
 require_once dirname(__FILE__) . '/Registry.php';
 require_once dirname(__FILE__) . '/Output.php';
 require_once dirname(__FILE__) . '/Auth.php';
@@ -165,9 +166,9 @@ class FF_ActionHandler {
         // (i.e. en_BIP) will work
         FF_Locale::setLang('en_US');
         $this->o_registry->setLocale();
-        $this->setActionId(FastFrame::getCGIParam('actionId', 'gp'));
-        $this->setModuleId(FastFrame::getCGIParam('module', 'gp'));
-        $this->setAppId(FastFrame::getCGIParam('app', 'gp'));
+        $this->setActionId(FF_Request::getParam('actionId', 'pg'));
+        $this->setModuleId(FF_Request::getParam('module', 'pg'));
+        $this->setAppId(FF_Request::getParam('app', 'pg'));
         $this->_makeDefaultPathsAbsolute();
         $this->_checkProfile();
         $o_output =& FF_Output::singleton();
@@ -463,7 +464,7 @@ class FF_ActionHandler {
                 // If there was no app specified then they have arrived newly at the
                 // site.  We don't want to bounce them to the initial app only to have
                 // them bounce back to the login page.  So we send them straight to it.
-                if (FastFrame::getCGIParam('app', 'gp', false) === false) {
+                if (FF_Request::getParam('app', 'gp', false) === false) {
                     $this->setAppId($this->o_registry->getConfigParam('general/login_app'));
                     $this->setModuleId($this->o_registry->getConfigParam('general/initial_module', null, array('app' => $this->appId)));
                     $this->loadActions();

@@ -52,7 +52,7 @@ class FF_Action_Delete extends FF_Action {
             return $this->o_nextAction;
         }
 
-        $o_result =& $this->o_model->remove(FastFrame::getCGIParam('objectId', 'gp'));
+        $o_result =& $this->o_model->remove(FF_Request::getParam('objectId', 'gp'));
         if ($o_result->isSuccess()) {
             $this->o_output->setMessage($this->getSuccessMessage(), FASTFRAME_SUCCESS_MESSAGE);
             $this->setSuccessActionId();

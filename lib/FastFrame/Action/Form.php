@@ -232,7 +232,7 @@ class FF_Action_Form extends FF_Action {
     function fillModelWithData()
     {
         if ($this->isUpdate()) {
-            $s_id = FastFrame::getCGIParam('objectId', 'gp');
+            $s_id = FF_Request::getParam('objectId', 'pg');
             $this->o_model->reset();
             if (!$this->o_model->fillById($s_id)) {
                 $this->o_output->setMessage(
@@ -350,7 +350,7 @@ class FF_Action_Form extends FF_Action {
     {
         return array(
                    'actionId' => $this->formActionId,
-                   'objectId' => FastFrame::getCGIParam('objectId', 'gp'), 
+                   'objectId' => FF_Request::getParam('objectId', 'pg'), 
                    'submitbutton' => $this->getTableHeaderText(),
                );
     }
