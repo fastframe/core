@@ -631,18 +631,23 @@ class FF_Output {
     // {{{ processCellData()
 
     /**
-     * Takes cell data, and if it is empty returns &nbsp;, otherwise just returns the cell
-     * data.  Fixes bug where some browsers (such as IE) will not render borders in cells
-     * with no data.
+     * Fixes cell data to be web-friendly.
+     *
+     * Takes cell data, and if it is empty returns &nbsp;, otherwise
+     * it sanitizes the cell data.  Fixes bug where some
+     * browsers (such as IE) will not render borders in cells with no
+     * data.
      *
      * @param string $in_data The cell data
+     * @param bool $in_safe (optional) If the data is known to be safe
+     *        then we won't htmlspecialchar it.
      *
      * @access public
      * @return string Either &nbsp; if it is empty, otherwise the data
      */
-    function processCellData($in_data)
+    function processCellData($in_data, $in_safe = false)
     {
-        return ($in_data == '' || $in_data === false) ? '&nbsp;' : $in_data;
+        return ($in_data == '' || $in_data === false) ? '&nbsp;' : ($in_safe ? $in_data : htmlspecialchars($in_data));
     }
 
     // }}}

@@ -222,7 +222,7 @@ class FF_Action_Form extends FF_Action {
         require_once dirname(__FILE__) . '/../Output/Table.php';
         $o_table =& new FF_Output_Table('twoColumn');
         $o_table->setTableHeaderText($this->getTableHeaderText());
-        $o_table->setTableHeaders($this->getTableData());
+        $o_table->setTableHeaders($this->_setDataAsSafe($this->getTableData()));
         $o_table->render();
         $o_tableWidget =& $o_table->getWidgetObject();
         $this->renderSubmitRow($o_tableWidget, $o_table->getNumColumns());
@@ -469,6 +469,29 @@ class FF_Action_Form extends FF_Action {
     function getPageName()
     {
         return $this->getTableHeaderText();
+    }
+
+    // }}}
+    // {{{ _setDataAsSafe()
+
+    /**
+     * Sets all the data for the table as safe since the data is
+     * normally form elements which should not be htmlspecialchared
+     *
+     * @param array $in_data The table data
+     *
+     * @access private
+     * @return array The table data with the dataIsSafe flag set
+     */
+    function _setDataAsSafe($in_data)
+    {
+        foreach ($in_data as $s_key => $a_data) {
+            if (!isset($a_data['dataIsSafe'])) {
+                $in_data[$s_key]['dataIsSafe'] = true;
+            }
+        }
+
+        return $in_data;
     }
 
     // }}}

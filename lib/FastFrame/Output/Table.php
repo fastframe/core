@@ -161,9 +161,10 @@ class FF_Output_Table {
             $this->o_widget->append('rows', array(
                         'S_table_row' => 'class="' . $tmp_class . '"',
                         'has_field_cell' => isset($tmp_header['title']), true, 'has_content_cell' => true,
-                        'T_table_field_cell' => isset($tmp_header['title']) ? $this->o_output->processCellData($tmp_header['title']) : '',
+                        'T_table_field_cell' => isset($tmp_header['title']) ? $tmp_header['title'] : '',
                         'S_table_field_cell' => isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : '',
-                        'T_table_content_cell' => $this->o_output->processCellData($tmp_header['data']), 
+                        'T_table_content_cell' => $this->o_output->processCellData($tmp_header['data'],
+                            (isset($tmp_header['dataIsSafe']) ? $tmp_header['dataIsSafe'] : false)), 
                         'S_table_content_cell' => isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : ''));
         }
     }
@@ -196,7 +197,7 @@ class FF_Output_Table {
             $this->o_widget->assign('has_field_row', true);
             foreach ($tmp_headers as $tmp_header) {
                 $this->o_widget->append('fieldCells', array(
-                            'T_table_field_cell' => $this->o_output->processCellData($tmp_header['title']),
+                            'T_table_field_cell' => $tmp_header['title'],
                             'S_table_field_cell' => isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : ''));
             }
         }
@@ -207,7 +208,8 @@ class FF_Output_Table {
             $a_cells = array();
             foreach ($tmp_headers as $tmp_header) {
                 $a_cells[] = array(
-                        'T_table_content_cell' => $this->o_output->processCellData($tmp_header['data']),
+                        'T_table_content_cell' => $this->o_output->processCellData($tmp_header['data'],
+                            (isset($tmp_header['dataIsSafe']) ? $tmp_header['dataIsSafe'] : false)),
                         'S_table_content_cell' => isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : '');
             }
 

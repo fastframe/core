@@ -211,6 +211,7 @@ class FF_Action_List extends FF_Action_Form {
                         continue;
                     }
 
+                    $b_safeData = isset($tmp_fields['dataIsSafe']) ? $tmp_fields['dataIsSafe'] : false;
                     $s_attr = isset($tmp_fields['attr']) ? $tmp_fields['attr'] : '';
                     $tmp_fields['args'] = isset($tmp_fields['args']) ? $tmp_fields['args'] : array();
                     // Cells with buttons have  special attributes
@@ -218,17 +219,21 @@ class FF_Action_List extends FF_Action_Form {
                         if ($tmp_fields['method'] == $s_method ) {
                             $s_attr = 'id="optionCell" style="white-space: nowrap; width: 1%;"';
                             $tmp_fields['object'] =& $this;
+                            $b_safeData = true;
+                            break;
                         }
                     }
 
                     if (isset($tmp_fields['object'])) {
                         $tmp_displayData = $this->o_output->processCellData(
-                                call_user_func_array(array(&$tmp_fields['object'], $tmp_fields['method']), $tmp_fields['args']));
+                                call_user_func_array(array(&$tmp_fields['object'], $tmp_fields['method']), $tmp_fields['args']),
+                                $b_safeData);
                     }
                     // Otherwise use the model object
                     else {
                         $tmp_displayData = $this->o_output->processCellData(
-                                call_user_func_array(array(&$this->o_model, $tmp_fields['method']), $tmp_fields['args']));
+                                call_user_func_array(array(&$this->o_model, $tmp_fields['method']), $tmp_fields['args']),
+                                $b_safeData);
                     }
 
                     $a_cells[] = array('T_table_content_cell' => $tmp_displayData, 'S_table_content_cell' => $s_attr);
@@ -447,6 +452,8 @@ class FF_Action_List extends FF_Action_Form {
      * 'description' => Description of the field.
      * 'img' => Makes the column header the specified image
      * 'style' => Specifies the style for the column header
+     * 'dataIsSafe' => Is the data safe to display without
+     * htmlspecialcharing it?
      *
      * @access public
      * @return array
