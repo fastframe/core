@@ -417,10 +417,10 @@ class FF_Auth {
     function destroySession()
     {
         $o_registry =& FF_Registry::singleton();
-        $_SESSION = array();
         FF_Request::unsetCookies(array(session_name(), FF_Auth::_getSessionAnchor()),
                 $o_registry->getConfigParam('cookie/path'),
                 $o_registry->getConfigParam('cookie/domain'));
+        $_SESSION = array();
         @session_destroy();
     }
 
