@@ -30,6 +30,7 @@ require_once dirname(__FILE__) . '/Registry.php';
 require_once dirname(__FILE__) . '/Output.php';
 require_once dirname(__FILE__) . '/Auth.php';
 require_once dirname(__FILE__) . '/Perms.php';
+require_once dirname(__FILE__) . '/Result.php';
 
 // }}}
 // {{{ constants

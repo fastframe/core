@@ -23,7 +23,6 @@
 // {{{ requires
 
 require_once 'DB.php';
-require_once dirname(__FILE__) . '/Result.php';
 
 // }}}
 // {{{ class FF_DataAccess 
