@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.4 2003/02/10 22:14:17 jrust Exp $ */
+/** $Id: List.php,v 1.5 2003/02/12 20:50:57 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -22,7 +22,7 @@
 // }}}
 // {{{ requires
 
-require_once dirname(__FILE__) . '/GenericForm.php';
+require_once dirname(__FILE__) . '/Form.php';
 require_once dirname(__FILE__) . '/../List.php';
 require_once dirname(__FILE__) . '/../Output/Table.php';
 
@@ -39,7 +39,7 @@ require_once dirname(__FILE__) . '/../Output/Table.php';
  */
 
 // }}}
-class ActionHandler_List extends ActionHandler_GenericForm {
+class ActionHandler_List extends ActionHandler_Form {
     // {{{ properties
 
     /**
@@ -71,7 +71,7 @@ class ActionHandler_List extends ActionHandler_GenericForm {
      */
     function ActionHandler_List()
     {
-        ActionHandler_GenericForm::ActionHandler_GenericForm();
+        ActionHandler_Form::ActionHandler_Form();
     }
 
     // }}}
@@ -87,8 +87,8 @@ class ActionHandler_List extends ActionHandler_GenericForm {
     {
         $this->o_output->setPageName($this->getPageName());
         $this->initList();
-        $this->registerAdditionalLinks();
-        $this->o_list->registerSearchBox($this->getSingularText(), $this->getPluralText());
+        $this->renderAdditionalLinks();
+        $this->o_list->renderSearchBox($this->getSingularText(), $this->getPluralText());
         $this->createListTable();
         $this->o_output->output();
     }
@@ -107,7 +107,8 @@ class ActionHandler_List extends ActionHandler_GenericForm {
         $this->o_list =& new FastFrame_List(
             $this->getDefaultSortField(), 
             $this->getDefaultSortOrder(),
-            $this->getDefaultDisplayLimit()
+            $this->getDefaultDisplayLimit(),
+            array('actionId' => $this->o_action->getActionId())
         );
         $this->o_application->setListObject($this->o_list);
         $this->processFieldMap($this->getFieldMap());
@@ -122,20 +123,6 @@ class ActionHandler_List extends ActionHandler_GenericForm {
             $this->o_list->setMatchedRecords($this->o_application->getListMatchedRecordsCount());
             $this->o_list->setDisplayedRecords(count($this->dataArray));
         }
-    }
-
-    // }}}
-    // {{{ registerAdditionalLinks()
-
-    /**
-     * Registers additional links on the page
-     *
-     * @access public
-     * @return void
-     */
-    function registerAdditionalLinks()
-    {
-        // interface
     }
 
     // }}}
@@ -156,11 +143,25 @@ class ActionHandler_List extends ActionHandler_GenericForm {
         $this->o_list->generateSortFields($o_table->getTableNamespace());
         $this->o_list->generateNavigationLinks();
         $this->o_output->touchBlock($o_table->getTableNamespace() . 'switch_table_navigation');
-        $this->registerListData($o_table->getTableNamespace());
+        $this->renderListData($o_table->getTableNamespace());
     }
     
     // }}}
-    // {{{ registerListData()
+    // {{{ renderAdditionalLinks()
+
+    /**
+     * Renders additional links on the page
+     *
+     * @access public
+     * @return void
+     */
+    function renderAdditionalLinks()
+    {
+        // interface
+    }
+
+    // }}}
+    // {{{ renderListData()
 
     /**
      * Registers the data for the list into the table
@@ -170,7 +171,7 @@ class ActionHandler_List extends ActionHandler_GenericForm {
      * @access public
      * @return void
      */
-    function registerListData($in_namespace)
+    function renderListData($in_namespace)
     {
         if ($this->o_list->getDisplayedRecords() > 0) {
             foreach ($this->dataArray as $tmp_data) {
