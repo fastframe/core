@@ -1,5 +1,5 @@
 <?php
-/** $Id: Menu.php,v 1.1 2003/01/15 01:02:07 jrust Exp $ */
+/** $Id: Menu.php,v 1.2 2003/01/22 02:08:59 jrust Exp $ */
 // {{{ includes
 
 require_once dirname(__FILE__) . '/Error.php';
@@ -63,11 +63,10 @@ class FastFrame_Menu {
     /**
      * Attempts to return a concrete Menu instance based on $type.
      *
-     * @access public
-     *
      * @param string $in_type The type of Menu to create.  The code is dynamically included,
      *                        and we will look for Auth/$type.php to load the file.
      *
+     * @access public
      * @return object Menu The newly created concrete Menu instance, or PEAR error on an error.
      */
     function &factory($in_type)
