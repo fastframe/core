@@ -159,7 +159,19 @@ class FF_List {
     {
         $this->o_output =& FF_Output::singleton();
         $this->listId = $in_listId;
-        // set all the fields with their default values
+        // These variables can change the number of results returned,
+        // and thus could leave the user on an invalid page.  So we
+        // always set the page to 1 if these variables have changed.
+        if (FF_Request::getParam("searchString[$this->listId]", 'gp') !=
+                FF_Request::getParam("searchString[$this->listId]", 's') ||
+            FF_Request::getParam("searchField[$this->listId]", 'gp') !=
+                FF_Request::getParam("searchField[$this->listId]", 's') ||
+            FF_Request::getParam("displayLimit[$this->listId]", 'gp') !=
+                FF_Request::getParam("displayLimit[$this->listId]", 's')) {
+            FF_Request::setParam("pageOffset[$this->listId]", 1, 'gp');
+        }
+
+        // Set all the fields with their default values
         $this->setSortField($in_sortField);
         $this->setSortOrder($in_sortOrder);
         $this->setSearchString();
@@ -196,13 +208,6 @@ class FF_List {
         }
         
         
-        // Need to set page offset to one when we search or change limit
-        $tmp_onclick = ($this->getTotalPages() > 1) ? 
-            ($a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE ? 
-                "document.search_box['pageOffset[$this->listId]'].value = 1;" :
-                "document.search_box['pageOffset[$this->listId]'].options[0].selected = true;") :
-            'void(0);';
-
         // Add form elements which go only on advanced list in normal mode
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
             // set up sortable fields
@@ -216,7 +221,7 @@ class FF_List {
             $o_form->addElement('text', "displayLimit[$this->listId]", null, 
                     array('style' => 'vertical-align: middle;', 'size' => 3, 'maxlength' => 3));
             $o_form->addElement('submit', 'displayLimit_submit', _('Update'), 
-                    array('style' => 'vertical-align: middle;', 'onclick' => $tmp_onclick));
+                    array('style' => 'vertical-align: middle;'));
             $o_form->addElement('select', "sortOrder[$this->listId]", null, array(0 => 'DESC', 1 => 'ASC'));
             $o_form->addElement('select', "sortField[$this->listId]", null, $a_sortFields);
             $o_form->addElement('submit', 'sort_submit', _('Sort'));
@@ -235,9 +240,9 @@ class FF_List {
             $o_form->addElement('text', "searchString[$this->listId]", null, 
                     array('size' => 15, 'style' => 'vertical-align: text-top;', 'onfocus' => 'this.value = ""'));
             $o_form->addElement('submit', 'query_submit', _('Search'), 
-                    array('onclick' => $tmp_onclick, 'style' => 'vertical-align: middle;'));
+                    array('style' => 'vertical-align: middle;'));
             $o_form->addElement('submit', 'listall_submit', _('List All'), 
-                    array('onclick' => "document.search_box['searchString[$this->listId]'].value = '';" . $tmp_onclick, 
+                    array('onclick' => "document.search_box['searchString[$this->listId]'].value = '';", 
                         'style' => 'vertical-align: middle;'));
         }
         else {
@@ -651,7 +656,7 @@ class FF_List {
     function setPageOffset($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->pageOffset = (int) abs(FF_Request::getParam("pageOffset[$this->listId]", 'gps', 1));  
+            $this->pageOffset = (int) abs(FF_Request::getParam("pageOffset[$this->listId]", 'gps', 1));
         }
         else {
             $this->pageOffset = (int) $in_value;
