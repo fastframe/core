@@ -1,5 +1,5 @@
 <?php
-/** $Id: LoginSubmit.php,v 1.10 2003/04/09 20:05:58 jrust Exp $ */
+/** $Id: LoginSubmit.php,v 1.11 2003/04/10 21:51:08 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -93,6 +93,7 @@ class FF_Action_LoginSubmit extends FF_Action {
                 $o_profileModel->fillById($s_userId);
                 FF_Auth::setCredential('isProfileComplete', $o_profileModel->isProfileComplete());
                 $s_theme = $o_profileModel->getTheme();
+                $_SESSION['advancedList'] = $o_profileModel->getListMode();
             }
             else {
                 $s_userId = FF_Auth::getCredential('username');
