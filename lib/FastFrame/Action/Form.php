@@ -1,5 +1,5 @@
 <?php
-/** $Id: Form.php,v 1.3 2003/02/22 02:08:24 jrust Exp $ */
+/** $Id: Form.php,v 1.4 2003/03/13 18:37:35 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -194,8 +194,8 @@ class FF_Action_Form extends FF_Action {
     {
         if ($this->currentActionId == ACTION_EDIT) {
             $s_id = FastFrame::getCGIParam('objectId', 'gp');
-            $this->o_model =& $this->o_dataAccess->getModelByPrimaryKey($s_id);
-            if (!$this->o_model) {
+            $b_result = $this->o_model->fillById($s_id);
+            if (!$b_result) {
                 $this->o_output->setMessage(
                     sprintf(_('Could not find the specified %s'), $this->getSingularText()),
                     FASTFRAME_ERROR_MESSAGE
@@ -203,9 +203,6 @@ class FF_Action_Form extends FF_Action {
                 $this->setProblemActionId();
                 return false;
             }
-        }
-        else {
-            $this->o_model =& $this->o_dataAccess->getNewModel();
         }
 
         return true;

@@ -1,5 +1,5 @@
 <?php
-/** $Id: Delete.php,v 1.4 2003/02/22 02:08:24 jrust Exp $ */
+/** $Id: Delete.php,v 1.5 2003/03/13 18:37:35 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -62,7 +62,7 @@ class FF_Action_Delete extends FF_Action {
      */
     function run()
     {
-        $o_result =& $this->o_dataAccess->remove(FastFrame::getCGIParam('objectId', 'gp'));
+        $o_result =& $this->o_model->remove(FastFrame::getCGIParam('objectId', 'gp'));
         if ($o_result->isSuccess()) {
             $this->o_output->setMessage($this->getSuccessMessage());
             $this->setSuccessActionId();

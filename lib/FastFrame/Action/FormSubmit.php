@@ -1,5 +1,5 @@
 <?php
-/** $Id: FormSubmit.php,v 1.2 2003/02/22 02:08:24 jrust Exp $ */
+/** $Id: FormSubmit.php,v 1.3 2003/03/13 18:37:35 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -73,7 +73,7 @@ class FF_Action_FormSubmit extends FF_Action {
             return $this->o_nextAction;
         }
 
-        $o_result =& $this->o_dataAccess->save($this->o_model, $this->isUpdate());
+        $o_result =& $this->o_model->save($this->isUpdate());
         if ($o_result->isSuccess()) {
             // this makes sure the objectId is set if this was an add
             $_GET['objectId'] = $_POST['objectId'] = $this->o_model->getId();
