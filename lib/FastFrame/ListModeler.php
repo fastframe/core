@@ -69,6 +69,18 @@ class FF_ListModeler {
      */
     var $filterName = null;
 
+    /**
+     * The current row count
+     * @var int
+     */
+    var $currentRow;
+
+    /**
+     * The ending row for the list
+     * @var int
+     */
+    var $endRow;
+
     // }}}
     // {{{ constructor
 
@@ -88,6 +100,8 @@ class FF_ListModeler {
         $this->o_model =& $in_modelObject;
         $this->o_dataAccess =& $this->o_model->getDataAccessObject();
         $this->filterName = $in_filter;
+        $this->currentRow = $this->o_list->getRecordOffset();
+        $this->endRow = $this->currentRow + $this->o_list->getDisplayLimit();
     }
 
     // }}}
@@ -115,21 +129,6 @@ class FF_ListModeler {
      */
     function getMatchedModelsCount()
     {
-        return $this->o_dataAccess->getTotal($this->_getListFilter());
-    }
-
-    // }}}
-    // {{{ getDisplayedModelsCount()
-
-    /**
-     * Gets the number of models that are going to be displayed on the page with the
-     * current result set.
-     *
-     * @access public
-     * @return int The number of displayed models
-     */
-    function getDisplayedModelsCount()
-    {
         if (is_null($this->o_resultSet)) {
             return 0;
         }
@@ -154,7 +153,12 @@ class FF_ListModeler {
         }
 
         $a_data = array();
-        $result = $this->o_resultSet->fetchInto($a_data);
+        if ($this->currentRow >= $this->endRow) {
+            return false;
+        }
+
+        $result = $this->o_resultSet->fetchInto($a_data, DB_FETCHMODE_DEFAULT, $this->currentRow);
+        $this->currentRow++;
         if ($result === DB_OK) {
             $this->o_model->reset();
             $this->o_model->importFromArray($a_data);
@@ -180,10 +184,7 @@ class FF_ListModeler {
         $result =& $this->o_dataAccess->getListData(
             $this->_getListFilter(),
             $this->o_list->getSortField(),
-            $this->o_list->getSortOrder(),
-            $this->o_list->getRecordOffset(),
-            $this->o_list->getDisplayLimit() 
-        );
+            $this->o_list->getSortOrder());
 
         if (!DB::isError($result)) {
             $this->o_resultSet =& $result;

@@ -80,12 +80,6 @@ class FF_List {
     var $matchedRecords = 0;
 
     /**
-     * The total number of records displayed on the page
-     * @var int
-     */
-    var $displayedRecords = 0;
-
-    /**
      * The current sort field 
      * @var string
      */
@@ -216,13 +210,13 @@ class FF_List {
         
         // Add all the form elements
         if ($a_listVars['advancedList']) {
-            // need to set page offset to one when we search
+            // need to set page offset to one when we search or change limit
             $tmp_onclick = ($this->getTotalPages() > 1) ? 
                 'document.search_box.pageOffset.options[0].selected = true;' :
                 'void(0);';
 
             $o_form->addElement('text', 'displayLimit', null, array('class' => 'input_content', 'style' => 'vertical-align: middle;', 'size' => 3, 'maxlength' => 3));
-            $o_form->addElement('submit', 'displayLimit_submit', _('Update'), array('style' => 'vertical-align: middle;'));
+            $o_form->addElement('submit', 'displayLimit_submit', _('Update'), array('style' => 'vertical-align: middle;', 'onclick' => $tmp_onclick));
             $o_form->addElement('select', 'searchField', null, $a_searchFields, array('class' => 'input_content', 'style' => 'vertical-align: text-top;')); 
             $o_form->addElement('text', 'searchString', null, array('size' => 15, 'class' => 'input_content', 'style' => 'vertical-align: text-top;'));
             $o_form->addElement('submit', 'query_submit', _('Search'), array('onclick' => $tmp_onclick, 'style' => 'vertical-align: middle;'));
@@ -276,9 +270,10 @@ class FF_List {
 
         $s_foundText = sprintf(
                         _('%1$d Found (%2$d%%), %3$d Listed out of %4$d Total %5$s'),
-                        $this->matchedRecords, 
+                        $this->getMatchedRecords(), 
                         $this->getMatchedRecordsPercentage(), 
-                        min($this->displayLimit, $this->getDisplayedRecords()),
+                        min(($this->getMatchedRecords() - $this->getRecordOffset()), 
+                            $this->getDisplayLimit(), $this->getMatchedRecords()),
                         $this->totalRecords, 
                         $this->totalRecords == 1 ? $in_singularLang : $in_pluralLang
                     );
@@ -881,33 +876,17 @@ class FF_List {
     }
 
     // }}}
-    // {{{ setDisplayedRecords()
+    // {{{ getMatchedRecords()
 
     /**
-     * Sets the displayed records variable 
-     *
-     * @param int $in_displayedRecords The total number of records displayed.
+     * Gets the matched records variable 
      *
      * @access public
-     * @return void
+     * @return int The matched number of records
      */
-    function setDisplayedRecords($in_displayedRecords)
+    function getMatchedRecords()
     {
-        $this->displayedRecords = $in_displayedRecords;
-    }
-
-    // }}}
-    // {{{ getDisplayedRecords()
-
-    /**
-     * Gets the displayed records variable 
-     *
-     * @access public
-     * @return int The number of displayed records. 
-     */
-    function getDisplayedRecords()
-    {
-        return $this->displayedRecords;
+        return $this->matchedRecords;
     }
 
     // }}}
@@ -946,7 +925,7 @@ class FF_List {
     function getMatchedRecordsPercentage()
     {
         if ($this->totalRecords > 0) {
-            return round(($this->matchedRecords / $this->totalRecords) * 100, 2);
+            return round(($this->getMatchedRecords() / $this->totalRecords) * 100, 2);
         }
         else {
             return 0;
@@ -964,7 +943,7 @@ class FF_List {
      */
     function getTotalPages()
     {
-        return ceil($this->matchedRecords / $this->displayLimit);
+        return ceil($this->getMatchedRecords() / $this->getDisplayLimit());
     }
 
     // }}}

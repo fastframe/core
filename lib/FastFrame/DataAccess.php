@@ -309,14 +309,12 @@ class FF_DataAccess {
      * @param string $in_where The where condition
      * @param string $in_orderByField The order by field
      * @param bool $in_orderByDir The order by direction (true => ASC, false => DESC)
-     * @param int $in_offset The offset to start at
-     * @param int $in_limit The limit of records
      * @param string $in_fields (optional) The fields to select (default is all fields)
      *
      * @access public
      * @return object The result object
      */
-    function &getListData($in_where, $in_orderByField, $in_orderByDir, $in_offset, $in_limit, $in_fields = '*')
+    function &getListData($in_where, $in_orderByField, $in_orderByDir, $in_fields = '*')
     {
         $s_query = sprintf('SELECT %s FROM %s WHERE %s ORDER BY %s %s',
                               $in_fields,
@@ -324,7 +322,6 @@ class FF_DataAccess {
                               $in_where,
                               $in_orderByField,
                               $this->_getOrderByDirection($in_orderByDir));
-        $s_query = $this->o_data->modifyLimitQuery($s_query, $in_offset, $in_limit);
         return $this->o_data->query($s_query);
     }
 

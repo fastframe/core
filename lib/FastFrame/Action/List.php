@@ -120,7 +120,6 @@ class FF_Action_List extends FF_Action_Form {
 
         $this->o_list->setTotalRecords($this->o_listModeler->getTotalModelsCount());
         $this->o_list->setMatchedRecords($this->o_listModeler->getMatchedModelsCount());
-        $this->o_list->setDisplayedRecords($this->o_listModeler->getDisplayedModelsCount());
         return true;
     }
 
@@ -191,7 +190,7 @@ class FF_Action_List extends FF_Action_Form {
      */
     function renderListData(&$in_tableWidget)
     {
-        if ($this->o_list->getDisplayedRecords() > 0) {
+        if ($this->o_list->getMatchedRecords() > 0) {
             while ($this->o_listModeler->loadNextModel()) {
                 $in_tableWidget->touchBlock('table_row');
                 $in_tableWidget->cycleBlock('table_content_cell');
@@ -320,7 +319,7 @@ class FF_Action_List extends FF_Action_Form {
      */
     function getDefaultDisplayLimit()
     {
-        return 30;
+        return 20;
     }
 
     // }}}
