@@ -275,7 +275,12 @@ class FF_DataAccess {
      */
     function timestampToISODate($in_date)
     {
-        return date("Y-m-d\tH:i:s", $in_date); 
+        if ($in_date == 0) {
+            return "0000-00-00\t00:00:00";
+        }
+        else {
+            return date("Y-m-d\tH:i:s", $in_date);
+        }
     }
 
     // }}}
