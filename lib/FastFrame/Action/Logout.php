@@ -1,5 +1,5 @@
 <?php
-/** $Id: Logout.php,v 1.6 2003/03/19 00:36:01 jrust Exp $ */
+/** $Id: Logout.php,v 1.7 2003/04/02 00:15:57 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -39,15 +39,6 @@ require_once dirname(__FILE__) . '/../Action.php';
 
 // }}}
 class FF_Action_Logout extends FF_Action {
-    // {{{ properties
-
-    /**
-     * The authentication object
-     * @type object
-     */
-    var $o_auth;
-
-    // }}}
     // {{{ constructor
 
     /**
@@ -61,7 +52,6 @@ class FF_Action_Logout extends FF_Action {
     function FF_Action_Logout(&$in_model)
     {
         FF_Action::FF_Action($in_model);
-        $this->o_auth =& FF_Auth::singleton();
     }
 
     // }}}
@@ -76,9 +66,9 @@ class FF_Action_Logout extends FF_Action {
     function run()
     {
         // only if they were logged in should we tell them they were just logged out
-        if ($this->o_auth->checkAuth()) {
-            $this->o_auth->logout(null, true);
-            $this->o_output->setMessage($this->getSuccessMessage());
+        if (FF_Auth::checkAuth()) {
+            FF_Auth::logout(null, true);
+            $this->o_output->setMessage($this->getSuccessMessage(), FASTFRAME_SUCCESS_MESSAGE);
         }
 
         $this->setSuccessActionId();
