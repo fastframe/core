@@ -1,5 +1,5 @@
 <?php
-/** $Id: ActionHandler.php,v 1.6 2003/03/15 01:26:57 jrust Exp $ */
+/** $Id: ActionHandler.php,v 1.7 2003/03/19 00:00:09 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -25,6 +25,26 @@
 require_once 'File.php';
 require_once dirname(__FILE__) . '/../FastFrame.php';
 require_once dirname(__FILE__) . '/Registry.php';
+
+// }}}
+// {{{ constants
+
+/**
+ * The predefined action constants.  If an app wants to define additional constants to be
+ * used it needs to put it in a actions.php file in the ActionHandler/ directory
+ */
+define('ACTION_PROBLEM',        'problem');
+define('ACTION_ADD',            'add');
+define('ACTION_ADD_SUBMIT',     'add_submit');
+define('ACTION_EDIT',           'edit');
+define('ACTION_EDIT_SUBMIT',    'edit_submit');
+define('ACTION_VIEW',           'view');
+define('ACTION_DELETE',         'delete');
+define('ACTION_LIST',           'list');
+define('ACTION_LOGIN',          'login');
+define('ACTION_LOGIN_SUBMIT',   'login_submit');
+define('ACTION_LOGOUT',         'logout');
+define('ACTION_DISPLAY',        'display');
 
 // }}}
 // {{{ class FF_ActionHandler 
@@ -78,26 +98,22 @@ class FF_ActionHandler {
     var $o_model;
 
     /**
-     * The array of default available actions (which are turned into constants later)
-     * The key is the action ID.  0 => the name of the constant.  1 => the relative path
-     * from here to the class file, 2 => the class name
+     * The array of default available actions, the path to the action class file and the
+     * name of the class
      * @type array
      */
     var $availableActions = array(
-        'problem'       => array('ACTION_PROBLEM', 'Action/Problem.php', 'FF_Action_Problem'),
-        'add'           => array('ACTION_ADD', 'Action/Form.php', 'FF_Action_Form'),
-        'add_submit'    => array('ACTION_ADD_SUBMIT', 'Action/FormSubmit.php', 'FF_Action_FormSubmit'),
-        'edit'          => array('ACTION_EDIT', 'Action/Form.php', 'FF_Action_Form'),
-        'edit_submit'   => array('ACTION_EDIT_SUBMIT', 'Action/FormSubmit.php', 'FF_Action_FormSubmit'),
-        'view'          => array('ACTION_VIEW', 'Action/View.php', 'FF_Action_View'),
-        'delete'        => array('ACTION_DELETE', 'Action/Delete.php', 'FF_Action_Delete'),
-        'list'          => array('ACTION_LIST', 'Action/List.php', 'FF_Action_List'),
-        'export'        => array('ACTION_EXPORT', 'Action/Export.php', 'FF_Action_Export'),
-        'login'         => array('ACTION_LOGIN', 'Action/Login.php', 'FF_Action_Login'),
-        'login_submit'  => array('ACTION_LOGIN_SUBMIT', 'Action/LoginSubmit.php', 'FF_Action_LoginSubmit'),
-        'logout'        => array('ACTION_LOGOUT', 'Action/Logout.php', 'FF_Action_Logout'),
-        'activate'      => array('ACTION_ACTIVATE', 'Action/Activate.php', 'FF_Action_Activate'),
-        'display'       => array('ACTION_DISPLAY', 'Action/Display.php', 'FF_Action_Display'),
+        ACTION_PROBLEM    => array('Action/Problem.php', 'FF_Action_Problem'),
+        ACTION_ADD        => array('Action/Form.php', 'FF_Action_Form'),
+        ACTION_ADD_SUBMIT => array('Action/FormSubmit.php', 'FF_Action_FormSubmit'),
+        ACTION_EDIT       => array('Action/Form.php', 'FF_Action_Form'),
+        ACTION_EDIT_SUBMIT=> array('Action/FormSubmit.php', 'FF_Action_FormSubmit'),
+        ACTION_DELETE     => array('Action/Delete.php', 'FF_Action_Delete'),
+        ACTION_LIST       => array('Action/List.php', 'FF_Action_List'),
+        ACTION_LOGIN      => array('Action/Login.php', 'FF_Action_Login'),
+        ACTION_LOGIN_SUBMIT=> array('Action/LoginSubmit.php', 'FF_Action_LoginSubmit'),
+        ACTION_LOGOUT     => array('Action/Logout.php', 'FF_Action_Logout'),
+        ACTION_DISPLAY    => array('Action/Display.php', 'FF_Action_Display'),
     );
 
     // }}}
@@ -113,7 +129,6 @@ class FF_ActionHandler {
     {
         $this->_initializeErrorHandler();
         $this->_checkAuth();
-        $this->_initializeDefaultConstants();
         $this->_makeActionPathsAbsolute();
         $this->o_registry =& FastFrame_Registry::singleton();
         $this->setActionId(FastFrame::getCGIParam('actionId', 'gp'));
@@ -142,10 +157,10 @@ class FF_ActionHandler {
 
         $hitLastAction = false;
         while (!$hitLastAction) {
-            $pth_actionFile = $this->availableActions[$this->actionId][1];
+            $pth_actionFile = $this->availableActions[$this->actionId][0];
             if (file_exists($pth_actionFile)) {
                 require_once $pth_actionFile;
-                $o_action = new $this->availableActions[$this->actionId][2]($this->o_model);
+                $o_action = new $this->availableActions[$this->actionId][1]($this->o_model);
                 $o_action->setCurrentActionId($this->actionId);
                 $o_nextAction =& $o_action->run();
                 if ($o_nextAction->isLastAction()) {
@@ -166,40 +181,18 @@ class FF_ActionHandler {
     // {{{ addAction()
 
     /**
-     * Adds/replaces an available action and registers the necessary class filees.
+     * Adds/modifies an available action and registers the necessary class filees.
      * 
-     * @param string $in_constantName The name of the constant for this action
-     * @param string $in_actionId The corresponding action value to assign to the constant
+     * @param string $in_actionId The action id 
      * @param string $in_classFile The path to the class file for this action
      * @param string $in_className The name of the class for this action
      *
      * @access public
      * @return void
      */
-    function addAction($in_constantName, $in_actionId, $in_classFile, $in_className)
+    function addAction($in_actionId, $in_classFile, $in_className)
     {
-        $this->availableActions[$in_actionId] = array($in_constantName, $in_classFile, $in_className);
-        define($in_constantName, $in_actionId);
-    }
-
-    // }}}
-    // {{{ modifyAction()
-
-    /**
-     * Modifies an existing action.  Thus, the actionId must already be defined. 
-     * Use if you want to override the class file with your own.
-     *
-     * @param $in_actionId The action ID to modify
-     * @param $in_classFile The path to the new class file
-     * @param $in_className The name of the new class
-     *
-     * @accesss public
-     * @return void
-     */
-    function modifyAction($in_actionId, $in_classFile, $in_className)
-    {
-        $this->availableActions[$in_actionId][1] = $in_classFile;
-        $this->availableActions[$in_actionId][2] = $in_className;
+        $this->availableActions[$in_actionId] = array($in_classFile, $in_className);
     }
 
     // }}}
@@ -221,9 +214,9 @@ class FF_ActionHandler {
      */
     function batchModifyActions($in_actions, $in_path, $in_classExtension) {
         foreach ($in_actions as $s_actionId) {
-            $s_newPath = File::buildPath(array($in_path, basename($this->availableActions[$s_actionId][1])));
-            $s_newClass = $this->availableActions[$s_actionId][2] . $in_classExtension;
-            $this->modifyAction($s_actionId, $s_newPath, $s_newClass);
+            $s_newPath = File::buildPath(array($in_path, basename($this->availableActions[$s_actionId][0])));
+            $s_newClass = $this->availableActions[$s_actionId][1] . $in_classExtension;
+            $this->addAction($s_actionId, $s_newPath, $s_newClass);
         }
     }
 
@@ -286,25 +279,9 @@ class FF_ActionHandler {
     {
         $s_path = dirname(__FILE__) . '/';
         foreach ($this->availableActions as $s_action => $a_vals) {
-            if (strpos($a_vals[1], '/') !== 0) {
-                $this->availableActions[$s_action][1] = $s_path . $a_vals[1];
+            if (strpos($a_vals[0], '/') !== 0) {
+                $this->availableActions[$s_action][0] = $s_path . $a_vals[0];
             }
-        }
-    }
-
-    // }}}
-    // {{{ _initializeDefaultConstants()
-
-    /**
-     * Takes care of initializing the default constants from the availableActions array
-     *
-     * @access private
-     * @return void
-     */
-    function _initializeDefaultConstants()
-    {
-        foreach ($this->availableActions as $s_action => $a_vals) {
-            define($a_vals[0], $s_action);
         }
     }
 
