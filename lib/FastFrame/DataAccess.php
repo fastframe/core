@@ -339,13 +339,15 @@ class FF_DataAccess {
      * Gets one row of data based on the primary key of the table
      *
      * @param int $in_id The primary key value
+     * @param string $in_fields (optional) The fields to select (default is all fields)
      *
      * @access public
      * @return array The array of data or empty array if not found
      */
-    function getDataByPrimaryKey($in_id)
+    function getDataByPrimaryKey($in_id, $in_fields = '*')
     {
-        $s_query = sprintf('SELECT * FROM %s WHERE %s=%s',
+        $s_query = sprintf('SELECT %s FROM %s WHERE %s=%s',
+                              $in_fields,
                               $this->table,
                               $this->primaryKey,
                               $this->o_data->quote($in_id)
