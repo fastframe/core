@@ -23,7 +23,6 @@
 // {{{ requires
 
 require_once dirname(__FILE__) . '/../Action.php';
-require_once dirname(__FILE__) . '/../Output/Table.php';
 
 // }}}
 // {{{ class FF_Action_Tree 
@@ -79,16 +78,10 @@ class FF_Action_Tree extends FF_Action {
     var $isOpen = 0;
 
     /**
-     * Template block that the container is rendered into
-     * @var string
-     */
-    var $templateBlock = 'content_middle';
-
-    /**
      * Template variable name that the container is rendered into
      * @var string
      */
-    var $templateVar = 'W_content_middle';
+    var $templateVar = 'content_middle';
 
     // }}}
     // {{{ run()
@@ -148,15 +141,12 @@ class FF_Action_Tree extends FF_Action {
      */
     function renderContainer($in_tree)
     {
-        $o_table =& new FF_Output_Table();
-        $o_table->setTableHeaderText($this->getPageName());
-        $o_table->setNumColumns(1);
-        $o_table->beginTable();
-        $o_tableWidget =& $o_table->getWidgetObject();
-        $o_tableWidget->touchBlock('table_row');
-        $o_tableWidget->cycleBlock('table_content_cell');
-        $o_tableWidget->assignBlockData(array('T_table_content_cell' => $in_tree), 'table_content_cell');
-        $this->o_output->assignBlockData(array($this->templateVar => $o_tableWidget->render()), $this->templateBlock);
+        $o_tableWidget =& new FF_Smarty('genericTable');
+        $o_tableWidget->assign(array('S_table_columns' => 1, 
+                    'T_table_header' => $this->getPageName(), 'has_table_header' => true));
+        $o_tableWidget->append('rows', array('has_content_cell' => true, 
+                    'T_table_content_cell' => $in_tree));
+        $this->o_output->o_tpl->append($this->templateVar, $o_tableWidget->fetch());
     }
 
     // }}}

@@ -54,13 +54,7 @@ class FF_Menu_QuickLinks extends FF_Menu_StaticList {
      * The template variable to which we assign the menu
      * @var string
      */
-    var $tmplVar = 'T_quick_links';
-
-    /**
-     * The template block to which we assign the menu
-     * @var string
-     */
-    var $tmplBlock = 'quick_links';
+    var $tmplVar = 'quick_links';
 
     // }}}
     // {{{ renderMenu()

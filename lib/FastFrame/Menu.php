@@ -245,6 +245,7 @@ class FF_Menu {
             return PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_WARNING, $s_cacheDir, 'FF_Error', true);
         }
         
+        require_once 'File.php';
         File::write($this->_getCacheFileName(), $in_data, FILE_MODE_WRITE);
         File::close($this->_getCacheFileName(), FILE_MODE_WRITE);
     }

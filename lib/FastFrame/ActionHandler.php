@@ -170,10 +170,6 @@ class FF_ActionHandler {
         $this->setAppId(FF_Request::getParam('app', 'pg'));
         $this->_makeDefaultPathsAbsolute();
         $this->_checkProfile();
-        $o_output =& FF_Output::singleton();
-        $s_theme = FF_Auth::getCredential('theme');
-        $s_theme = empty($s_theme) ? $this->o_registry->getConfigParam('display/default_theme') : $s_theme;
-        $o_output->load($s_theme);
     }
 
     // }}}

@@ -46,20 +46,13 @@ class FF_Menu_StaticList extends FF_Menu {
      * The template variable to which we assign the menu
      * @var string
      */
-    var $tmplVar = 'T_content_left';
-
-    /**
-     * The template block to which we assign the menu
-     * @var string
-     */
-    var $tmplBlock = 'content_left';
+    var $tmplVar = 'content_left';
 
     // }}}
     // {{{ renderMenu()
 
     /**
-     * Renders the StaticList menu.  Does this by rendering the html into the content_left
-     * block. 
+     * Renders the StaticList menu.
      *
      * @access public
      * @return void
@@ -75,7 +68,7 @@ class FF_Menu_StaticList extends FF_Menu {
         // Turn on menu
         $s_menu = $this->_getCachedMenu();
         if (!FastFrame::isEmpty($s_menu, false)) {
-            $this->o_output->assignBlockData(array($this->tmplVar => $s_menu), $this->tmplBlock);
+            $this->o_output->o_tpl->append($this->tmplVar, $s_menu);
         }
     }
 

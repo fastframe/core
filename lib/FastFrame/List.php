@@ -306,13 +306,11 @@ class FF_List {
         // {{{ template preparation
 
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
-            $o_searchWidget =& $this->o_output->getWidgetObject('searchTableSimple');
-            $o_searchWidget->assignBlockData(array(
-                        'T_search_header' => sprintf(_('Search Results (%s)'), $s_pagination)),
-                    $this->o_output->getGlobalBlockName());
+            $o_searchWidget =& new FF_Smarty('searchTableSimple');
+            $o_searchWidget->assign('T_search_header', sprintf(_('Search Results (%s)'), $s_pagination));
         }
         else {
-            $o_searchWidget =& $this->o_output->getWidgetObject('searchTable');
+            $o_searchWidget =& new FF_Smarty('searchTable'); 
             $s_printLink = $this->o_output->link(
                     FastFrame::selfURL(array_merge($this->persistentData, $a_listVars, 
                         array('printerFriendly' => 1))), 
@@ -325,13 +323,10 @@ class FF_List {
                     $this->totalRecords, 
                     $this->totalRecords == 1 ? $in_singularLang : $in_pluralLang);
 
-            $o_searchWidget->assignBlockData(
-                    array(
-                        'T_search_header' => _('Search Options'),
+            $o_searchWidget->assign(array('T_search_header' => _('Search Options'), 
                         'T_search_viewing' => sprintf(_('Viewing Page %s'), $s_pagination),
                         'T_search_options' => $o_renderer->elementToHtml('searchBoxType') . ' | ' . $s_printLink,
-                        'T_search_found' => $s_foundText), 
-                    $this->o_output->getGlobalBlockName());
+                        'T_search_found' => $s_foundText));
         }
 
         if ($a_listVars['searchBoxType'] != SEARCH_BOX_NORMAL) {
@@ -350,9 +345,7 @@ class FF_List {
 
 
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
-            $o_searchWidget->assignBlockData(
-                    array('T_search_find' => $s_findText),
-                    $this->o_output->getGlobalBlockName());
+            $o_searchWidget->assign('T_search_find', $s_findText);
         }
 
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
@@ -364,14 +357,11 @@ class FF_List {
                           $o_renderer->elementToHtml("sortField[$this->listId]") . ' ' .
                           $o_renderer->elementToHtml('sort_submit');
 
-            $o_searchWidget->assignBlockData(
-                    array('T_search_limit' => $s_limitText, 'T_search_sort' => $s_sortText, 
-                        'T_search_find' => $s_findText), 
-                    'advanced_list');
+            $o_searchWidget->assign(array('is_advanced_list' => true, 'T_search_limit' => $s_limitText, 
+                        'T_search_sort' => $s_sortText, 'T_search_find' => $s_findText));
         }
 
-        $o_searchWidget->assignBlockCallback(array(&$o_renderer, 'toHtml'));
-        return $o_searchWidget->render();
+        return $o_renderer->toHtml($o_searchWidget->fetch());
 
         // }}}
     }

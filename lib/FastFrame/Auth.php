@@ -318,7 +318,7 @@ class FF_Auth {
             $s_logoutApp = $o_registry->getConfigParam('general/logout_app');
             // Get the request url without the session.  Not using selfURL() because it calls
             // action handler which can make an infinite loop.
-            $s_redirectURL = preg_replace('/(\?|&)' . session_name() . '=.*?(&|$)/', '', $_SERVER['REQUEST_URI']);
+            $s_redirectURL = preg_replace('/[?&]' . session_name() . '=[^?&]*/', '', $_SERVER['REQUEST_URI']);
             $s_logoutURL = FastFrame::url(
                     $o_registry->getRootFile('index.php', null, FASTFRAME_WEBPATH), 
                     array('app' => $s_logoutApp, 'loginRedirect' => $s_redirectURL, session_name() => false), true);

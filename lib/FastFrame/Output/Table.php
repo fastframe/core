@@ -20,16 +20,11 @@
 // +----------------------------------------------------------------------+
 
 // }}}
-// {{{ requires 
-
-require_once dirname(__FILE__) . '/../Output.php';
-
-// }}}
 // {{{ class FF_Output_Table
 
 /**
- * The FF_Output_Table:: class extends the template class to provide
- * methods for creating a table using a combination of table templates.
+ * The FF_Output_Table:: class  provides methods for creating different
+ * types of tables.
  *
  * @author  Jason Rust <jrust@codejanitor.com>
  * @version Revision: 1.0 
@@ -38,8 +33,14 @@ require_once dirname(__FILE__) . '/../Output.php';
  */
 
 // }}}
-class FF_Output_Table extends FF_Template {
+class FF_Output_Table {
     // {{{ properties
+
+    /**
+     * The table type
+     * @var string
+     */
+    var $type;
 
     /**
      * The output object
@@ -63,7 +64,7 @@ class FF_Output_Table extends FF_Template {
      * Table header text
      * @var string
      */
-    var $tableHeaderText = 'Information';
+    var $tableHeaderText;
 
     /**
      * Alternating row colors?
@@ -90,52 +91,69 @@ class FF_Output_Table extends FF_Template {
     /**
      * Set variables on class initialization.
      *
+     * @param string $in_type The table type (options are: multiColumn,
+     *        twoColumn)
+     *
      * @access public
      * @return void
      */
-    function FF_Output_Table()
+    function FF_Output_Table($in_type)
     {
+        $this->type = $in_type;
         $this->o_output =& FF_Output::singleton();
     }
 
     // }}}
-    // {{{ beginTable()
+    // {{{ render()
 
     /**
-     * Begins a table
+     * Renders the table, based on the type
      *
      * @access public
      * @return void
      */
-    function beginTable()
+    function render()
     {
-        $this->o_widget =& $this->o_output->getWidgetObject('genericTable');
-        // Always want this block touched because it is a wrapper
-        // It is in the template so we can do this: 
-        // field cell | content cell | field cell | content cell...
-        $this->o_widget->makeBlockPersistent('table_cell_group');
-        $this->o_widget->assignBlockData(
-            array(
-                'S_TABLE_COLUMNS' => $this->numColumns,
-                'T_table_header' => $this->tableHeaderText,
-                'S_table_header' => 'style="text-align: center;"',
-            ),
-            $this->o_output->getGlobalBlockName()
-        );
-        $this->o_widget->touchBlock('switch_table_header');
+        switch($this->type) {
+            case 'multiColumn':
+                $this->o_widget =& new FF_Smarty('multiColumnTable');
+                $this->_renderMultiColumnTable();
+                break;
+            case 'twoColumn':
+            default:
+                $this->o_widget =& new FF_Smarty('genericTable');
+                $this->_renderTwoColumnTable();
+        }
+
+        $this->setTableVars();
     }
 
     // }}}
-    // {{{ renderTwoColumnTable()
+    // {{{ setTableVars()
 
     /**
-     * Processes the table headers by registering the appropriate html.  Creates a basic
-     * two column table of | title | data |
+     * Sets table-wide variables
+     *
+     * @access public
+     * @return void
+     */
+    function setTableVars()
+    {
+        $this->o_widget->assign(array('S_table_columns' => $this->numColumns,
+                'T_table_header' => $this->tableHeaderText, 'has_table_header' => true));
+    }
+
+    // }}}
+    // {{{ _renderTwoColumnTable()
+
+    /**
+     * Processes the table headers by registering the appropriate html.
+     * Creates a basic two column table of | title | data |
      *
      * @access public
      * @return void 
      */
-    function renderTwoColumnTable()
+    function _renderTwoColumnTable()
     {
         $tmp_css = '
         <style type="text/css">
@@ -145,35 +163,22 @@ class FF_Output_Table extends FF_Template {
         }
         </style>';
         // make the cells even in width
-        $this->o_output->assignBlockData(array('T_css' => $tmp_css), 'css'); 
-        $this->beginTable();
+        $this->o_output->o_tpl->append('css', $tmp_css);
         $i = 0;
         foreach ($this->tableHeaders as $tmp_header) {
-            $this->o_widget->assignBlockData(array('S_table_row' => 
-                        'class="' . $this->getRowClass($i++) . '"'), 'table_row');
-            $this->o_widget->cycleBlock('table_field_cell');
-            $this->o_widget->cycleBlock('table_content_cell');
-            $tmp_style = isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : '';
-            $this->o_widget->assignBlockData(
-                array(
-                    'T_table_field_cell' => $this->o_output->processCellData($tmp_header['title']),
-                    'S_table_field_cell' => $tmp_style,
-                ),
-                'table_field_cell'
-            );
-            $tmp_style = isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : '';
-            $this->o_widget->assignBlockData(
-                array(
-                    'T_table_content_cell' => $this->o_output->processCellData($tmp_header['data']), 
-                    'S_table_content_cell' => $tmp_style,
-                ),
-                'table_content_cell'
-            );
+            $tmp_class = $this->alternateRowColors ? $this->o_output->toggleRow($i++) : 'primaryRow';
+            $this->o_widget->append('rows', array(
+                        'S_table_row' => 'class="' . $tmp_class . '"',
+                        'has_field_cell' => true, 'has_content_cell' => true,
+                        'T_table_field_cell' => $this->o_output->processCellData($tmp_header['title']),
+                        'S_table_field_cell' => isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : '',
+                        'T_table_content_cell' => $this->o_output->processCellData($tmp_header['data']), 
+                        'S_table_content_cell' => isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : ''));
         }
     }
 
     // }}}
-    // {{{ renderMultiRowTable()
+    // {{{ _renderMultiColumnTable()
 
     /**
      * Processes the table headers by registering the appropriate html.  Creates a
@@ -189,48 +194,34 @@ class FF_Output_Table extends FF_Template {
      *           1 => array(0 => array('data' => 'test')),
      *           2 => array('data' => 'test2'))
      *
-     * @param bool $in_noTitles (optional) No titles in the table? if so we assume first row
-     *              is data.
-     * @access public
+     * @access private
      * @return void 
      */
-    function renderMultiRowTable($in_noTitles = false)
+    function _renderMultiColumnTable()
     {
         $this->setNumColumns(count($this->tableHeaders[0]));
-        $this->beginTable();
-        if (!$in_noTitles) {
+        if (isset($this->tableHeaders[0][0]['title'])) {
             $tmp_headers = array_shift($this->tableHeaders);
-            $this->o_widget->touchBlock('table_row');
-            $this->o_widget->cycleBlock('table_field_cell');
-            $this->o_widget->cycleBlock('table_content_cell');
+            $this->o_widget->assign('has_field_row', true);
             foreach ($tmp_headers as $tmp_header) {
-                $tmp_style = isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : '';
-                $this->o_widget->assignBlockData(
-                    array(
-                        'T_table_field_cell' => $this->o_output->processCellData($tmp_header['title']),
-                        'S_table_field_cell' => $tmp_style,
-                    ),
-                    'table_field_cell'
-                );
+                $this->o_widget->append('fieldCells', array(
+                            'T_table_field_cell' => $this->o_output->processCellData($tmp_header['title']),
+                            'S_table_field_cell' => isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : ''));
             }
         }
 
         $i = 0;
         foreach ($this->tableHeaders as $tmp_headers) {
-            $this->o_widget->assignBlockData(array('S_table_row' => 
-                        'class="' . $this->getRowClass($i++) . '"'), 'table_row');
-            $this->o_widget->cycleBlock('table_field_cell');
-            $this->o_widget->cycleBlock('table_content_cell');
+            $tmp_class = $this->alternateRowColors ? $this->o_output->toggleRow($i++) : 'primaryRow';
+            $a_cells = array();
             foreach ($tmp_headers as $tmp_header) {
-                $tmp_style = isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : '';
-                $this->o_widget->assignBlockData(
-                    array(
-                        'T_table_content_cell' => $this->o_output->processCellData($tmp_header['data']), 
-                        'S_table_content_cell' => $tmp_style,
-                    ),
-                    'table_content_cell'
-                );
+                $a_cells[] = array(
+                        'T_table_content_cell' => $this->o_output->processCellData($tmp_header['data']),
+                        'S_table_content_cell' => isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : '');
             }
+
+            $this->o_widget->append('rows', array(
+                        'S_table_row' => 'class="' . $tmp_class . '"', 'cells' => $a_cells));
         }
     }
 
@@ -283,23 +274,6 @@ class FF_Output_Table extends FF_Template {
     function setTableHeaderText($in_text)
     {
         $this->tableHeaderText = $in_text; 
-    }
-
-    // }}}
-    // {{{ getRowClass()
-
-    /**
-     * Gets the row class based on the count variable passed in and the
-     * value of alternateRowColors
-     *
-     * @param int $in_count The row count variable
-     *
-     * @access public
-     * @return string The class name for the row
-     */
-    function getRowClass($in_count)
-    {
-        return ($this->alternateRowColors && ($in_count % 2)) ? 'secondaryRow' : 'primaryRow';
     }
 
     // }}}

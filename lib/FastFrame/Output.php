@@ -24,9 +24,8 @@
 // }}}
 // {{{ requires 
 
-require_once dirname(__FILE__) . '/Template.php';
+require_once dirname(__FILE__) . '/Smarty.php';
 require_once 'Net/UserAgent/Detect.php';
-require_once 'File.php';
 
 // }}}
 // {{{ constants
@@ -59,8 +58,14 @@ define('FASTFRAME_SUCCESS_MESSAGE', 'success.gif', true);
  */
 
 // }}}
-class FF_Output extends FF_Template {
+class FF_Output {
     // {{{ properties
+
+    /**
+     * The overall template instance
+     * @var object
+     */
+    var $o_tpl;
 
     /**
      * o_registry instance
@@ -116,6 +121,16 @@ class FF_Output extends FF_Template {
     function FF_Output()
     {
         $this->o_registry =& FF_Registry::singleton();
+        // Set up master template
+        $this->o_tpl =& new FF_Smarty('overall');
+        $this->setDefaults();
+        // Include some common js
+        $this->addScriptFile($this->o_registry->getRootFile('domLib_strip.js', 'javascript', FASTFRAME_WEBPATH));
+        $this->addScriptFile($this->o_registry->getRootFile('domTT_strip.js', 'javascript', FASTFRAME_WEBPATH));
+        $this->addScriptFile($this->o_registry->getRootFile('core.lib.js', 'javascript', FASTFRAME_WEBPATH));
+        // Prevents E_ALL errors
+        $this->o_tpl->assign(array('content_left' => array(), 'status_messages' => array(),
+                    'page_explanation' => array(), 'content_right' => array()));
     }
 
     // }}}
@@ -141,130 +156,30 @@ class FF_Output extends FF_Template {
     }
 
     // }}}
-    // {{{ load()
+    // {{{ completeTpl()
 
     /**
-     * Loads in the template file and registers default blocks
-     *
-     * @param string $in_theme The theme to use
+     * Completes the template, rendering any necessary menus,
+     * javascript, messages, and variables.  Should be called right
+     * before rendering the template.
      *
      * @access public
      * @return void
      */
-    function load($in_theme)
-    {
-        $this->theme = FF_Request::getParam('printerFriendly', 'gp', false) ?
-            $this->o_registry->getConfigParam('display/print_theme') : $in_theme;
-
-        // See if theme is a full path (if theme is in app directory it can be)
-        if ($this->_is_absolute($this->theme)) {
-            $this->themeDir = $this->theme;
-            $this->theme = basename($this->theme);
-        }
-        else {
-            $this->themeDir = $this->o_registry->getRootFile($this->theme, 'themes');
-        }
-
-        // See if theme has its own main template
-        $pth_overall = $this->themeDir;
-        if (!is_readable($pth_overall . '/overall.tpl')) {
-            $pth_overall = $this->o_registry->getRootFile('widgets', 'themes');
-        }
-
-        // now that we have the template directory, we can initialize the template engine
-        parent::FF_Template($pth_overall);
-        parent::load('overall.tpl', 'file');
-
-        // Initialize menu to default type
-        $this->setMenuType($this->o_registry->getConfigParam('display/menu_type'));
-
-        // If it's printer friendly we have no menu
-        if (FF_Request::getParam('printerFriendly', 'gp', false)) {
-            $this->setMenuType('none');
-        }
-
-        // Set popup type 
-        if (FF_Request::getParam('isPopup', 'gp', false)) {
-            $this->setPageType('popup');
-        }
-        
-        // include some common js, needs to be at top before any of their functions are used
-        $this->assignBlockData(
-            array('T_javascript' => 
-                '<script language="JavaScript" type="text/javascript" src="' . 
-                $this->o_registry->getRootFile('domLib_strip.js', 'javascript', FASTFRAME_WEBPATH) . 
-                '"></script>' . "\n" .
-                '<script language="JavaScript" type="text/javascript" src="' . 
-                $this->o_registry->getRootFile('domTT_strip.js', 'javascript', FASTFRAME_WEBPATH) . 
-                '"></script>' . "\n" .
-                '<script language="JavaScript" type="text/javascript" src="' . 
-                $this->o_registry->getRootFile('core.lib.js', 'javascript', FASTFRAME_WEBPATH) . 
-                '"></script>',
-            ),
-            'javascript'
-        );
-    }
-
-    // }}}
-    // {{{ output()
-
-    /**
-     * Outputs the template data to the browser.
-     *
-     * @access public
-     * @return void
-     */
-    function output()
+    function completeTpl()
     {
         $this->_renderMessages();
         // The main style sheet
         $this->renderCSS('widgets', $this->o_registry->getRootFile('widgets', 'themes'));
         // The theme-specific style sheet
         $this->renderCSS($this->theme, $this->themeDir);
-        $this->assignBlockData(
-            array(
-                'COPYWRITE' => 'Copywrite &#169; 2002-2003 The CodeJanitor Group',
-                'CONTENT_ENCODING' => $this->o_registry->getConfigParam('general/charset', 'ISO-8559-1'),
-                'U_SHORTCUT_ICON' => $this->o_registry->getConfigParam('general/favicon'),
-                'PAGE_TITLE' => $this->getPageTitle(),
-            ),
-            $this->getGlobalBlockName()
-        );
-
+        $this->o_tpl->assign(array(
+                    'COPYWRITE' => 'Copywrite &#169; 2002-2003 The CodeJanitor Group',
+                    'CONTENT_ENCODING' => $this->o_registry->getConfigParam('general/charset', 'ISO-8559-1'),
+                    'U_SHORTCUT_ICON' => $this->o_registry->getConfigParam('general/favicon'),
+                    'PAGE_TITLE' => $this->getPageTitle()));
         $this->_renderPageType();
         $this->_renderMenus();
-        return $this->render();
-    }
-
-    // }}}
-    // {{{ getWidgetObject()
-
-    /**
-     * Gets a widget object.  First looks to see if the theme has the widget, if not it
-     * loads the widget from the default widgets directory.
-     *
-     * @param string $in_widget The widget name or the full path to the widget file.
-     *
-     * @access public
-     * @return object The FF_Template object for the specified widget
-     */
-    function &getWidgetObject($in_widget)
-    {
-        // See if it's a full path or just a widget name
-        if (substr($in_widget, -4) == '.tpl') {
-            $s_directory = dirname($in_widget); 
-        }
-        else {
-            $in_widget .= '.tpl';
-            $s_directory = $this->themeDir;
-            if (!is_readable($s_directory . '/' . $in_widget)) {
-                $s_directory = $this->o_registry->getRootFile('widgets', 'themes');
-            }
-        }
-
-        $o_widget =& new FF_Template($s_directory);
-        $o_widget->load($in_widget, 'file');
-        return $o_widget;
     }
 
     // }}}
@@ -304,25 +219,26 @@ class FF_Output extends FF_Template {
         // Make the CSS file if needed
         if (!file_exists($s_cssCacheFile) || 
             filemtime($s_cssTemplateFile) > filemtime($s_cssCacheFile)) {
-            $o_cssWidget =& $this->getWidgetObject($s_cssTemplateFile); 
-            // touch the browser specific block
-            $o_cssWidget->touchBlock('switch_is_' . $s_browser);
-            // set some variables
-            $o_cssWidget->assignBlockData(array(
+            $o_cssWidget =& new FF_Smarty($s_cssTemplateFile); 
+            // We already know the template is out of date
+            $o_cssWidget->force_compile = true;
+            // Use delimiters that work in css files
+            $o_cssWidget->left_delimiter = '{{';
+            $o_cssWidget->right_delimiter = '}}';
+            $o_cssWidget->assign(array('is_' . $s_browser => true,
                     'THEME_DIR' => $this->o_registry->rootPathToWebPath($in_themeDir),
-                    'ROOT_GRAPHICS_DIR' => $this->o_registry->getRootFile('', 'graphics', FASTFRAME_WEBPATH)),
-                $this->getGlobalBlockName());
-
-            File::write($s_cssCacheFile, $o_cssWidget->render(), FILE_MODE_WRITE);
+                    'ROOT_GRAPHICS_DIR' => $this->o_registry->getRootFile('', 'graphics', FASTFRAME_WEBPATH)));
+            require_once 'File.php';
+            File::write($s_cssCacheFile, $o_cssWidget->fetch(), FILE_MODE_WRITE);
             File::close($s_cssCacheFile, FILE_MODE_WRITE);
         }
 
         $s_cssURL = $this->o_registry->getRootFile('css/' . $in_theme . '/' . $s_cssFileName, 
                 'cache', FASTFRAME_WEBPATH);
         // register the CSS file 
-        $this->assignBlockData(array(
+        $this->o_tpl->append('css',
                 // put the filemtime on so that they only grab the new file when it is recreated
-                'T_css' => '<link rel="stylesheet" type="text/css" href="' . $s_cssURL . '?fresh=' . filemtime($s_cssCacheFile) . '" />'), 'css');
+                '<link rel="stylesheet" type="text/css" href="' . $s_cssURL . '?fresh=' . filemtime($s_cssCacheFile) . '" />');
     }
 
     // }}}
@@ -395,7 +311,7 @@ class FF_Output extends FF_Template {
             $a_options['onclick'] .= ' return window.confirm(\'' . $s_confirm . '\');';
         }
 
-        $a_events = $this->_prepare_tooltip(
+        $a_events = $this->_prepareTooltip(
             array(
                 'caption'      => $a_options['caption'],
                 'content'      => $a_options['title'],
@@ -559,7 +475,7 @@ class FF_Output extends FF_Template {
             return $s_imgWebPath;
         }
         else {
-            $a_events = $this->_prepare_tooltip(array(
+            $a_events = $this->_prepareTooltip(array(
                     'caption'      => isset($in_options['caption']) ? $in_options['caption'] : '',
                     'content'      => isset($in_options['title']) ? $in_options['title'] : '',
                     'status'       => isset($in_options['status']) ? $in_options['status'] : '',
@@ -591,6 +507,22 @@ class FF_Output extends FF_Template {
     }
 
     // }}}
+    // {{{ addScriptFile()
+
+    /**
+     * Adds a javascript file to the template.
+     *
+     * @param string $in_file The path to the javascript file
+     * @access public
+     * @return void
+     */
+    function addScriptFile($in_file)
+    {
+        $this->o_tpl->append('javascript',
+                '<script language="JavaScript" type="text/javascript" src="' . $in_file . '"></script>');
+    }
+
+    // }}}
     // {{{ processCellData()
 
     /**
@@ -606,6 +538,42 @@ class FF_Output extends FF_Template {
     function processCellData($in_data)
     {
         return ($in_data == '' || $in_data === false) ? '&nbsp;' : $in_data;
+    }
+
+    // }}}
+    // {{{ setDefaults()
+
+    /**
+     * Determines the default theme and menu.
+     *
+     * @access public
+     * @return void
+     */
+    function setDefaults()
+    {
+        // If it's printer friendly we have no menu
+        if (FF_Request::getParam('printerFriendly', 'gp', false)) {
+            $this->setMenuType('none');
+        }
+        // Initialize menu to default type
+        else {
+            $this->setMenuType($this->o_registry->getConfigParam('display/menu_type'));
+        }
+
+        // Set popup type 
+        if (FF_Request::getParam('isPopup', 'gp', false)) {
+            $this->setPageType('popup');
+        }
+
+        // Set the theme
+        if (FF_Request::getParam('printerFriendly', 'gp', false)) {
+            $this->setTheme($this->o_registry->getConfigParam('display/print_theme'));
+        }
+        else {
+            $s_theme = FF_Auth::getCredential('theme');
+            $s_theme = empty($s_theme) ? $this->o_registry->getConfigParam('display/default_theme') : $s_theme;
+            $this->setTheme($s_theme);
+        }
     }
 
     // }}}
@@ -715,6 +683,30 @@ class FF_Output extends FF_Template {
     }
 
     // }}}
+    // {{{ setTheme()
+
+    /**
+     * Sets the theme, including it's directory.
+     *
+     * @param string $in_theme The theme
+     *
+     * @access public
+     * @return void
+     */
+    function setTheme($in_theme)
+    {
+        // See if theme is a full path (if theme is in app directory it can be)
+        if ($this->_isAbsolute($in_theme)) {
+            $this->themeDir = $in_theme;
+            $this->theme = basename($in_theme);
+        }
+        else {
+            $this->theme = $in_theme;
+            $this->themeDir = $this->o_registry->getRootFile($this->theme, 'themes');
+        }
+    }
+
+    // }}}
     // {{{ getTheme()
 
     /**
@@ -729,6 +721,22 @@ class FF_Output extends FF_Template {
     }
 
     // }}}
+    // {{{ toggleRow()
+
+    /**
+     * Gets the row class based on the count variable passed in.
+     *
+     * @param int $in_count The row count variable
+     *
+     * @access public
+     * @return string The class name for the row
+     */
+    function toggleRow($in_count)
+    {
+        return $in_count % 2 ? 'secondaryRow' : 'primaryRow';
+    }
+
+    // }}}
     // {{{ _renderMessages()
 
     /**
@@ -740,15 +748,10 @@ class FF_Output extends FF_Template {
     function _renderMessages()
     {
         foreach ($this->messages as $s_key => $a_message) {
-            $this->assignBlockData(
-                array(
-                    'S_status_message_count' => $s_key,
-                    'T_status_message' => $a_message[0],
-                    'I_status_message' => $this->imgTag($a_message[1], 'alerts'),
-                    'I_status_message_close' => $this->imgTag('close.gif', 'actions', array('onclick' => 'document.getElementById(\'message_' . $s_key . '\').style.display = \'none\';', 'style' => 'cursor: pointer;')),
-                ),
-                'status_message'
-            );
+            $this->o_tpl->append('status_messages', array(
+                        'T_status_message' => $a_message[0],
+                        'I_status_message' => $this->imgTag($a_message[1], 'alerts'),
+                        'I_status_message_close' => $this->imgTag('close.gif', 'actions', array('onclick' => 'document.getElementById(\'message_' . $s_key . '\').style.display = \'none\';', 'style' => 'cursor: pointer;'))));
         }
     }
 
@@ -771,11 +774,11 @@ class FF_Output extends FF_Template {
             break;
             case 'normal':
                 if ($s_header = $this->_getHeaderText()) {
-                    $this->assignBlockData(array('T_banner_top' => $s_header), 'switch_banner_top');
+                    $this->o_tpl->assign('header', $s_header);
                 }
 
                 if ($s_footer = $this->_getFooterText()) {
-                    $this->assignBlockData(array('T_banner_bottom' => $s_footer), 'switch_banner_bottom');
+                    $this->o_tpl->assign('footer', $s_footer);
                 }
             break;
             default:
@@ -878,7 +881,7 @@ class FF_Output extends FF_Template {
     }
 
     // }}}
-    // {{{ _prepare_tooltip()
+    // {{{ _prepareTooltip()
 
     /**
      * Prepares the tooltip caption, content, and the window status for the dom tooltip
@@ -890,7 +893,7 @@ class FF_Output extends FF_Template {
      * @access private
      * @return string events
      */
-    function _prepare_tooltip($in_options = array())
+    function _prepareTooltip($in_options = array())
     {
         $a_events = array(
             'onmouseover' => '',
@@ -955,6 +958,28 @@ class FF_Output extends FF_Template {
         }
 
         return $a_events;
+    }
+
+    // }}}
+    // {{{ _isAbsolute()
+
+    /**
+     * Tells if a path is abolute.  Allows for ../ in the path.
+     *
+     * @param $in_path The path
+     *
+     * @access private
+     * @return bool True if it is absolute.
+     */
+    function _isAbsolute($in_path)
+    {
+        if ((DIRECTORY_SEPARATOR == '/' && (substr($in_path, 0, 1) == '/' || substr($in_path, 0, 1) == '~')) ||
+            (DIRECTORY_SEPARATOR == '\\' && preg_match('/^[a-z]:\\\/i', $in_path))) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     // }}}

@@ -139,7 +139,7 @@ class FF_Action_Form extends FF_Action {
         $this->o_form->accept($this->o_renderer);
         $o_table =& $this->renderFormTable();
         $o_tableWidget =& $o_table->getWidgetObject();
-        $this->o_output->assignBlockData(array('W_content_middle' => $o_tableWidget->render()), 'content_middle');
+        $this->o_output->o_tpl->append('content_middle', $this->o_renderer->toHtml($o_tableWidget->fetch()));
         return $this->o_nextAction;
     }
 
@@ -171,15 +171,9 @@ class FF_Action_Form extends FF_Action {
      */
     function renderSubmitRow(&$in_tableWidget, $in_colspan)
     {
-        $in_tableWidget->touchBlock('table_row');
-        $in_tableWidget->cycleBlock('table_field_cell');
-        $in_tableWidget->assignBlockData(
-            array(
-                'T_table_field_cell' => $this->getSubmitButtons(),
-                'S_table_field_cell' => 'colspan="' . $in_colspan . '" style="text-align: center;"',
-            ),
-            'table_field_cell'
-        );
+        $in_tableWidget->append('rows', array('has_field_cell' => true,
+                    'T_table_field_cell' => $this->getSubmitButtons(),
+                    'S_table_field_cell' => 'colspan="' . $in_colspan . '" style="text-align: center;"'));
     }
 
     // }}}
@@ -194,13 +188,12 @@ class FF_Action_Form extends FF_Action {
     function &renderFormTable()
     {
         require_once dirname(__FILE__) . '/../Output/Table.php';
-        $o_table =& new FF_Output_Table();
+        $o_table =& new FF_Output_Table('twoColumn');
         $o_table->setTableHeaderText($this->getTableHeaderText());
         $o_table->setTableHeaders($this->getTableData());
-        $o_table->renderTwoColumnTable();
+        $o_table->render();
         $o_tableWidget =& $o_table->getWidgetObject();
         $this->renderSubmitRow($o_tableWidget, $o_table->getNumColumns());
-        $o_tableWidget->assignBlockCallback(array(&$this->o_renderer, 'toHtml'));
         return $o_table;
     }
 

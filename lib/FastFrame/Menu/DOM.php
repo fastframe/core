@@ -67,13 +67,13 @@ class FF_Menu_DOM extends FF_Menu {
         }
 
         // Turn on menu
-        $this->o_output->touchBlock('switch_menu');
+        $this->o_output->o_tpl->assign('has_domMenu', true);
         $s_domMenu = $this->_getCachedMenu();
         // Because we don't know which node will be the last because of perms
         // We have to take off the last comma from the last node of each set
         $s_domMenu = preg_replace('/,(\s+)\)/', '\\1)', $s_domMenu);
         // Load menu js
-        $this->o_output->assignBlockData(array('T_javascript' => $s_domMenu), 'javascript');
+        $this->o_output->o_tpl->append('javascript', $s_domMenu);
     }
 
     // }}}

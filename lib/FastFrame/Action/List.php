@@ -25,7 +25,6 @@
 require_once dirname(__FILE__) . '/Form.php';
 require_once dirname(__FILE__) . '/../List.php';
 require_once dirname(__FILE__) . '/../ListModeler.php';
-require_once dirname(__FILE__) . '/../Output/Table.php';
 
 // }}}
 // {{{ class FF_Action_List
@@ -77,16 +76,14 @@ class FF_Action_List extends FF_Action_Form {
 
         if (!FF_Request::getParam('printerFriendly', 'gp', false)) {
             $this->renderAdditionalLinks();
-            $this->o_output->assignBlockData(
-                    array('W_search_box' => $this->o_list->renderSearchBox(
-                            $this->getSingularText(), $this->getPluralText())),
-                    'switch_search_box');
+            $this->o_output->o_tpl->assign(array('has_search_box' => true, 
+                        'W_search_box' => $this->o_list->renderSearchBox(
+                            $this->getSingularText(), $this->getPluralText())));
         }
         else {
-            $s_link = $this->o_output->link(
-                    FastFrame::selfURL($this->o_list->getAllListVariables()), 
-                    _('Return To List'));
-            $this->o_output->assignBlockData(array('T_page_link' => $s_link), 'page_link');
+            $this->o_output->o_tpl->append('page_links', $this->o_output->link(
+                        FastFrame::selfURL($this->o_list->getAllListVariables()), 
+                        _('Return To List')));
         }
 
         $this->o_output->setPageName($this->getPageName());
@@ -153,37 +150,30 @@ class FF_Action_List extends FF_Action_Form {
      */
     function createListTable()
     {
-        $o_table =& new FF_Output_Table();
-        $o_table->setTableHeaderText($this->getTableHeaderText());
-        $o_table->setNumColumns(count($this->o_list->getColumnData()));
-        $o_table->beginTable();
-        $o_table->setAlternateRowColors(true);
-        $o_tableWidget =& $o_table->getWidgetObject();
-        // Needed for the highlight row javascript
-        $o_tableWidget->assignBlockData(array('S_table' => 'id="listTable"'), 
-                $this->o_output->getGlobalBlockName());
-        $o_tableWidget->touchBlock('table_row');
-        $o_tableWidget->cycleBlock('table_field_cell');
-        $o_tableWidget->cycleBlock('table_content_cell');
+        $s_numCols = count($this->o_list->getColumnData());
+        $o_tableWidget =& new FF_Smarty('multiColumnTable');
+        $o_tableWidget->assign(array('has_table_header' => true, 'has_field_row' => true,
+                    // Needed for the highlight row javascript
+                    'S_table' => 'id="listTable"',
+                    'T_table_header' => $this->getTableHeaderText(),
+                    'S_table_columns' => $s_numCols)); 
         foreach ($this->o_list->generateSortFields() as $s_cell) {
-            $o_tableWidget->assignBlockData(array('T_table_field_cell' => $s_cell), 'table_field_cell');
+            $o_tableWidget->append('fieldCells', array('T_table_field_cell' => $s_cell));
         }
 
         if (!FF_Request::getParam('printerFriendly', 'gp', false)) {
             $a_data = $this->o_list->generateNavigationLinks();
-            $o_navWidget =& $this->o_output->getWidgetObject('navigationRow');
-            $o_navWidget->assignBlockData(array(
-                    'S_TABLE_COLUMNS'       => $o_table->getNumColumns(),
-                    'I_navigation_first'    => $a_data['first'],
-                    'I_navigation_previous' => $a_data['previous'],
-                    'I_navigation_next'     => $a_data['next'],
-                    'I_navigation_last'     => $a_data['last'],
-                    ));
-            $o_tableWidget->assignBlockData(array('T_end_data' => $o_navWidget->render()), $this->o_output->getGlobalBlockName());
+            $o_navWidget =& new FF_Smarty('navigationRow');
+            $o_navWidget->assign(array('S_table_columns' => $s_numCols, 
+                        'I_navigation_first' => $a_data['first'],
+                        'I_navigation_previous' => $a_data['previous'],
+                        'I_navigation_next' => $a_data['next'],
+                        'I_navigation_last' => $a_data['last']));
+            $o_tableWidget->assign(array('T_end_data' => $o_navWidget->fetch()));
         }
 
-        $this->renderListData($o_table);
-        $this->o_output->assignBlockData(array('W_content_middle' => $o_tableWidget->render()), 'content_middle');
+        $this->renderListData($o_tableWidget, $s_numCols);
+        $this->o_output->o_tpl->append('content_middle', $o_tableWidget->fetch());
     }
     
     // }}}
@@ -206,14 +196,14 @@ class FF_Action_List extends FF_Action_Form {
     /**
      * Registers the data for the list into the table
      *
-     * @param object $in_tableObj The table object 
+     * @param object $in_tableWidget The table widget
+     * @param int $in_numCols The number of columns in the table
      *
      * @access public
      * @return void
      */
-    function renderListData(&$in_tableObj)
+    function renderListData(&$in_tableWidget, $in_numCols)
     {
-        $o_tableWidget =& $in_tableObj->getWidgetObject();
         if ($this->o_list->getMatchedRecords() > 0) {
             $i = 0;
             $b_highlightRows = false;
@@ -223,14 +213,9 @@ class FF_Action_List extends FF_Action_Form {
             }
 
             while ($this->o_listModeler->loadNextModel()) {
-                $tmp_extraJs = '';
-                if ($b_highlightRows) {
-                    $tmp_extraJs = ' onclick="window.location.href=\'' . $this->getHighlightedRowUrl() . '\';"';
-                }
-
-                $o_tableWidget->assignBlockData(array('S_table_row' => 
-                            'class="' . $in_tableObj->getRowClass($i++) . '"' . $tmp_extraJs), 'table_row');
-                $o_tableWidget->cycleBlock('table_content_cell');
+                $tmp_extraJs = $b_highlightRows ? 
+                    ' onclick="window.location.href=\'' . $this->getHighlightedRowUrl() . '\';"' : '';
+                $a_cells = array();
                 foreach ($this->getFieldMap() as $tmp_fields) {
                     $s_attr = '';
                     $tmp_fields['args'] = isset($tmp_fields['args']) ? $tmp_fields['args'] : array();
@@ -249,22 +234,19 @@ class FF_Action_List extends FF_Action_Form {
                         }
                     }
 
-                    $o_tableWidget->assignBlockData(array(
-                                'T_table_content_cell' => $tmp_displayData,
-                                'S_table_content_cell' => $s_attr), 'table_content_cell');
+                    $a_cells[] = array('T_table_content_cell' => $tmp_displayData,
+                            'S_table_content_cell' => $s_attr);
                 }
+
+                $in_tableWidget->append('rows', array(
+                            'S_table_row' => 'class="' . $this->o_output->toggleRow($i++) . '"' . $tmp_extraJs,
+                            'cells' => $a_cells));
             }
         }
         else {
-            $o_tableWidget->assignBlockData(array('S_table_row' => 'class="primaryRow"'), 'table_row');
-            $o_tableWidget->cycleBlock('table_content_cell');
-            $o_tableWidget->assignBlockData(
-                array(
-                    'T_table_content_cell' => $this->getNoResultText(),
-                    'S_table_content_cell' => 'style="font-style: italic; text-align: center;" colspan="' . count($this->o_list->getColumnData()) . '"', 
-                ),
-                'table_content_cell'
-            );
+            $in_tableWidget->append('rows', array('S_table_row' => 'class="primaryRow"',
+                        'cells' => array(array('T_table_content_cell' => $this->getNoResultText(),
+                            'S_table_content_cell' => 'style="font-style: italic; text-align: center;" colspan="' . $in_numCols . '"'))));
         }
     }
 
@@ -520,11 +502,7 @@ class FF_Action_List extends FF_Action_Form {
      */
     function _renderHighlightJs()
     {
-        $this->o_output->assignBlockData(
-            array('T_javascript' => '<script language="JavaScript" type="text/javascript" src="' . 
-                $this->o_registry->getRootFile('highlightRow.js', 'javascript', FASTFRAME_WEBPATH) . 
-                '"></script>' . "\n"),
-            'javascript');
+        $this->o_output->addScriptFile($this->o_registry->getRootFile('highlightRow.js', 'javascript', FASTFRAME_WEBPATH));
     }
 
     // }}}

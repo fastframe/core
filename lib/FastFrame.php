@@ -90,6 +90,7 @@ class FastFrame {
             // if it was set to false then remove it
             elseif (!$in_vars[$sessName]) {
                 unset($in_vars[$sessName]);
+                $GLOBALS['o_error']->debug($in_vars, 'in_vars', __LINE__, __FILE__);
             }
         }
 
