@@ -1,5 +1,5 @@
 <?php
-/** $Id: FormSubmit.php,v 1.5 2003/04/02 00:17:20 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -65,11 +65,11 @@ class FF_Action_FormSubmit extends FF_Action {
      */
     function run()
     {
-        if (!$this->checkPerms()) {
+        $this->fillModelWithSubmitData();
+        if (!$this->checkPerms() || $this->doMultiPageForm()) {
             return $this->o_nextAction;
         }
 
-        $this->fillModelWithSubmitData();
         $o_result =& $this->validateInput();
         if (!$o_result->isSuccess()) {
             $o_result->addMessage($this->getProblemMessage());
@@ -191,6 +191,21 @@ class FF_Action_FormSubmit extends FF_Action {
     function checkPerms()
     {
         return true;
+    }
+
+    // }}}
+    // {{{ doMultiPageForm()
+
+    /**
+     * If this is a multi-page form this method will set the next action for the next page
+     * in the form and export the model to a session var. 
+     *
+     * @access public
+     * @return bool True if it is a multi-page form, false otherwise
+     */
+    function doMultiPageForm()
+    {
+        return false;
     }
 
     // }}}
