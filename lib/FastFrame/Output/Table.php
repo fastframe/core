@@ -172,40 +172,55 @@ class FF_Output_Table {
      * multi-column multi-row table of
      * title    |   title
      * data     |   data
+     * data     |   data
+     * It assumes that the first element of the tableHeaders is an array of the title cells
+     * and title attributes and that the rest of the elments are arrays of data cells and data
+     * attributes.  An example data structure:
+     * $a_data = array(
+     *           0 => array(0 => array('title' => 'foo')),
+     *           1 => array(0 => array('data' => 'test')),
+     *           2 => array('data' => 'test2'))
      *
+     * @param bool $in_noTitles (optional) No titles in the table? if so we assume first row
+     *              is data.
      * @access public
      * @return void 
      */
-    function renderMultiRowTable()
+    function renderMultiRowTable($in_noTitles = false)
     {
-        $this->setNumColumns(count($this->tableHeaders));
+        $this->setNumColumns(count($this->tableHeaders[0]));
         $this->beginTable();
-        $this->o_widget->touchBlock('table_row');
-        $this->o_widget->cycleBlock('table_field_cell');
-        $this->o_widget->cycleBlock('table_content_cell');
-        foreach ($this->tableHeaders as $tmp_header) {
-            $tmp_style = isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : '';
-            $this->o_widget->assignBlockData(
-                array(
-                    'T_table_field_cell' => $tmp_header['title'],
-                    'S_table_field_cell' => $tmp_style,
-                ),
-                'table_field_cell'
-            );
+        if (!$in_noTitles) {
+            $tmp_headers = array_shift($this->tableHeaders);
+            $this->o_widget->touchBlock('table_row');
+            $this->o_widget->cycleBlock('table_field_cell');
+            $this->o_widget->cycleBlock('table_content_cell');
+            foreach ($tmp_headers as $tmp_header) {
+                $tmp_style = isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : '';
+                $this->o_widget->assignBlockData(
+                    array(
+                        'T_table_field_cell' => $tmp_header['title'],
+                        'S_table_field_cell' => $tmp_style,
+                    ),
+                    'table_field_cell'
+                );
+            }
         }
 
-        $this->o_widget->touchBlock('table_row');
-        $this->o_widget->cycleBlock('table_field_cell');
-        $this->o_widget->cycleBlock('table_content_cell');
-        foreach ($this->tableHeaders as $tmp_header) {
-            $tmp_style = isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : '';
-            $this->o_widget->assignBlockData(
-                array(
-                    'T_table_content_cell' => $tmp_header['data'], 
-                    'S_table_content_cell' => $tmp_style,
-                ),
-                'table_content_cell'
-            );
+        foreach ($this->tableHeaders as $tmp_headers) {
+            $this->o_widget->touchBlock('table_row');
+            $this->o_widget->cycleBlock('table_field_cell');
+            $this->o_widget->cycleBlock('table_content_cell');
+            foreach ($tmp_headers as $tmp_header) {
+                $tmp_style = isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : '';
+                $this->o_widget->assignBlockData(
+                    array(
+                        'T_table_content_cell' => $tmp_header['data'], 
+                        'S_table_content_cell' => $tmp_style,
+                    ),
+                    'table_content_cell'
+                );
+            }
         }
     }
 
