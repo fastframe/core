@@ -1,5 +1,5 @@
 <?php
-/** $Id: Perms.php,v 1.8 2003/03/19 00:36:01 jrust Exp $ */
+/** $Id: Perms.php,v 1.9 2003/04/02 00:09:01 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -17,35 +17,26 @@
 // | MA 02111-1307, USA.                                                  |
 // +----------------------------------------------------------------------+
 // | Authors: Greg Gilbert <greg@treke.net>                               |
+// |          Jason Rust <jrust@codejanitor.com>                          |
 // +----------------------------------------------------------------------+
 
 // }}}
 // {{{ includes
 
-require_once dirname(__FILE__) . '/Perms/PermSource.php';
-
-// }}}
-// {{{ constants
-
-/**
- * User classes.  Rough grained permissions.
- */
-define('UC_GUEST',          1);
-define('UC_USER',           2); 
-define('UC_ADMIN_VIEWER',   4); 
-define('UC_ADMIN_EDITOR',   8); 
-define('UC_ADMIN',          16); 
-define('UC_ROOT',           32); 
+require_once dirname(__FILE__) . '/Registry.php';
+require_once dirname(__FILE__) . '/Auth.php';
 
 // }}}
 // {{{ class FF_Perms
+
 /**
- * A class for managing user permissions
+ * A class for managing user permissions.  A gui and sql interface is implemented by the
+ * FastFrame permissions application.
  *
  * @author		Greg Gilbert <greg@treke.net>
- * @version	    Version 1.0
- * @package		FastFrame
- * @see			User Auth
+ * @author		Jason Rust <jrust@codejanitor.com>
+ * @version	    Version 1.1
+ * @package	    Perms
  */
 
 // }}}
@@ -53,188 +44,156 @@ class FF_Perms {
     // {{{ properties
 
     /**
-     * User ID of the user associated with this permissions object
-     * @type    string
-     * @access	private
+     * User Id of the user associated with this permissions object
+     * @type int 
      */
-    var $_userid;
+    var $userId;
 
     /**
-     * Caches user permissions so we do not need to look them up
-     * for each request
-     * @type    array
-     * @access	private
+     * Caches user permissions
+     * @type array
      */
-    var $_permCache;
+    var $permsCache = array();
 
     /**
-     * Provides an actual interface to the data source for permissions
-     * @type    object
-     * @access	private
+     * The array of super users defined in the config file
+     * @type array 
      */
-    var $_permSource;
+    var $superUsers;
 
-    // //}}}
+
+    // }}}
     // {{{ constructor
 
     /**
      * Initializes the FF_Perms class
      *
-     * This function initializes the permissions class for the
-     * for the specified user.
-     *
-     * @param string $in_userID (optional) The user ID to get perms for. If not passed in we
-     *               grab the info from Auth.
+     * @param string $in_userId The user Id to get perms for
      *
      * @access public
      * @return void
      */
-    function FF_Perms($in_userID = null)
+    function FF_Perms($in_userId)
     {
-        if (is_null($in_userID)) {
-            $this->_userID = FF_Auth::getCredential('userID');
-        }
-        else {
-            $this->_userID = $in_userID;
-        }
-
-        $o_registry =& FF_Registry::singleton();
-
-        $a_source = $o_registry->getConfigParam('perms/source');
-        //$this->permSource =& PermSource::create($a_source['type'], $s_name, $a_source['params']);
+        $this->userId = $in_userId;
+        $this->setSuperUsers();
     }
 
     // }}}
-    // {{{ getAppList()
+    // {{{ factory()
 
     /**
-     * Returns a list of apps the user has access to
-     *
-     * This function returns a list of FastFrame Apps that are 
-     * installed in this framework that the user as LOGIN 
-     * permissions for. 
+     * Attempts to return a concrete Perms instance based on the type specified in the
+     * registry.  Currently supported are 'dummy' which should be used when no permissions
+     * support is wanted and 'permissions_app' which will use the library provided by the
+     * permissions application. 
      *
      * @access public
-     * @return array The list of apps that the user has Login perms for
+     * @return object The newly created concrete Perms instance
      */
-    function getAppList()
+    function &factory()
     {
+        static $a_instances;
+        if (!isset($a_instances)) {
+            $a_instances = array();
+        }
+
         $o_registry =& FF_Registry::singleton();
+        $s_type = $o_registry->getConfigParam('perms/source');
+        $s_userId = FF_Auth::getCredential('userId');
+        if (!isset($a_instances[$s_type]) && !isset($a_instances[$s_type][$s_userId])) {
+            // the dummy type is just an instance of this class whose methods will
+            // allow all users to do everything 
+            if ($s_type == 'dummy') { 
+                $a_instances[$s_type][$s_userId] =& new FF_Perms($s_userId);
+            } 
+            // use the model class from the permissions app to tell us info about perms
+            elseif ($s_type == 'permissions_app') {
+                $s_class = 'ff_perms_' . $s_type;
+                require_once $o_registry->getAppFile('Model/Perms.php', 'permissions', 'libs');
+                $a_instances[$s_type][$s_userId] =& new FF_Perms_PermissionsApp($s_userId);
+            } 
+            else {
+                return FastFrame::fatal('Invalid permissions source was defined in the config file.', __FILE__, __LINE__);
+            }
+        }
 
-        if ($this->isSuperUser()) {
-            return $o_registry->getApps();
-        }
-        else {
-            return $this->permSource->getAppList();
-        }
+        return $a_instances[$s_type][$s_userId];
     }
 
-    // }}}
-    // {{{ getGroupList()
-
-    /**
-     * Returns a list of groups that the user belongs to in the current app
-     *
-     * This function returns an array containting all groups that the current 
-     * user has any permissions in
-     *
-     * @access public
-     * @return array List of all groups that the user is in
-     */
-    function getGroupList()
-    {
-        return $this->permSource->getGroupList();
-    }
     // }}}
     // {{{ hasPerm()
 
     /**
-     * Check whether a user has the needed permission
+     * Check whether a user has a certain permission for a specific app
      *
-     * This function looks up whether a user is in a group
-     * with the requested permissions in the current app.
-     *
-     * @param $in_perms mixed Either a string or array of permissions to check.
+     * @param mixed $in_perm Either a string or an array of permissions to check.
+     * @param string $in_app The application the permission is associated with
+     *               If not passed we use the current application
      *
      * @access public
      * @return bool Whether the user has the specified perms or not.
      */
-    function hasPerms($in_perms)
+    function hasPerm($in_perm, $in_app = null)
     {
-        $b_hasPerms = false;
-        $s_app = FastFrame::getCurrentApp();
+        // dummy interface gives the user permission to everything
+        return true;
+    }
 
-        if ($this->isSuperUser()) {
-            return true;
+    // }}}
+    // {{{ isSuperUser()
+
+    /**
+     * Determines if the user is a super user
+     *
+     * @return bool True if the user is a super user, false otherwise
+     */
+    function isSuperUser()
+    {
+        static $s_userName;
+        if (!isset($s_userName)) {
+            $s_userName = FF_Auth::getCredential('username');
         }
 
-        if (!is_array($this->_permCache[$s_app]) && 
-            (count($this->_permCache[$s_app]) == 0)) {
+        return in_array($s_userName, $this->superUsers);
+    }
 
-            // We dont have permissions cached, so we need to get them
-            $this->_permCache[$s_app] = $this->_permSource->getPerms($s_app);
-        }
+    // }}}
+    // {{{ setSuperUsers()
 
+    /**
+     * Sets the super users array
+     *
+     * @access public
+     * @return void
+     */
+    function setSuperUsers()
+    {
+        $o_registry =& FF_Registry::singleton();
+        $this->superUsers = (array) $o_registry->getConfigParam('perms/superusers', array(), array('app' => 'permissions'));
+    }
 
-        // $in_perms may be an array of permissions, or a single string
-        if (is_array($in_perms)) {
-            $i_foundCount = 0;
+    // }}}
+    // {{{ _getPermCacheKey()
 
-            // Look for each of the requested permissions
-            foreach ($in_perms as $s_perm) {
-                if (in_array($this->_permCache[$s_app], $s_perm)) {
-                    $i_foundCount++;
-                }
-
-                if ($i_foundCount == count($in_perms)) {
-                    $b_hasPerms = true;
-                }
-            }
+    /**
+     * Gets the key we use to cache the perm results.  Handles both an array of perms
+     * and a string.  Makes sure that the key is unique.
+     *
+     * @param mixed $in_perm Either a string or an array of permissions to check.
+     * @param string $in_app The application the permission is associated with
+     *
+     * @access private
+     * @return string The key for the specified perm/app combo
+     */
+    function _getPermCacheKey($in_perm, $in_app)
+    {
+        if (is_array($in_perm)) {
+            return $in_app . ':' . serialize($in_perm);
         }
         else {
-            // Look up the one requested permission
-            if (in_array($this->permCache[$s_app], $in_perms)) {
-                $b_hasPerms = true;
-            }
+            return $in_app . ':' . $in_perm;
         }
-
-        return $b_hasPerms;
-    }
-
-    // }}}
-    // {{{ getUserClasses()
-
-    /**
-     * Returns an array of the available user classes
-     *
-     * @access public
-     * @return array The array of 'user class description' => 'user class value'
-     */
-    function getUserClasses()
-    {
-        return array(
-            'UC_GUEST' => UC_GUEST,
-            'UC_USER' => UC_USER,
-            'UC_ADMIN_VIEWER' => UC_ADMIN_VIEWER,
-            'UC_ADMIN_EDITOR' => UC_ADMIN_EDITOR,
-            'UC_ADMIN' => UC_ADMIN,
-            'UC_ROOT' => UC_ROOT,
-        );
-    }
-
-    // }}}
-    // {{{ getUserClass()
-
-    /**
-     * Returns the user class that the user is a member of
-     *
-     * @access public
-     * @return int The user class
-     */
-    function getUserClass()
-    {
-        // [!] not done yet [!]
-        return UC_ROOT;
     }
 
     // }}}
