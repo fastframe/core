@@ -960,20 +960,6 @@ class FF_List {
     }
 
     // }}}
-    // {{{ getTotalRecords()
-
-    /**
-     * Gets the total records variable 
-     *
-     * @access public
-     * @return int Total number of records to display. 
-     */
-    function getTotalRecords()
-    {
-        return $this->totalRecords;
-    }
-
-    // }}}
     // {{{ setMatchedRecords()
 
     /**
