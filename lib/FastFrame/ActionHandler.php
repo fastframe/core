@@ -1,5 +1,5 @@
 <?php
-/** $Id: ActionHandler.php,v 1.3 2003/02/12 20:52:38 jrust Exp $ */
+/** $Id: ActionHandler.php,v 1.4 2003/02/22 01:52:02 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -20,26 +20,31 @@
 // +----------------------------------------------------------------------+
 
 // }}}
-// {{{ class ActionHandler 
+// {{{ requires
+
+require_once 'File.php';
+require_once dirname(__FILE__) . '/../FastFrame.php';
+require_once dirname(__FILE__) . '/Registry.php';
+
+// }}}
+// {{{ class FF_ActionHandler 
 
 /**
- * The ActionHandler:: class handles page actions.
+ * The FF_ActionHandler:: class handles page actions.
  *
  * Actions are are passed via a GET/POST actionId.  The action handler is meant to be
- * extended by each application and module to override the default method for each possible
- * action that may take place in the application.  This level in the framework structure
- * should handle all incoming actions and pass them off to the Application class which will
- * handle any manipulation of data.  It also handles the creation of the output seen by the
- * user, be it error messages, list pages, or forms.
+ * extended by each application and module to initialize the application actions and data
+ * access object.  It is the controller that sets up the environment for the page and then
+ * finds the action to take.
  *
  * @author  Jason Rust <jrust@codejanitor.com>
  * @version Revision: 1.0 
  * @access  public
- * @package ActionHandler 
+ * @package FF_ActionHandler 
  */
 
 // }}}
-class ActionHandler {
+class FF_ActionHandler {
     // {{{ properties
 
     /**
@@ -49,17 +54,28 @@ class ActionHandler {
     var $actionId;
 
     /**
-     * The application object.  Used for permforming actions on the database or performing
-     * application specific logic.
-     * @type object
-     */
-    var $o_application;
-
-    /**
      * The default actionId for when an invalid actionId is passed in
      * @type string 
      */
     var $defaultActionId;
+
+    /**
+     * This application's name
+     * @type string
+     */
+    var $appName;
+
+    /**
+     * The registry object
+     * @type object
+     */
+    var $o_registry;
+
+    /**
+     * The data access object
+     * @type object
+     */
+    var $o_dataAccess;
 
     /**
      * The array of default available actions (which are turned into constants later)
@@ -68,20 +84,20 @@ class ActionHandler {
      * @type array
      */
     var $availableActions = array(
-        'problem'       => array('ACTION_PROBLEM', 'ActionHandler/Problem.php', 'ActionHandler_Problem'),
-        'add'           => array('ACTION_ADD', 'ActionHandler/Form.php', 'ActionHandler_Form'),
-        'add_submit'    => array('ACTION_ADD_SUBMIT', 'ActionHandler/FormSubmit.php', 'ActionHandler_FormSubmit'),
-        'edit'          => array('ACTION_EDIT', 'ActionHandler/Form.php', 'ActionHandler_Form'),
-        'edit_submit'   => array('ACTION_EDIT_SUBMIT', 'ActionHandler/FormSubmit.php', 'ActionHandler_FormSubmit'),
-        'view'          => array('ACTION_VIEW', 'ActionHandler/View.php', 'ActionHandler_View'),
-        'delete'        => array('ACTION_DELETE', 'ActionHandler/Delete.php', 'ActionHandler_Delete'),
-        'list'          => array('ACTION_LIST', 'ActionHandler/List.php', 'ActionHandler_List'),
-        'export'        => array('ACTION_EXPORT', 'ActionHandler/Export.php', 'ActionHandler_Export'),
-        'login'         => array('ACTION_LOGIN', 'ActionHandler/Login.php', 'ActionHandler_Login'),
-        'login_submit'  => array('ACTION_LOGIN_SUBMIT', 'ActionHandler/LoginSubmit.php', 'ActionHandler_LoginSubmit'),
-        'logout'        => array('ACTION_LOGOUT', 'ActionHandler/Logout.php', 'ActionHandler_Logout'),
-        'activate'      => array('ACTION_ACTIVATE', 'ActionHandler/Activate.php', 'ActionHandler_Activate'),
-        'display'       => array('ACTION_DISPLAY', 'ActionHandler/Display.php', 'ActionHandler_Display'),
+        'problem'       => array('ACTION_PROBLEM', 'Action/Problem.php', 'FF_Action_Problem'),
+        'add'           => array('ACTION_ADD', 'Action/Form.php', 'FF_Action_Form'),
+        'add_submit'    => array('ACTION_ADD_SUBMIT', 'Action/FormSubmit.php', 'FF_Action_FormSubmit'),
+        'edit'          => array('ACTION_EDIT', 'Action/Form.php', 'FF_Action_Form'),
+        'edit_submit'   => array('ACTION_EDIT_SUBMIT', 'Action/FormSubmit.php', 'FF_Action_FormSubmit'),
+        'view'          => array('ACTION_VIEW', 'Action/View.php', 'FF_Action_View'),
+        'delete'        => array('ACTION_DELETE', 'Action/Delete.php', 'FF_Action_Delete'),
+        'list'          => array('ACTION_LIST', 'Action/List.php', 'FF_Action_List'),
+        'export'        => array('ACTION_EXPORT', 'Action/Export.php', 'FF_Action_Export'),
+        'login'         => array('ACTION_LOGIN', 'Action/Login.php', 'FF_Action_Login'),
+        'login_submit'  => array('ACTION_LOGIN_SUBMIT', 'Action/LoginSubmit.php', 'FF_Action_LoginSubmit'),
+        'logout'        => array('ACTION_LOGOUT', 'Action/Logout.php', 'FF_Action_Logout'),
+        'activate'      => array('ACTION_ACTIVATE', 'Action/Activate.php', 'FF_Action_Activate'),
+        'display'       => array('ACTION_DISPLAY', 'Action/Display.php', 'FF_Action_Display'),
     );
 
     // }}}
@@ -90,43 +106,17 @@ class ActionHandler {
     /**
      * Set variables on class initialization.
      *
-     * @param object $in_appObject The application object. 
-     *
      * @access public
      * @return void
      */
-    function ActionHandler(&$in_appObject)
+    function FF_ActionHandler()
     {
-        $this->o_application =& $in_appObject;
+        $this->_initializeErrorHandler();
+        $this->_checkAuth();
         $this->_initializeDefaultConstants();
         $this->_makeActionPathsAbsolute();
+        $this->o_registry =& FastFrame_Registry::singleton();
         $this->setActionId(FastFrame::getCGIParam('actionId', 'gp'));
-    }
-
-    // }}}
-    // {{{ singleton()
-
-    /**
-     * To be used in place of the contructor to return any open instance.
-     *
-     * This function is used in place of the contructor to return any open instances
-     * of the html object, and if none are open will create a new instance and cache
-     * it using a static variable
-     *
-     * @param object $in_dataObject (optional) The data object.  If not passed in then we
-     *               assume this app does not use a database.
-     *
-     * @access public
-     * @return object ActionHandler instance
-     */
-    function &singleton($in_dataObject = null)
-    {
-        static $o_instance;
-        if (!isset($o_instance)) {
-            $o_instance = new ActionHandler($in_dataObject);
-        }
-
-        return $o_instance;
     }
 
     // }}}
@@ -150,16 +140,26 @@ class ActionHandler {
             }
         }
 
-        $pth_actionFile = $this->availableActions[$this->actionId][1];
-        if (file_exists($pth_actionFile)) {
-            require_once $pth_actionFile;
-            $o_action = new $this->availableActions[$this->actionId][2];
-            $o_action->o_application =& $this->o_application;
-            $o_action->run();
-        }
-        else {
-            $tmp_error = "The class file for action $this->actionId ($pth_actionFile) does not exist";
-            FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
+        $hitLastAction = false;
+        while (!$hitLastAction) {
+            $pth_actionFile = $this->availableActions[$this->actionId][1];
+            if (file_exists($pth_actionFile)) {
+                require_once $pth_actionFile;
+                $o_action = new $this->availableActions[$this->actionId][2];
+                $o_action->setCurrentActionId($this->actionId);
+                $o_action->setDataAccessObject($this->o_dataAccess);
+                $o_nextAction =& $o_action->run();
+                if ($o_nextAction->isLastAction()) {
+                    $hitLastAction = true;
+                }
+                else {
+                    $this->actionId = $o_nextAction->getNextActionId();
+                }
+            }
+            else {
+                $tmp_error = "The class file for action $this->actionId ($pth_actionFile) does not exist";
+                FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
+            }
         }
     }
 
@@ -306,6 +306,46 @@ class ActionHandler {
     {
         foreach ($this->availableActions as $s_action => $a_vals) {
             define($a_vals[0], $s_action);
+        }
+    }
+
+    // }}}
+    // {{{ _initializeErrorHandler()
+
+    /**
+     * Initializes the error handler
+     *
+     * @access private
+     * @return void
+     */
+    function _initializeErrorHandler()
+    {
+        define('ECLIPSE_ROOT', dirname(__FILE__) . '/../eclipse/');
+        require_once dirname(__FILE__) . '/../Error/Error.php';
+        $o_reporter =& new ErrorReporter();
+        $o_reporter->setDateFormat('[Y-m-d H:i:s]');
+        $o_reporter->setStrictContext(false);
+        $o_reporter->setExcludeObjects(false);
+        $o_reporter->addReporter('console', E_VERY_ALL);
+        ErrorList::singleton($o_reporter, 'o_error');
+    }
+
+    // }}}
+    // {{{ _checkAuth()
+
+    /**
+     * Initializes the auth object and makes sure that the page can proceed because the
+     * authentication passes
+     *
+     * @access private
+     * @return void
+     */
+    function _checkAuth()
+    {
+        require_once dirname(__FILE__) . '/Auth.php';
+        $o_auth =& FastFrame_Auth::singleton();
+        if (!$o_auth->checkAuth()) {
+            $o_auth->logout();
         }
     }
 
