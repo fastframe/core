@@ -228,8 +228,8 @@ class FF_Output extends FF_Template {
             $this->getGlobalBlockName()
         );
 
-        $this->_renderMenus();
         $this->_renderPageType();
+        $this->_renderMenus();
         return $this->render();
     }
 
