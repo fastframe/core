@@ -168,7 +168,6 @@ class FF_List {
      * @param string $in_sortField The default field to sort on
      * @param int $in_sortOrder The default sort order (1 = ASC, 0 = DESC)
      * @param int $in_displayLimit The default display limit
-     * @param bool $in_showListAll Toggle showing or hiding the listall button
      *
      * @access public
      * @return void
@@ -249,7 +248,7 @@ class FF_List {
                 // You can't change anything when changing pages...doesn't make sense, so
                 // reset the form before going on to the next page
                 $o_form->addElement('select', "pageOffset[$this->listId]", null, $a_pageOptions, 
-                        array('style' => 'vertical-align: middle;', 'onchange' => 'var tmp = this.selectedIndex; this.form.reset(); this.options[tmp].selected = true; if (typeof(validate_search_box) != "function" || validate_search_box()) { this.form.submit(); } else { return false; }'));
+                        array('style' => 'vertical-align: middle;', 'onchange' => 'var tmp = this.selectedIndex; this.form.reset(); this.options[tmp].selected = true; if (typeof(validate_search_box) != "function" || validate_search_box(this.form)) { this.form.submit(); } else { return false; }'));
                 // Has to be rendered later
                 $s_pagination = false; 
             }
