@@ -340,7 +340,7 @@ class FF_List {
                             FastFrame::selfURL(array_merge($this->persistentData, $a_listVars, 
                                     array('searchBoxType' => SEARCH_BOX_ADVANCED))), '&#187; ' . _('More Search Options'))));
         }
-        elseif ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
+        else {
             $s_limitText = sprintf(_('Display %s results per page'), 
                     $o_renderer->elementToHtml("displayLimit[$this->listId]"));
 
