@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.4 2003/01/22 21:00:28 jrust Exp $ */
+/** $Id: List.php,v 1.5 2003/01/23 21:11:38 jrust Exp $ */
 // {{{ class FastFrame_List
 
 /**
@@ -1044,7 +1044,7 @@ class FastFrame_List {
     function getDefaultSortField()
     {
         $o_registry =& FastFrame_Registry::singleton();
-        return $o_registry->getConfigParam('data/default_sort');
+        return $o_registry->getConfigParam('app/default_sort');
     }
 
     // }}}
