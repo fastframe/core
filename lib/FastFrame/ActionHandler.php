@@ -55,6 +55,8 @@ define('ACTION_RELOAD',         'reload');
 define('ACTION_TREE',           'tree');
 define('ACTION_HOME',           'home');
 define('ACTION_DOWNLOAD',       'download');
+define('ACTION_CONTACT',        'contact');
+define('ACTION_CONTACT_SUBMIT', 'contact_submit');
 
 // }}}
 // {{{ class FF_ActionHandler 
@@ -149,6 +151,8 @@ class FF_ActionHandler {
         ACTION_TREE       => array('Action/Tree.php', 'FF_Action_Tree'),
         ACTION_TREE       => array('Action/Tree.php', 'FF_Action_Tree'),
         ACTION_DOWNLOAD   => array('Action/Download.php', 'FF_Action_Download'),
+        ACTION_CONTACT    => array('Action/Contact.php', 'FF_Action_Contact'),
+        ACTION_CONTACT_SUBMIT => array('Action/ContactSubmit.php', 'FF_Action_ContactSubmit'),
     );
 
     // }}}

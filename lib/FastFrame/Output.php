@@ -378,7 +378,7 @@ class FF_Output {
      */
     function getHelpLink($in_text, $in_title = null)
     {
-        if ($this->o_registry->getConfigParam('user/use_help', false)) {
+        if ($this->o_registry->getConfigParam('help/show_tooltips', false)) {
             $in_title = is_null($in_title) ? _('Help') : $in_title;
             return $this->link('#', $this->imgTag('help.png', 'actions', array('height' => 16, 'width' => 16)),
                     array('title' => $in_text, 'caption' => $in_title));
@@ -969,6 +969,11 @@ class FF_Output {
             $a_microtime = explode(' ', microtime());
             define('FASTFRAME_END_TIME', $a_microtime[1] . substr($a_microtime[0], 1));
             $s_footer = str_replace('%renderTime%', number_format(FASTFRAME_END_TIME - FASTFRAME_START_TIME, 2), $s_footer);
+        }
+
+        if ($this->o_registry->getConfigParam('help/show_link')) {
+            $s_footer .= ' ' . $this->link(FastFrame::selfURL(array('actionId' => ACTION_CONTACT)),
+                    _('Need Help?'));
         }
 
         return $s_footer;

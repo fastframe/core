@@ -190,7 +190,7 @@ class FF_SystemTest {
             'pear_mail' => array(
                 'method' => '_checkPEARMail',
                 'name' => 'PEAR Mail',
-                'errorMsg' => _('You do not have the PEAR Mail module installed.  It is required for the checkout and alum_website applications.'),
+                'errorMsg' => _('You do not have the PEAR Mail module installed.'),
                 'successMsg' => _('You have the PEAR Mail module.')),
             'pear_mail_mime' => array(
                 'method' => '_checkPEARMailMime',
