@@ -537,7 +537,7 @@ class FF_Output extends FF_Template {
         }
         // Else it's a relative path and we have to search for the image
         else {
-            $s_type = $in_type == 'none' || is_null($in_type) ? '/' : "/$in_type/";
+            $s_type = $in_type == 'none' || is_null($in_type) ? '/' : "$in_type/";
             $tmp_img = $s_type . $in_img;
             // See if an app was specified
             if (isset($in_options['app'])) {
@@ -555,7 +555,8 @@ class FF_Output extends FF_Template {
         // See if we need to add on hostname
         if (!empty($in_options['fullPath']) && strpos($s_imgWebPath, 'http://') !== 0) {
             $s_imgWebPath = ($this->o_registry->getConfigParam('server/use_ssl') ? 'https' : 'http') . 
-                            '://' . $this->o_registry->getConfigParam('webserver/hostname') . $s_imgWebPath;
+                            '://' . $this->o_registry->getConfigParam('webserver/hostname') . 
+                            '/' . $s_imgWebPath;
         }
 
         if (isset($in_options['onlyUrl']) && $in_options['onlyUrl']) {

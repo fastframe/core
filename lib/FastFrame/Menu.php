@@ -514,7 +514,7 @@ class FF_Menu {
         $in_data['statusText'] = isset($in_data['statusText']) ? 
             $in_data['statusText'] : $in_data['contents'];
         $in_data['icon'] = isset($in_data['icon']) ? 
-            addcslashes($this->o_output->imgTag($in_data['icon'], 'none', array('fullPath' => true)), '\'') . ' ' : '';
+            addcslashes($this->o_output->imgTag($in_data['icon'], 'none'), '\'') . ' ' : '';
         $in_data['target'] = isset($in_data['target']) ? $in_data['target'] : '_self';
         $in_data['urlParams'] = isset($in_data['urlParams']) ? 
             $this->_getLinkUrl($in_data['urlParams'], $in_sessionInTags) : '';
