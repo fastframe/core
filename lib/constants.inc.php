@@ -1,5 +1,5 @@
 <?php
-/** $Id: constants.inc.php,v 1.2 2003/01/09 22:43:51 jrust Exp $ */
+/** $Id: constants.inc.php,v 1.3 2003/01/23 23:00:52 jrust Exp $ */
 if (!defined('IN_FASTFRAME')) {
     die('Hacking Attempt');
 }
@@ -7,20 +7,30 @@ if (!defined('IN_FASTFRAME')) {
 /**
  * Global list of all actionID constants used in the different apps.
  */
-define('NOOP',                   -1, true);
-define('ADD_OBJECT',              1, true);
-define('EDIT_OBJECT',             2, true);
-define('ADD_OBJECT_SUBMIT',       3, true);
-define('EDIT_OBJECT_SUBMIT',      4, true);
-define('DELETE_OBJECT_SUBMIT',    5, true);
-define('LIST_OBJECTS',            6, true);
-define('EXPORT_OBJECTS',          7, true);
-define('SUBSCRIBE',               8, true);
-define('SUBSCRIBE_SUBMIT',        9, true);
-define('LOGIN',                  10, true);
-define('LOGIN_SUBMIT',           11, true);
-define('LOGOUT_SUBMIT',          12, true);
-define('DISPLAY_MAIN',           13, true);
+define('ACTION_NOOP',             'noop');
+define('ACTION_ADD',              'add');
+define('ACTION_ADD_SUBMIT',       'add_submit');
+define('ACTION_EDIT',             'edit');
+define('ACTION_EDIT_SUBMIT',      'edit_submit');
+define('ACTION_VIEW',             'view');
+define('ACTION_DELETE',           'delete');
+define('ACTION_LIST',             'list');
+define('ACTION_EXPORT',           'export');
+define('ACTION_LOGIN',            'login');
+define('ACTION_LOGIN_SUBMIT',     'login_submit');
+define('ACTION_LOGOUT',           'logout');
+define('ACTION_ACTIVATE',         'activate');
+define('ACTION_DISPLAY',          'display');
+
+/**
+ * User classes.  Rough grained permissions.
+ */
+define('UC_GUEST',          1);
+define('UC_USER',           2); 
+define('UC_ADMIN_VIEWER',   4); 
+define('UC_ADMIN_EDITOR',   8); 
+define('UC_ADMIN',          16); 
+define('UC_ROOT',           32); 
 
 /**
  * Message constants.  These images need to be in the graphics/alerts directory.
