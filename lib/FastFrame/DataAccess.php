@@ -409,20 +409,59 @@ class FF_DataAccess {
      * @param string $in_fields (optional) The fields to select (default is all fields)
      *
      * @access public
-     * @return array The array of data or empty array if not found
+     * @return array The array of dat
      */
     function getDataByPrimaryKey($in_id, $in_fields = '*')
     {
-        $s_query = sprintf('SELECT %s FROM %s WHERE %s=%s',
-                              $in_fields,
-                              $this->table,
-                              $this->primaryKey,
-                              $this->o_data->quote($in_id));
+        // Can't query against empty id
+        if (FastFrame::isEmpty($in_id)) {
+            return array();
+        }
+
+        $s_query = sprintf('SELECT %s FROM %s WHERE %s=%s', 
+                $in_fields,
+                $this->table,
+                $this->primaryKey,
+                $this->o_data->quote($in_id));
+
         if (DB::isError($result = $this->o_data->getAll($s_query))) {
             return array();
         }
         else {
             return @$result[0];
+        }
+    }
+
+    // }}}
+    // {{{ getFieldByPrimaryKey()
+
+    /**
+     * Gets a field by the primary key.
+     *
+     * @param int $in_id The primary key value
+     * @param string $in_field The field to get
+     *
+     * @access public
+     * @return string The field value
+     */
+    function getFieldByPrimaryKey($in_id, $in_field)
+    {
+        // Can't query against empty id
+        if (FastFrame::isEmpty($in_id)) {
+            return null;
+        }
+
+        $s_query = sprintf('SELECT %s FROM %s WHERE %s=%s', 
+                $in_field,
+                $this->table,
+                $this->primaryKey,
+                $this->o_data->quote($in_id));
+
+        if (DB::isError($result = $this->o_data->getOne($s_query))) {
+            return null; 
+        }
+        else {
+            return $result;
         }
     }
 
