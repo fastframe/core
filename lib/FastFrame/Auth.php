@@ -77,9 +77,7 @@ class FF_Auth {
         }
 
         $o_registry =& FF_Registry::singleton();
-        $o_registry->pushApp('login');
         $s_authType = $o_registry->getConfigParam('auth/method');
-        $o_registry->popCurrentApp();
         $b_authenticated = false;
         $a_credentials = array();
         // populate all of the authentication sources
@@ -275,9 +273,7 @@ class FF_Auth {
      */
     function setCredential($in_credential, $in_value)
     {
-        if (FF_Auth::checkAuth(false)) {
-            $_SESSION['__auth__']['credentials'][$in_credential] = $in_value;
-        }
+        $_SESSION['__auth__']['credentials'][$in_credential] = $in_value;
     }
 
     // }}}
@@ -293,7 +289,7 @@ class FF_Auth {
      */
     function getCredential($in_credential)
     {
-        if (FF_Auth::checkAuth(false)) {
+        if (!empty($_SESSION['__auth__']['credentials'])) {
             $credentials = $_SESSION['__auth__']['credentials'];
             if (isset($credentials[$in_credential])) {
                 return $credentials[$in_credential];

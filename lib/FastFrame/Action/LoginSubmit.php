@@ -52,6 +52,7 @@ class FF_Action_LoginSubmit extends FF_Action {
         if (FF_Auth::authenticate(
             FastFrame::getCGIParam('username', 'p'), 
             FastFrame::getCGIParam('password', 'p'))) {
+            $s_lang = FF_Locale::selectLang(); 
             // if the profile application is installed then set the user Id
             if ($this->o_registry->hasApp('profile')) {
                 require_once $this->o_registry->getAppFile('Model/Profile.php', 'profile', 'libs');
@@ -78,6 +79,10 @@ class FF_Action_LoginSubmit extends FF_Action {
                 FF_Auth::setCredential('isProfileComplete', $o_profileModel->isProfileComplete());
                 $s_theme = $o_profileModel->getTheme();
                 $_SESSION['advancedList'] = $o_profileModel->getListMode();
+                if ($this->o_registry->getConfigParam('language/allow_override')) {
+                    $s_lang = FastFrame::isEmpty($o_profileModel->getLanguage()) ? 
+                        FF_Locale::selectLang() : $o_profileModel->getLanguage();
+                }
             }
             else {
                 $s_userId = FF_Auth::getCredential('username');
@@ -86,6 +91,7 @@ class FF_Action_LoginSubmit extends FF_Action {
 
             FF_Auth::setCredential('userId', $s_userId); 
             FF_Auth::setCredential('theme', $s_theme); 
+            FF_Auth::setCredential('language', $s_lang); 
             if ($this->o_output->getTheme() != $s_theme) {
                 $this->o_output->reset();
                 $this->o_output->load($s_theme);

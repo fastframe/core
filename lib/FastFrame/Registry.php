@@ -26,6 +26,7 @@
 
 require_once 'File.php';
 require_once dirname(__FILE__) . '/Error.php';
+require_once dirname(__FILE__) . '/Locale.php';
 
 // }}}
 // {{{ constants/globals
@@ -109,7 +110,9 @@ class FF_Registry {
 
     function FF_Registry()
     {
-        $this->pushApp(FASTFRAME_DEFAULT_APP);
+        // Don't set the language because it will run into an infinite loop otherwise,
+        // since the Locale class uses the registry.
+        $this->pushApp(FASTFRAME_DEFAULT_APP, false);
 
         // Initial FastFrame-wide settings
         // Set the error reporting level in accordance with the config settings.
@@ -122,12 +125,6 @@ class FF_Registry {
         if (!is_null($umask = $this->getConfigParam('general/umask'))) {
             umask($umask);
         }
-
-        // Setup the default language, pending change based on app prefs
-        $s_language = $this->getConfigParam('general/language', 'en_US');
-        setlocale(LC_MESSAGES, $s_language);
-        putenv('LANG=' . $s_language);
-        putenv('LANGUAGE=' . $s_language);
 
         // Set other common defaults like templates and graphics
         // All apps to be used must be included in the apps.php file
@@ -177,56 +174,87 @@ class FF_Registry {
      * imports them into the class configuration variable.
      *
      * @param string $in_app (optional) name of the application.
+     *
+     * @access public
+     * @return void
      */
     function importConfig($in_app = FASTFRAME_DEFAULT_APP)
     {
-        $config =& $this->config;
-        $apps =& $this->apps;
+        // :NOTE: All fatal errors generated in this method should not be logged
+        // since the log method calls getConfigParam() which could cause an infinite loop
 
         // Make sure we have the fastframe configuration loaded
-        if (empty($config)) {
-            $config = array();
-            include_once FASTFRAME_ROOT . 'config/conf.php';
-            $config[FASTFRAME_DEFAULT_APP] =& $conf;
+        if (empty($this->config)) {
+            $this->config = array();
+            include_once FASTFRAME_ROOT . '/config/conf.php';
+            $this->config[FASTFRAME_DEFAULT_APP] =& $conf;
         } 
 
         // Make sure we have the apps loaded
-        if (empty($apps)) {
-            $apps = array();
-            include_once FASTFRAME_ROOT . 'config/apps.php';
+        if (empty($this->apps)) {
+            $this->apps = array();
+            include_once FASTFRAME_ROOT . '/config/apps.php';
+            $this->apps =& $apps;
             // Add the default app which might not be in the apps file
             // since it is sort of a pseudo app
-            if (!isset($apps[FASTFRAME_DEFAULT_APP])) {
-                $apps[FASTFRAME_DEFAULT_APP] = array();
+            if (!isset($this->apps[FASTFRAME_DEFAULT_APP])) {
+                $this->apps[FASTFRAME_DEFAULT_APP] = array();
             }
         }
 
-        if (!isset($apps[$in_app])) {
+        if (!isset($this->apps[$in_app])) {
             $tmp_error = PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, null, E_USER_ERROR, "The application $in_app is not a defined application.  Check your apps.php file.", 'FF_Error', true);
-            FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
+            FastFrame::fatal($tmp_error, __FILE__, __LINE__, false); 
         }
 
         // Now load the configuration for this specific app
-        if (!isset($config[$in_app]) && $in_app != FASTFRAME_DEFAULT_APP) {
+        if (!isset($this->config[$in_app]) && $in_app != FASTFRAME_DEFAULT_APP) {
             // Look up which profile to use for the config files
-            if (isset($apps[$in_app]['profile'])) {
-                $s_configFile = sprintf('conf.%s.php', $apps[$in_app]['profile']);
+            if (isset($this->apps[$in_app]['profile'])) {
+                $s_configFile = sprintf('conf.%s.php', $this->apps[$in_app]['profile']);
             } 
             else {
                 $s_configFile = 'conf.php';
             }
 
             // here we change our root, but not our basic FastFrame structure in that root
-            $s_file = $this->getAppFile($s_configFile, $in_app, 'config');
+            //$s_file = $this->getAppFile($s_configFile, $in_app, 'config');
+            $s_file = FASTFRAME_ROOT . "apps/$in_app/config/$s_configFile";
             if (!is_readable($s_file)) {
                 $tmp_error = PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, null, E_USER_ERROR, "Can not import the config file for $in_app ($s_file)", 'FF_Error', true);
-                FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
+                FastFrame::fatal($tmp_error, __FILE__, __LINE__, false); 
             }
             else {
                 include_once $s_file;
             }
 
-            $config[$in_app] =& $conf;
+            $this->config[$in_app] =& $conf;
+        }
+    }
+
+    // }}}
+    // {{{ setLocale()
+
+    /**
+     * Sets up the locale information. 
+     *
+     * @param string $in_app (optional) The application name
+     *
+     * @access public
+     * @return void
+     */
+    function setLocale($in_app = null)
+    {
+        if (is_null($in_app)) {
+            $in_app = $this->getCurrentApp();
+        }
+
+        FF_Locale::setLang();
+        if ($in_app == FASTFRAME_DEFAULT_APP) {
+            FF_Locale::setTextdomain($in_app, $this->getRootFile('', 'language'), FF_Locale::getCharset());
+        }
+        else {
+            FF_Locale::setTextdomain($in_app, $this->getAppFile('', $in_app, 'language'), FF_Locale::getCharset());
         }
     }
 
@@ -242,26 +270,26 @@ class FF_Registry {
      * configuration settings, the previous settings are updated by the new applications
      * settings.
      *
-     * @param  string $in_app name of the application as listed in the application config file
+     * @param string $in_app name of the application as listed in the application config file
+     * @param bool $in_locale (optional) Set the app's locale info?
      *
      * @access public
      * @return bool whether or not the application was added (only adds if not already current)
      */
-    function pushApp($in_app)
+    function pushApp($in_app, $in_locale = true)
     {
-        // we always push the app onto the app stack so it can be popped later
         $s_currentApp = $this->getCurrentApp();
         settype($this->appStack, 'array');
+        // We always push the app onto the app stack so it can be popped later
         array_push($this->appStack, $in_app);
 
-        // if we are changing apps then we need to import config
+        // If we are changing apps then we need to import config
         if ($in_app != $s_currentApp) {
-            // import the config for this application
+            // Import the config for this application
             $this->importConfig($in_app);
-
-            // setup the language (could be overwritten by app)
-            //bindtextdomain(FASTFRAME_DEFAULT_APP, $this->getAppBase() . 'locale');
-            //textdomain(FASTFRAME_DEFAULT_APP) ;
+            if ($in_locale) {
+                $this->setLocale($in_app);
+            }
 
             return true;
         }
@@ -283,16 +311,16 @@ class FF_Registry {
      */
     function popCurrentApp()
     {
-        $currentApp = array_pop($this->appStack);
-
-        $app = $this->getCurrentApp();
+        $s_currentApp = array_pop($this->appStack);
+        $s_app = $this->getCurrentApp();
         // Import the new active application's configuration values again
         // if there is still at least one application on the stack
-        if ($app) {
-            $this->importConfig($app);
+        if (!is_null($s_app) && $s_app != $s_currentApp) {
+            $this->importConfig($s_app);
+            $this->setLocale($s_app);
         }
 
-        return $currentApp;
+        return $s_currentApp;
     }
 
     // }}}
@@ -326,15 +354,17 @@ class FF_Registry {
     function getFile($in_file, $in_type = FASTFRAME_FILEPATH_PUBLIC)
     {
         $pathParts = array();
+        // App should always be FASTFRAME_DEFAULT_APP because this method can be called
+        // from getConfigParam() and we don't want an infinite loop
         switch ($in_type) {
             case FASTFRAME_WEBPATH:
-                $pathParts = array($this->getConfigParam('webserver/web_root'), $in_file);
+                $pathParts = array($this->getConfigParam('webserver/web_root', '', array('app' => FASTFRAME_DEFAULT_APP)), $in_file);
                 break;
             case FASTFRAME_FILEPATH_PUBLIC:
-                $pathParts = array($this->getConfigParam('webserver/file_root'), $in_file);
+                $pathParts = array($this->getConfigParam('webserver/file_root', '', array('app' => FASTFRAME_DEFAULT_APP)), $in_file);
                 break;
             case FASTFRAME_DATAPATH:
-                $pathParts = array($this->getConfigParam('webserver/data_root'), $in_file);
+                $pathParts = array($this->getConfigParam('webserver/data_root', '', array('app' => FASTFRAME_DEFAULT_APP)), $in_file);
                 break;
             case FASTFRAME_FILEPATH_RELATIVE:
                 $pathParts = array($in_file);
@@ -363,7 +393,7 @@ class FF_Registry {
      *
      * @access public
      * @return string path for the app file
-     * @example getAppFile('view.inc.php', 'login', FASTFRAME_APP_TEMPLATES);
+     * @example getAppFile('view.inc.php', 'login', 'lib', FASTFRAME_APP_TEMPLATES);
      */
     function getAppFile($in_filename, $in_app = null, $in_service = '', $in_type = FASTFRAME_FILEPATH_PUBLIC)
     {
@@ -385,13 +415,13 @@ class FF_Registry {
 
         // use the app name as the apps directory unless the user has 
         // overriden it in apps.php
-        if ($this->getAppParam('app_dir',null, array('app'=>$s_app))) {
-            
-            $s_appDir=str_replace('%app%', $this->getAppParam('app_dir',null,array('app'=>$s_app)), $s_service);
-        } 
-        else {
-            $s_appDir=str_replace('%app%', $s_app, $s_service);
+        if ($this->getAppParam('app_dir',null, array('app' => $s_app))) {
+            $s_appDir = str_replace('%app%', $this->getAppParam('app_dir', null, array('app' => $s_app)), $s_service);
         }
+        else {
+            $s_appDir = str_replace('%app%', $s_app, $s_service);
+        }
+
         $s_filename = File::buildPath(array($this->getAppParam('root_apps'), $s_appDir, $in_filename));
         return $this->getFile($s_filename, $in_type);
     }
@@ -436,46 +466,7 @@ class FF_Registry {
     }
 
     // }}}
-    // {{{ getUserParam()
-
-    /**
-     * Lookup a setting for the current user 
-     *
-     * @param string $in_setting The setting to look up
-     * @param string $in_default (optional) The default value if we cannot determine one
-     *
-     * @access public
-     * @return string value of the variable or null
-     */
-    function getUserParam($in_setting, $in_default = null)
-    {
-        settype($this->user['settings'], 'array');
-        // see if we've already gotten the variable before
-        if (isset($this->user['settings'][$in_setting])) {
-            return $this->user['settings'][$in_setting];
-        } 
-
-        // first settings are not app specific
-        if ($in_setting == 'theme') {
-            // [!] would first look up in database here [!]
-            $s_setting = $this->getConfigParam('general/default_theme');
-            // check if it's a valid theme
-            if (!is_dir($this->getRootFile($s_setting, 'themes'))) {
-                return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "Theme $s_setting does not exist", 'FF_Error', true);
-            }
-        }
-        // these settings are app specific or don't exist
-        else {
-            // [!] include extended Registry from app here to look up setting? [!]
-            $s_setting = $in_default;
-        }
-
-        $this->user['settings'][$in_setting] = $s_setting;
-        return $s_setting;
-    }
-
-    // }}}
-    // {{{ getAppParam())
+    // {{{ getAppParam()
 
     /**
      * Get a parameter for the current application
@@ -525,12 +516,10 @@ class FF_Registry {
      */
     function getConfigParam($in_paramPath, $in_default = null, $in_credentials = array()) 
     {
-        $b_popApp = false;
         $s_app = isset($in_credentials['app']) ? $in_credentials['app'] : $this->getCurrentApp();
-        // push the app if it's not loaded
-        if ($s_app != $this->getCurrentApp()) {
-            $b_popApp = true;
-            $this->pushApp($s_app);
+        // Import the config for this app if it has not yet beeen imported 
+        if (!isset($this->config[$s_app])) {
+            $this->importConfig($s_app);
         }
 
         $a_parts = explode('/', $in_paramPath);
@@ -543,10 +532,6 @@ class FF_Registry {
             // First check the default app for the setting before returning default val
             $s_varName = '$this->config[\'' . FASTFRAME_DEFAULT_APP . '\'][\'' . $s_path . '\']';
             $result = eval('return isset(' . $s_varName . ');') ? eval('return ' . $s_varName . ';') : $in_default;
-        }
-
-        if ($b_popApp) {
-            $this->popCurrentApp();
         }
 
         return $result;
@@ -565,46 +550,12 @@ class FF_Registry {
      */
     function getDataDsn($in_credentials = array())
     {
-        $s_app = isset($in_credentials['app']) ? $in_credentials['app'] : $this->getCurrentApp();
-        $s_dsn = $this->getConfigParam('data/type', null, array('app' => $s_app)) . '://' .
-                 $this->getConfigParam('data/username', null, array('app' => $s_app)) . ':' .
-                 $this->getConfigParam('data/password', null, array('app' => $s_app)) . '@' .
-                 $this->getConfigParam('data/host', null, array('app' => $s_app)) . '/' .
-                 $this->getConfigParam('data/database', null, array('app' => $s_app));
+        $s_dsn = $this->getConfigParam('data/type', null, $in_credentials) . '://' .
+                 $this->getConfigParam('data/username', null, $in_credentials) . ':' .
+                 $this->getConfigParam('data/password', null, $in_credentials) . '@' .
+                 $this->getConfigParam('data/host', null, $in_credentials) . '/' .
+                 $this->getConfigParam('data/database', null, $in_credentials);
         return $s_dsn;
-    }
-
-    // }}}
-    // {{{ getRootLocale()
-   
-    /**
-     * Get locale for the root
-     * 
-     * @return void
-     */
-    function &getRootLocale()
-    {
-        $lang = array();
-        //include_once $this->getRootFile('core.lang.php', 'langs');
- 
-        return $lang;
-    }
-
-    // }}}
-    // {{{ getAppLocale()
-
-    /**
-     * Sets the locale for a particular app
-     *
-     * @return void
-     */
-    function &getAppLocale($in_appPath, $in_library = 'main')
-    {
-        $lang = array();
-        //include_once $this->getAppFile($in_library . '.lang.php', $in_appPath, 'langs');
-        global $a_lang;
-        settype($a_lang, 'array');
-        return array_merge($a_lang, $lang);
     }
 
     // }}}
