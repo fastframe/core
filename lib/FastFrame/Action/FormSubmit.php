@@ -123,7 +123,7 @@ class FF_Action_FormSubmit extends FF_Action {
      */
     function isUpdate()
     {
-        return ($this->currentActionId == $this->editActionId) ? true : false; 
+        return ($this->currentActionId == $this->editActionId);
     }
 
     // }}}

@@ -192,25 +192,6 @@ class FF_FileCache {
     }
 
     // }}}
-    // {{{ remove()
-
-    /**
-     * Remove an uploaded file.
-     *
-     * @param string $in_filePath The subpath an filename (i.e.
-     *        css/gecko.css)
-     * @param bool $in_useApp (optional) Save it into the current app
-     *        dir?
-     *
-     * @access public
-     * @return void
-     */
-    function remove($in_filePath, $in_useApp = false)
-    {
-        @unlink($this->getPath($in_filePath, $in_useApp));
-    }
-
-    // }}}
     // {{{ exists()
 
     /**
@@ -227,6 +208,56 @@ class FF_FileCache {
     function exists($in_filePath, $in_useApp = false)
     {
         return file_exists($this->getPath($in_filePath, $in_useApp));
+    }
+
+    // }}}
+    // {{{ getFilesByPrefix()
+
+    /**
+     * Returns all the files with the specified prefix.
+     *
+     * @param string $in_prefix The file prefix
+     * @param string $in_filePath The subpath an filename (i.e.
+     *        css/gecko.css)
+     * @param bool $in_useApp (optional) Save it into the current app
+     *        dir?
+     *
+     * @access public
+     * @return array The array of file names 
+     */
+    function getFilesByPrefix($in_prefix, $in_filePath, $in_useApp = false)
+    {
+        $a_files = array();
+        if ($handle = @opendir($this->getPath($in_filePath, $in_useApp))) {
+            while (false !== ($file = readdir($handle))) {
+                if ($file != '.' && $file != '..' && strpos($file, $in_prefix) === 0) {
+                    $a_files[] = $file;
+                }
+            }
+
+            closedir($handle);
+        }
+
+        return $a_files;
+    }
+
+    // }}}
+    // {{{ remove()
+
+    /**
+     * Remove an uploaded file.
+     *
+     * @param string $in_filePath The subpath an filename (i.e.
+     *        css/gecko.css)
+     * @param bool $in_useApp (optional) Save it into the current app
+     *        dir?
+     *
+     * @access public
+     * @return void
+     */
+    function remove($in_filePath, $in_useApp = false)
+    {
+        @unlink($this->getPath($in_filePath, $in_useApp));
     }
 
     // }}}
