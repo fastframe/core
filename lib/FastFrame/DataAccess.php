@@ -66,6 +66,11 @@ class FF_DataAccess {
      */
     var $table;
 
+    /**
+     * The parameters used to connect
+     */
+    var $connectParams;
+
     // }}}
     // {{{ constructor
 
@@ -152,7 +157,8 @@ class FF_DataAccess {
      */
     function connect()
     {
-        $this->o_data =& DB::connect($this->getConnectParams());
+        $this->connectParams= $this->getConnectParams();
+        $this->o_data =& DB::connect($this->connectParams);
         if (DB::isError($this->o_data)) {
             trigger_error($this->o_data->getMessage(), E_USER_ERROR);
         } 
@@ -382,14 +388,14 @@ class FF_DataAccess {
             $tmp_fields = array();
             foreach ($in_searchFields as $s_field) {
                 $tmp_fields[] = str_replace('`%field%`', 
-                        $in_filterData['tableName'] .  '`' . $s_field . '`', $s_searchCondition);
+                        $in_filterData['tableName'] .  $this->_quoteFieldName( $s_field) , $s_searchCondition);
             }
 
             $s_where = implode(" OR \n", $tmp_fields);
         }
         else {
             // Allow for an empty search field list 
-            $s_where = '1';
+            $s_where = '1=1';
         }
 
         return $s_where;
@@ -548,6 +554,27 @@ class FF_DataAccess {
         else {
             return (bool) $in_order ? 'ASC' : 'DESC';
         }
+    }
+
+    // }}}
+    // {{{ _quoteFieldName()
+
+    /**
+     * Approprietly quotes the name of a db field
+     *
+     * @param mixed $in_field The field
+     *
+     * @access private 
+     * @return string Either ASC or DESC
+     */
+    function _quoteFieldName($in_field)
+    {
+        if ($this->connectParams['phptype']=='pgsql') 
+            return "\"$in_field\"";
+        else if ($this->connectParams['phptype']=='mysql')
+            return "`$in_field`";
+        else
+            return $in_field;
     }
 
     // }}}
