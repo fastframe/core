@@ -1,5 +1,5 @@
 <?php
-/** $Id: Model.php,v 1.1 2003/02/22 01:49:08 jrust Exp $ */
+/** $Id: Model.php,v 1.2 2003/03/13 18:39:03 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -56,14 +56,127 @@ class FF_Model {
     /**
      * Initialize any needed class variables
      *
-     * @param object $in_dataAccess The data access object
+     * @access public
+     * @return void
+     */
+    function FF_Model()
+    {
+        $this->_initDataAccess();
+    }
+
+    // }}}
+    // {{{ reset()
+
+    /**
+     * Retets the model's data properties to their initial values (usually null)
      *
      * @access public
      * @return void
      */
-    function FF_Model(&$in_dataAccess)
+    function reset()
     {
-        $this->o_dataAccess =& $in_dataAccess;
+        // interface
+    }
+
+    // }}}
+    // {{{ remove()
+
+    /**
+     * Removes the current model or the one specified
+     *
+     * @param int $in_id (optional) The id to delete.  If not specified then the
+     *            current id is used
+     *
+     * @access public
+     * @return object A result object 
+     */
+    function remove($in_id = null)
+    {
+        if (is_null($in_id)) {
+            return $this->o_dataAccess->remove($this->getId());
+        }
+        else {
+            return $this->o_dataAccess->remove($in_id);
+        }
+    }
+
+    // }}}
+    // {{{ save()
+
+    /**
+     * Saves the current model to the persistent layer
+     *
+     * @param bool $in_isUpdate Is this an update?  Otherwise we add.
+     *
+     * @access public
+     * @return object The result object
+     */
+    function save($in_isUpdate)
+    {
+        if ($in_isUpdate) {
+            return $this->o_dataAccess->update($this->exportToArray());
+        }
+        else { 
+            $this->setId($this->o_dataAccess->getNextId());
+            return $this->o_dataAccess->add($this->exportToArray());
+        }
+    }
+
+    // }}}
+    // {{{ importFromArray()
+
+    /**
+     * Imports an array of data used the dataccess constants as keys into the model's
+     * properties
+     *
+     * @param array $in_data The data array
+     *
+     * @access public
+     * @return void
+     */
+    function importFromArray($in_data)
+    {
+        // interface
+    }
+
+    // }}}
+    // {{{ exportToArray()
+
+    /**
+     * Exports the data properties to an array using the dataaccess constants as keys
+     *
+     * @param array $in_data The data array
+     *
+     * @access public
+     * @return array The array of data 
+     */
+    function exportToArray()
+    {
+        // interface
+    }
+
+    // }}}
+    // {{{ fillById()
+
+    /**
+     * Fills the models data in based on the id field
+     *
+     * @param int $in_id The id field
+     *
+     * @access public
+     * @return bool True if fill succeeded, false otherwise
+     */
+    function fillById($in_id)
+    {
+        $this->reset();
+        $a_data = $this->o_dataAccess->getDataByPrimaryKey($in_id);
+        if (count($a_data) == 0) {
+            return false;
+        }
+        else {
+            $this->importFromArray($a_data);
+            return true;
+        }
     }
 
     // }}}
@@ -80,6 +193,50 @@ class FF_Model {
         return $this->id;
     }
     
+    // }}}
+    // {{{ setId()
+
+    /**
+     * Sets the primary key field
+     *
+     * @param int $in_id The primary key id
+     *
+     * @access public
+     * @return void 
+     */
+    function setId($in_id)
+    {
+        $this->id = $in_id;
+    }
+    
+    // }}}
+    // {{{ getDataAccessObject()
+
+    /**
+     * Gets the data access object
+     *
+     * @access public
+     * @return object The data access object
+     */
+    function &getDataAccessObject()
+    {
+        return $this->o_dataAccess;
+    }
+
+    // }}}
+    // {{{ _initDataAccess()
+
+    /**
+     * Initializes the data access object
+     *
+     * @access private
+     * @return void
+     */
+    function _initDataAccess()
+    {
+        // interface
+    }
+
     // }}}
 }
 ?>
