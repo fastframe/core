@@ -321,6 +321,7 @@ class FF_Menu {
             $a_appMenu = array();
             $a_appMenu[] = array(
                 'contents' => _('Home'),
+                'icon' => 'mini/home.gif',
                 'urlParams' => array('actionId' => '', 'module' => ''));
             $this->menuVariables = array(array('app' => '', 'vars' => $a_appMenu));
         }

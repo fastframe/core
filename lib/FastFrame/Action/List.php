@@ -200,7 +200,8 @@ class FF_Action_List extends FF_Action_Form {
             $i = 0;
             $b_highlightRows = false;
             if (!is_null($this->getHighlightedRowUrl())) {
-                $this->_renderHighlightJs();
+                $this->o_output->addScriptFile($this->o_registry->getRootFile('highlightRow.js', 'javascript', FASTFRAME_WEBPATH));
+                $this->o_output->o_tpl->append('javascript', '<script>addOnload(function () { initHighlight("listTable"); })</script>');
                 $b_highlightRows = true;
             }
             $a_buttonCells = $this->getButtonCells();
@@ -241,7 +242,7 @@ class FF_Action_List extends FF_Action_Form {
             }
         }
         else {
-            $in_tableWidget->append('rows', array('S_table_row' => 'class="primaryRow"',
+            $in_tableWidget->append('rows', array('S_table_row' => 'class="' . $this->o_output->toggleRow(0) . '"',
                         'cells' => array(array('T_table_content_cell' => $this->getNoResultText(),
                             'S_table_content_cell' => 'style="font-style: italic; text-align: center;" colspan="' . $in_numCols . '"'))));
         }
@@ -340,6 +341,7 @@ class FF_Action_List extends FF_Action_Form {
     {
         return array('getOptions');
     }
+
     // }}}
     // {{{ getHighlightedRowUrl()
 
@@ -523,20 +525,6 @@ class FF_Action_List extends FF_Action_Form {
     function setNextAction()
     {
         // normally this is the last action
-    }
-
-    // }}}
-    // {{{ _renderHighlightJs()
-
-    /**
-     * Renders the highlight row javascript.
-     *
-     * @access private
-     * @return void
-     */
-    function _renderHighlightJs()
-    {
-        $this->o_output->addScriptFile($this->o_registry->getRootFile('highlightRow.js', 'javascript', FASTFRAME_WEBPATH));
     }
 
     // }}}
