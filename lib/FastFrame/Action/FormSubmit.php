@@ -77,8 +77,10 @@ class FF_Action_FormSubmit extends FF_Action {
 
         $o_result =& $this->o_model->save($this->isUpdate());
         if ($o_result->isSuccess()) {
-            // this makes sure the objectId is set if this was an add
+            // This makes sure the objectId is set if this was an add
             $_GET['objectId'] = $_POST['objectId'] = $this->o_model->getId();
+            // This lets any action that comes next that it was a success
+            $_GET['submitWasSuccess'] = 1;
             $this->o_output->setMessage($this->getSuccessMessage(), FASTFRAME_SUCCESS_MESSAGE, true);
             $this->setSuccessActionId();
             if ($o_result->hasMessages()) {
@@ -86,6 +88,7 @@ class FF_Action_FormSubmit extends FF_Action {
             }
         }
         else {
+            $_GET['submitWasSuccess'] = 0;
             $o_result->addMessage($this->getProblemMessage());
             $this->o_output->setMessage($o_result->getMessages(), FASTFRAME_ERROR_MESSAGE, true);
             $this->setProblemActionId();
