@@ -1,5 +1,5 @@
 <?php
-/** $Id: Output.php,v 1.4 2003/02/12 20:56:14 jrust Exp $ */
+/** $Id: Output.php,v 1.5 2003/02/22 02:03:33 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -25,6 +25,20 @@
 // {{{ requires 
 
 require_once dirname(__FILE__) . '/Template.php';
+require_once 'Net/UserAgent/Detect.php';
+require_once 'File.php';
+
+// }}}
+// {{{ constants
+
+/**
+ * Message constants.  These images need to be in the graphics/alerts directory.
+ * The theme can mimic the grapics/alerts directory to override the default image.
+ */
+define('FASTFRAME_NORMAL_MESSAGE', 'message.gif', true);
+define('FASTFRAME_ERROR_MESSAGE', 'error.gif', true);
+define('FASTFRAME_WARNING_MESSAGE', 'warning.gif', true);
+define('FASTFRAME_SUCCESS_MESSAGE', 'success.gif', true);
 
 // }}}
 // {{{ class FastFrame_Output
@@ -159,17 +173,11 @@ class FastFrame_Output extends FastFrame_Template {
     /**
      * Outputs the template data to the browser.
      *
-     * @param array $in_messages (optional) Any messages to register to the screen
-     *
      * @access public
      * @return void
      */
-    function output($in_messages = array())
+    function output()
     {
-        foreach ($in_messages as $s_message) {
-            $this->setMessage($s_message, FASTFRAME_ERROR_MESSAGE);
-        }
-
         $this->renderPageType();
         $this->prender();
     }
@@ -741,7 +749,8 @@ class FastFrame_Output extends FastFrame_Template {
     /**
      * Set the message and the mode associated with it
      *
-     * @param string $in_message The message to inform the user what has just taken place.
+     * @param mixed $in_message The message to inform the user what has just taken place.
+     *                          If it is an array then we will register all of them.
      * @param string $in_mode The mode, which is then translated into an image
      *
      * @access public
@@ -752,17 +761,19 @@ class FastFrame_Output extends FastFrame_Template {
         // keep track of count so we can have multiple messages on one page
         static $s_count;
         settype($s_count, 'int');
-        $s_count++;
+        foreach ((array) $in_message as $s_message) {
+            $s_count++;
 
-        $this->assignBlockData(
-            array(
-                'S_status_message_count' => $s_count,
-                'T_status_message' => $in_message,
-                'I_status_message' => $this->imgTag($in_mode, 'alerts'),
-                'I_status_message_close' => $this->imgTag('close.gif', 'actions', array('onclick' => 'document.getElementById(\'message_' . $s_count . '\').style.display = \'none\';', 'style' => 'cursor: pointer;')),
-            ),
-            'status_message'
-        );
+            $this->assignBlockData(
+                array(
+                    'S_status_message_count' => $s_count,
+                    'T_status_message' => $s_message,
+                    'I_status_message' => $this->imgTag($in_mode, 'alerts'),
+                    'I_status_message_close' => $this->imgTag('close.gif', 'actions', array('onclick' => 'document.getElementById(\'message_' . $s_count . '\').style.display = \'none\';', 'style' => 'cursor: pointer;')),
+                ),
+                'status_message'
+            );
+        }
     }
 
     // }}}
