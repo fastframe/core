@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.2 2003/01/16 22:55:13 jrust Exp $ */
+/** $Id: List.php,v 1.3 2003/01/21 01:18:33 jrust Exp $ */
 // {{{ class FastFrame_List
 
 /**
@@ -29,7 +29,7 @@ class FastFrame_List {
      * The column data. 
      * @var array $columnData
      */
-    var $columnData;
+    var $columnData = array();
 
     /**
      * The searchable fields. 
@@ -121,20 +121,26 @@ class FastFrame_List {
     /**
      * Set variables on class initialization.
      *
-     * @param array $in_columnData A multidimensional array with the primary keys in the order
-     *              the columns are to be displayed.  
+     * @param array $in_columnData (optional) A multidimensional array with the primary keys 
+     *              in the order the columns are to be displayed.  
      *              e.g. $colVars[0] = array('name' => 'Col 1', 'sort' => 'field1');
-     *              Leave out the sort column if the column is not to be sorted.
+     *              Leave out the sort column if the column is not to be sorted.  
+     *              If not passed in then we assume that columnData and searchableFields
+     *              will be set with their respective methods, or with importFieldMap()
      *
      * @access public
      * @return void
      */
-    function FastFrame_List($in_columnData)
+    function FastFrame_List($in_columnData = null)
     {
         $this->FastFrame_HTML =& FastFrame_HTML::singleton();
-        $this->columnData = (array) $in_columnData;
-        // set up the default search fields as the column fields, can be overridden later
-        $this->setSearchableFields($this->columnData);
+        // see if they want their default data set up
+        if (!is_null($in_columnData)) {
+            $this->setColumnData($in_columnData);
+            // set up the default search fields as the column fields, can be overridden later
+            $this->setSearchableFields($this->getColumnData());
+        }
+
         // set all the fields with their default values
         $this->setSortField();
         $this->setSortOrder();
@@ -165,7 +171,7 @@ class FastFrame_List {
 
         // set up sortable fields
         $a_sortFields = array();
-        foreach ($this->columnData as $a_val) {
+        foreach ($this->getColumnData() as $a_val) {
             if (isset($a_val['sort'])) {
                 $a_sortFields[$a_val['sort']] = $a_val['name'];
             }
@@ -444,7 +450,7 @@ class FastFrame_List {
      */
     function generateSortFields($in_tableNamespace = null)
     {
-        foreach ($this->columnData as $a_colData) {
+        foreach ($this->getColumnData() as $a_colData) {
             // check to see if it is searchable, and if so build the link
             if (!empty($a_colData['sort'])) {
                 // if we previously sorted on this field, reverse the sort direction
@@ -875,6 +881,39 @@ class FastFrame_List {
     }
 
     // }}}
+    // {{{ getColumnData()
+
+    /**
+     * Gets the column data. 
+     *
+     * @access public
+     * @return array The column data 
+     */
+    function getColumnData()
+    {
+        return $this->columnData;
+    }
+
+    // }}}
+    // {{{ setColumnData()
+
+    /**
+     * Sets the column data. 
+     *
+     * @param array $in_columnData A multidimensional array with the primary keys in the order
+     *              the columns are to be displayed.  
+     *              e.g. $colVars[0] = array('name' => 'Col 1', 'sort' => 'field1');
+     *              Leave out the sort column if the column is not to be sorted.
+     *
+     * @access public
+     * @return void
+     */
+    function setColumnData($in_columnData)
+    {
+        $this->columnData = (array) $in_columnData;
+    }
+
+    // }}}
     // {{{ setTotalRecords()
 
     /**
@@ -1049,6 +1088,101 @@ class FastFrame_List {
     function getAllFieldsKey()
     {
         return $this->allFieldsKey;
+    }
+
+    // }}}
+    // {{{ importFieldMap()
+
+    /**
+     * Imports the field map configuration used by FastFrame into the columnData and
+     * searchableFields properties. 
+     *
+     * @param array $in_fieldMap The field map used by FastFrame apps.
+     *
+     * @access public
+     * @return void 
+     */
+    function importFieldMap($in_fieldMap)
+    {
+        $a_colData = array();
+        foreach ($in_fieldMap as $a_val) {
+            if (isset($a_val['field'])){
+                $a_colData[] = array('sort' => $a_val['field'], 'name' => $a_val['description']);
+            }
+            // not a sortable column
+            else {
+                $a_colData[] = array('name' => $a_val['description']);
+            }
+        }
+        
+        $this->setColumnData($a_colData);
+        $this->setSearchableFields($this->getColumnData());
+    }
+
+    // }}}
+    // {{{ getWhereCondition()
+
+    /**
+     * Creates a condition that can be added to a SQL WHERE clause.  This is uses the search
+     * fields and strings and is suitable for grabbing the fields that should be present in
+     * this list.
+     *
+     * @param object $in_db The DataObject database object (returned from
+     *                      FastFrame_Registry::getDataConnection())
+     *
+     * @access public
+     * @return string A WHERE condition 
+     */
+    function getWhereCondition($in_db)
+    {
+        $s_searchField = $this->getSearchField();
+        $s_searchCondition = '%field% LIKE ' . $in_db->quote('%' . $this->getSearchString() . '%');
+        if (!empty($s_searchField)) {
+            $tmp_fields = array();
+            if ($s_searchField == $this->getAllFieldsKey()) {
+                foreach ($this->getSearchableFields(true) as $a_val) {
+                    $tmp_fields[] = str_replace('%field%', $a_val['search'], $s_searchCondition);
+                }
+            }
+            else {
+                $tmp_fields[] = str_replace('%field%', $s_searchField, $s_searchCondition);
+            }
+
+            $s_where = implode(" OR \n", $tmp_fields);
+        }
+        else {
+            $s_where = '1=1';
+        }
+
+        return $s_where;
+    }
+
+    // }}}
+    // {{{ getData()
+
+    /**
+     * Gets the data that should be displayed on this list page.  Utilizes the DB_DataObject
+     * methods to fetch the data.
+     *
+     * @param object $in_obj_data The data object
+     *
+     * @access public
+     * @return array An array of DataObject results
+     */
+    function getData(&$in_obj_data)
+    {
+        $in_obj_data->whereAdd($this->getWhereCondition(FastFrame_Registry::getDataConnection($in_obj_data)));
+        $in_obj_data->limit($this->getRecordOffset(), $this->getDisplayLimit());
+        $in_obj_data->orderBy($this->getSortField() . ' ' . FastFrame_SQL::getOrderString($this->getSortOrder()));
+        $a_data = array();
+        $s_numFound = $in_obj_data->find();
+        if ($s_numFound) {
+            while ($in_obj_data->fetch()) {
+                $a_data[] = $in_obj_data->__clone();
+            }
+        }
+
+        return $a_data;
     }
 
     // }}}
