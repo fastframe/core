@@ -384,7 +384,7 @@ class FF_Action_Form extends FF_Action {
      */
     function getTableData()
     {
-        // interface
+        return array();
     }
 
     // }}}
