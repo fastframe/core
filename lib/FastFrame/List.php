@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.8 2003/02/08 00:10:54 jrust Exp $ */
+/** $Id: List.php,v 1.9 2003/02/10 22:13:02 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -85,18 +85,6 @@ class FastFrame_List {
     var $displayedRecords = 0;
 
     /**
-     * The default number of items displayed on a page if not available from GPC vars 
-     * @type int
-     */
-    var $defaultDisplayLimit = 30;
-
-    /**
-     * The default sort order on a page if none is specified 
-     * @type int
-     */
-    var $defaultSortOrder = 1;
-
-    /**
      * The current sort field 
      * @type string
      */
@@ -144,6 +132,9 @@ class FastFrame_List {
     /**
      * Set variables on class initialization.
      *
+     * @param string $in_defaultSortField The default field to sort on
+     * @param int $in_defaultSortOrder The default sort order (1 = ASC, 0 = DESC)
+     * @param int $in_defaultDisplayLimit The default display limit
      * @param array $in_columnData (optional) A multidimensional array with the primary keys 
      *              in the order the columns are to be displayed.  
      *              e.g. $colVars[0] = array('name' => 'Col 1', 'sort' => 'field1');
@@ -154,10 +145,12 @@ class FastFrame_List {
      * @access public
      * @return void
      */
-    function FastFrame_List($in_columnData = null)
+    function FastFrame_List($in_defaultSortField, 
+                            $in_defaultSortOrder, 
+                            $in_defaultDisplayLimit, 
+                            $in_columnData = null)
     {
         $this->o_output =& FastFrame_Output::singleton();
-        // see if they want their default data set up
         if (!is_null($in_columnData)) {
             $this->setColumnData($in_columnData);
             // set up the default search fields as the column fields, can be overridden later
@@ -165,14 +158,13 @@ class FastFrame_List {
         }
 
         // set all the fields with their default values
-        $this->setSortField();
-        $this->setSortOrder();
-        $this->setSortField();
+        $this->setSortField($in_defaultSortField);
+        $this->setSortOrder($in_defaultSortOrder);
         $this->setSearchString();
         $this->setSearchField();
         $this->setAdvancedList();
         $this->setPageOffset();
-        $this->setDisplayLimit();
+        $this->setDisplayLimit($in_defaultDisplayLimit);
     }
 
     // }}}
@@ -483,7 +475,7 @@ class FastFrame_List {
                 }
                 // this is a new column sort, default sort
                 else {
-                    $tmp_sort = $this->getDefaultSortOrder();
+                    $tmp_sort = $this->getSortOrder();
                 }
 
                 // modify the two get variables for this sort
@@ -625,22 +617,17 @@ class FastFrame_List {
     // {{{ setDisplayLimit()
 
     /**
-     * Sets the display limit variable from $in_value or GET/POST/SESSION if not passed in,
-     * defaulting to defaultDisplayLimit if not present.
+     * Sets the display limit variable from GET/POST/SESSION or if that is not present falls
+     * back onto passed in value
      *
-     * @param int $in_value (optional) Limit per page. 
+     * @param int $in_limit Fallback display limit per page. 
      *
      * @access public
      * @return void
      */
-    function setDisplayLimit($in_value = null)
+    function setDisplayLimit($in_limit)
     {
-        if (is_null($in_value)) {
-            $this->displayLimit = (int) abs(FastFrame::getCGIParam('displayLimit', 'gps', $this->getDefaultDisplayLimit()));
-        }
-        else {
-            $this->displayLimit = (int) $in_value;
-        }
+        $this->displayLimit = (int) abs(FastFrame::getCGIParam('displayLimit', 'gps', $in_limit));
     }
 
     // }}}
@@ -713,22 +700,17 @@ class FastFrame_List {
     // {{{ setSortOrder()
 
     /**
-     * Sets the sort order variable from $in_value or GET/POST/SESSION if not passed in,
-     * defaulting to $defaultSortSrder if not present.
+     * Sets the display limit variable from GET/POST/SESSION or if that is not present falls
+     * back onto passed in value
      *
-     * @param int $in_value (optional) What order to sort the data. 1 for ASC, 0 for DESC
+     * @param int $in_sort What order to sort the data. 1 for ASC, 0 for DESC
      *
      * @access public
      * @return void
      */
-    function setSortOrder($in_value = null)
+    function setSortOrder($in_sort)
     {
-        if (is_null($in_value)) {
-            $this->sortOrder = (int) FastFrame::getCGIParam('sortOrder', 'gps', $this->getDefaultSortOrder());
-        }
-        else {
-            $this->sortOrder = (int) $in_value;
-        }
+        $this->sortOrder = (int) FastFrame::getCGIParam('sortOrder', 'gps', $in_sort);
     }
 
     // }}}
@@ -749,22 +731,17 @@ class FastFrame_List {
     // {{{ setSortField()
 
     /**
-     * Sets the sort field variable from $in_value or GET/POST/SESSION if not passed in,
-     * defaulting to getDefaultSortField() if not present.
+     * Sets the sort field variable from GET/POST/SESSION or $in_value if that is not
+     * present
      *
-     * @param string $in_value (optional) What field to sort on
+     * @param string $in_field The fallback field to sort on
      *
      * @access public
      * @return void
      */
-    function setSortField($in_value = null)
+    function setSortField($in_field)
     {
-        if (is_null($in_value)) {
-            $this->sortField = FastFrame::getCGIParam('sortField', 'gps', $this->getDefaultSortField());
-        }
-        else {
-            $this->sortField = $in_value;
-        }
+        $this->sortField = FastFrame::getCGIParam('sortField', 'gps', $in_field);
     }
 
     // }}}
@@ -1003,7 +980,7 @@ class FastFrame_List {
     // {{{ getAllListVariables()
 
     /**
-     * Returns an array of all list variables taht need to be passed on from page to page
+     * Returns an array of all list variables that need to be passed on from page to page
      * when using a list.
      *
      * @access public
@@ -1054,50 +1031,6 @@ class FastFrame_List {
     function getTotalPages()
     {
         return ceil($this->matchedRecords / $this->displayLimit);
-    }
-
-    // }}}
-    // {{{ getDefaultSortField()
-
-    /**
-     * Get the default sort field from the registry
-     *
-     * @access public
-     * @return string The default sort field or null if it's not set
-     */
-    function getDefaultSortField()
-    {
-        $o_registry =& FastFrame_Registry::singleton();
-        return $o_registry->getConfigParam('app/default_sort');
-    }
-
-    // }}}
-    // {{{ getDefaultSortOrder()
-
-    /**
-     * Get the default sort order (maybe someday this will interface with the config as
-     * well)
-     *
-     * @access public
-     * @return int The defaultSortSrder variable 
-     */
-    function getDefaultSortOrder()
-    {
-        return $this->defaultSortOrder;
-    }
-
-    // }}}
-    // {{{ getDefaultDisplayLimit()
-
-    /**
-     * Get the defaultDisplayLimit (maybe someday this will interface with the config as well
-     *
-     * @access public
-     * @return int The default displayLimit for list pages
-     */
-    function getDefaultDisplayLimit()
-    {
-        return $this->defaultDisplayLimit;
     }
 
     // }}}
