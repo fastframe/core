@@ -1,5 +1,5 @@
 <?php
-/** $Id: Menu.php,v 1.4 2003/02/08 00:10:54 jrust Exp $ */
+/** $Id: Menu.php,v 1.5 2003/03/19 00:01:44 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -144,10 +144,16 @@ class FastFrame_Menu {
                     continue;
                 }
                     
+                // include any additional action IDs this app has
+                $pth_actions = $this->o_registry->getAppFile('ActionHandler/actions.php', $s_app, 'libs');
+                if (file_exists($pth_actions)) {
+                    require_once $pth_actions;
+                }
+
                 $pth_menu = $this->o_registry->getAppFile('menu.php', $s_app, 'config');
-                if (is_readable($pth_menu)) {
+                if (file_exists($pth_menu)) {
                     $a_appMenu = null; 
-                    include_once $pth_menu;
+                    require_once $pth_menu;
                     if (is_array($a_appMenu) && isset($a_appMenu[0])) {
                         $this->menuVariables[] = array(
                             'app' => $s_app,
@@ -210,13 +216,13 @@ class FastFrame_Menu {
         static $s_baseURL, $s_argSeparator;
         if (!isset($s_baseURL)) {
             $s_argSeparator = ini_get('arg_separator.output');
-            $s_baseURL = FastFrame::url($this->o_registry->getRootFile('menuRedirect.php', '', FASTFRAME_WEBPATH));
+            $s_baseURL = FastFrame::url($this->o_registry->getRootFile('index.php', null, FASTFRAME_WEBPATH));
             // if the URL has no query vars attach one on so we can use the URL easily later
             if (strpos($s_baseURL, '?') === false) {
                 $s_baseURL .= '?_fromMenu=1';
             }
             else {
-                $s_baseURL .= $s_argSeparator . '_fromMenu=true';
+                $s_baseURL .= $s_argSeparator . '_fromMenu=1';
             }
         }
 
