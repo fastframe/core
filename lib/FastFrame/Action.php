@@ -1,5 +1,5 @@
 <?php
-/** $Id: Action.php,v 1.5 2003/03/19 00:36:00 jrust Exp $ */
+/** $Id: Action.php,v 1.6 2003/04/02 00:05:58 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -66,6 +66,12 @@ class FF_Action {
     var $o_model;
 
     /**
+     * The permissions object
+     * @type object
+     */
+    var $o_perms;
+
+    /**
      * The current actionId
      * @type string
      */
@@ -87,6 +93,7 @@ class FF_Action {
         $this->o_output =& FF_Output::singleton();
         $this->o_nextAction =& new FF_NextAction();
         $this->o_registry =& FF_Registry::singleton();
+        $this->o_perms =& FF_Perms::factory();
         $this->o_model =&  $in_model;
     }
 
