@@ -152,7 +152,12 @@ class FF_DataAccess {
      */
     function connect()
     {
-        $this->o_data =& DB::connect($this->getDataDsn());
+        $this->o_data =& DB::connect(array(
+                    'phptype' => $this->o_registry->getConfigParam('data/type'),
+                    'username' => $this->o_registry->getConfigParam('data/username'),
+                    'password' => $this->o_registry->getConfigParam('data/password'),
+                    'hostspec' => $this->o_registry->getConfigParam('data/host'),
+                    'database' => $this->o_registry->getConfigParam('data/database')));
         if (DB::isError($this->o_data)) {
             trigger_error($this->o_data->getMessage(), E_USER_ERROR);
         } 
@@ -506,25 +511,6 @@ class FF_DataAccess {
     function getNextId()
     {
         return $this->o_data->nextId($this->table);
-    }
-
-    // }}}
-    // {{{ getDataDsn()
-
-    /**
-     * Creates the dsn used by the PEAR DB library from the config
-     * values.
-     *
-     * @access public
-     * @return string The DSN
-     */
-    function getDataDsn()
-    {
-        return $this->o_registry->getConfigParam('data/type') . '://' . 
-            $this->o_registry->getConfigParam('data/username') . ':' .
-            $this->o_registry->getConfigParam('data/password') . '@' .
-            $this->o_registry->getConfigParam('data/host') . '/' .
-            $this->o_registry->getConfigParam('data/database');
     }
 
     // }}}
