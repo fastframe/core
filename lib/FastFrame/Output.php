@@ -203,6 +203,13 @@ class FF_Output {
             }
         }
 
+        // Make the .htaccess file which will override the cache/ .htaccess
+        if (!file_exists($s_cssCacheDir . '/.htaccess')) {
+            require_once 'File.php';
+            File::write($s_cssCacheDir . '/.htaccess', 'Allow from all', FILE_MODE_WRITE);
+            File::close($s_cssCacheDir . '/.htaccess', FILE_MODE_WRITE);
+        }
+
         $s_cssTemplateFile = $in_themeDir . '/style.tpl';
         $s_browser = Net_UserAgent_Detect::getBrowser(array('ie', 'gecko'));
         // All other browsers get treated as gecko
