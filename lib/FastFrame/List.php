@@ -365,7 +365,7 @@ class FF_List {
         }
 
         if (count($this->extraSearchElements) > 0) {
-            $o_searchWidget->assign('has_extra_elements', true);
+            $o_searchWidget->assign(array('has_extra_elements' => true, 'T_search_filter' => _('Filter Options')));
             foreach ($this->extraSearchElements as $a_element) {
                 $o_searchWidget->append('extraElements', 
                         array('T_desc' => $a_element[0], 'T_element' => $o_renderer->elementToHtml($a_element[1])));
