@@ -137,7 +137,7 @@ class FF_Menu {
      * Otherwise it is condensed with no padding or newlines.
      * @var bool
      */
-    var $debug = true;
+    var $debug = false;
 
     // }}}
     // {{{ constructor()
