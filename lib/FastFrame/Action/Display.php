@@ -93,10 +93,12 @@ class FF_Action_Display extends FF_Action {
     /**
      * Renders the search box for this module.
      *
+     * @param bool $in_focusSearch (optional) Focus the search box?
+     *
      * @access public
      * @return void
      */
-    function renderSearchBox()
+    function renderSearchBox($in_focusSearch = true)
     {
         if (FF_Request::getParam('isPopup', 'gp', false)) {
             return;
@@ -108,7 +110,7 @@ class FF_Action_Display extends FF_Action {
         $o_list->setSearchBoxType(SEARCH_BOX_ONLYSEARCH, false);
         $o_list->setPersistentData($this->persistentData);
         $this->o_output->o_tpl->assign(array('has_search_box' => true, 
-                    'W_search_box' => $o_list->renderSearchBox($this->getPluralText(), true)));
+                    'W_search_box' => $o_list->renderSearchBox($this->getPluralText(), $in_focusSearch)));
     }
 
     // }}}
