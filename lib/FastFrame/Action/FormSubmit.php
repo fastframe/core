@@ -1,5 +1,5 @@
 <?php
-/** $Id: FormSubmit.php,v 1.4 2003/03/15 01:26:57 jrust Exp $ */
+/** $Id: FormSubmit.php,v 1.5 2003/04/02 00:17:20 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -65,6 +65,10 @@ class FF_Action_FormSubmit extends FF_Action {
      */
     function run()
     {
+        if (!$this->checkPerms()) {
+            return $this->o_nextAction;
+        }
+
         $this->fillModelWithSubmitData();
         $o_result =& $this->validateInput();
         if (!$o_result->isSuccess()) {
@@ -78,7 +82,7 @@ class FF_Action_FormSubmit extends FF_Action {
         if ($o_result->isSuccess()) {
             // this makes sure the objectId is set if this was an add
             $_GET['objectId'] = $_POST['objectId'] = $this->o_model->getId();
-            $this->o_output->setMessage($this->getSuccessMessage());
+            $this->o_output->setMessage($this->getSuccessMessage(), FASTFRAME_SUCCESS_MESSAGE);
             $this->setSuccessActionId();
         }
         else {
@@ -121,10 +125,10 @@ class FF_Action_FormSubmit extends FF_Action {
     function getSuccessMessage()
     {
         if ($this->currentActionId == ACTION_EDIT_SUBMIT) {
-            return _('Updated the data successfully.');
+            return sprintf(_('Updated the %s successfully.'), $this->getSingularText());
         }
         else {
-            return _('Added the data successfully.');
+            return sprintf(_('Added the %s successfully.'), $this->getSingularText());
         }
     }
 
@@ -140,10 +144,10 @@ class FF_Action_FormSubmit extends FF_Action {
     function getProblemMessage()
     {
         if ($this->currentActionId == ACTION_EDIT_SUBMIT) {
-            return _('There was an error in updating the data.');
+            return sprintf(_('There was an error in updating the %s.'), $this->getSingularText());
         }
         else {
-            return _('There was an error in adding the data.');
+            return sprintf(_('There was an error in adding the %s.'), $this->getSingularText());
         }
     }
 
@@ -159,6 +163,34 @@ class FF_Action_FormSubmit extends FF_Action {
     function fillModelWithSubmitData()
     {
         // interface
+    }
+
+    // }}}
+    // {{{ validateInput()
+
+    /**
+     * Validates the input, usually using a validate object 
+     *
+     * @access public
+     * @return object A result object 
+     */
+    function &validateInput()
+    {
+        // interface
+    }
+
+    // }}}
+    // {{{ checkPerms()
+
+    /**
+     * Check the permissions on this action.
+     *
+     * @access public
+     * @return bool True if everything is ok, false if a new action has been set
+     */
+    function checkPerms()
+    {
+        return true;
     }
 
     // }}}
@@ -195,17 +227,17 @@ class FF_Action_FormSubmit extends FF_Action {
     }
 
     // }}}
-    // {{{ validateInput()
+    // {{{ getSingularText()
 
     /**
-     * Validates the input, usually using a validate object 
+     * Gets the text that describes a singular version of the item manipulated
      *
      * @access public
-     * @return object A result object 
+     * @return string The singular text
      */
-    function &validateInput()
+    function getSingularText()
     {
-        // interface
+        return _('data');
     }
 
     // }}}
