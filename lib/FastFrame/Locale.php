@@ -192,16 +192,12 @@ class FF_Locale {
     function selectLang()
     {
         $o_registry =& FF_Registry::singleton();
-        // First, check if language can be changed.
-        if (!$o_registry->getConfigParam('language/allow_override')) {
-            $s_lang = $o_registry->getConfigParam('language/default');
-        }
+        $s_lang = $o_registry->getConfigParam('language/default');
         // See if we have the language stored in session
-        elseif (!is_null(FF_Auth::getCredential('language'))) {
+        if (!is_null(FF_Auth::getCredential('language'))) {
             $s_lang = FF_Auth::getCredential('language'); 
-        } 
-        // Try browser default
-        elseif (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+        }
+        elseif (empty($s_lang) && !empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
             // The browser supplies a list, so return the first valid one.
             $a_nlss = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
             foreach ($a_nlss as $tmp_lang) {
@@ -215,9 +211,6 @@ class FF_Locale {
                     break;
                 }
             }
-        }
-        else {
-            $s_lang = $o_registry->getConfigParam('language/default');
         }
 
         return basename($s_lang);
