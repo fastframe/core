@@ -106,8 +106,13 @@ class FF_AuthSource_sql extends FF_AuthSource {
     {
         $o_registry =& FF_Registry::singleton();
         $this->serverName = $o_registry->getConfigParam('data/host');
+        $s_dsn = $o_registry->getConfigParam('data/type') . '://' .
+                 $o_registry->getConfigParam('data/username') . ':' .
+                 $o_registry->getConfigParam('data/password') . '@' .
+                 $o_registry->getConfigParam('data/host') . '/' .
+                 $o_registry->getConfigParam('data/database');
         // set up database
-        $o_data =& DB::connect($o_registry->getDataDsn());
+        $o_data =& DB::connect($s_dsn);
         if (DB::isError($o_data)) {
             FastFrame::fatal($result, __FILE__, __LINE__);
         }

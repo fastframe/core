@@ -466,7 +466,7 @@ class FF_ActionHandler {
                 // them bounce back to the login page.  So we send them straight to it.
                 if (FF_Request::getParam('app', 'gp', false) === false) {
                     $this->setAppId($this->o_registry->getConfigParam('general/login_app'));
-                    $this->setModuleId($this->o_registry->getConfigParam('general/initial_module', null, array('app' => $this->appId)));
+                    $this->setModuleId($this->o_registry->getConfigParam('general/initial_module', null, $this->appId));
                     $this->loadActions();
                     $this->setActionId($this->defaultActionId);
                 }
@@ -562,7 +562,7 @@ class FF_ActionHandler {
             FF_Auth::checkAuth() && 
             !FF_Auth::getCredential('isProfileComplete') &&
             $this->getActionId() != ACTION_LOGOUT &&
-            $this->o_registry->getConfigParam('profile/force_complete', false, array('app' => 'profile'))) {
+            $this->o_registry->getConfigParam('profile/force_complete', false, 'profile')) {
             require_once $this->o_registry->getAppFile('ActionHandler/actions.php', 'profile', 'libs');
             // Don't redirect if already on the profile page or submitting it
             if ($this->getActionId() != ACTION_MYPROFILE && $this->getActionId() != ACTION_EDIT_SUBMIT) {

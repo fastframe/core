@@ -134,7 +134,7 @@ class FF_DataAccess {
     {
         $o_registry =& FF_Registry::singleton();
         $s_app = is_null($in_app) ? $o_registry->getCurrentApp() : $in_app;
-        $s_driver = strtolower($o_registry->getConfigParam('data/type', 'mysql', array('app' => $s_app)));
+        $s_driver = strtolower($o_registry->getConfigParam('data/type', 'mysql', $s_app));
         $pth_dao = $o_registry->getAppFile("DataAccess/$s_driver/$in_module.php", $s_app, 'libs');
         $s_class = 'FF_DataAccess_' . $in_module . '_' . $s_driver;
         return array($pth_dao, $s_class);
@@ -152,7 +152,7 @@ class FF_DataAccess {
      */
     function connect()
     {
-        $result = $this->o_data =& DB::connect($this->o_registry->getDataDsn());
+        $result = $this->o_data =& DB::connect($this->getDataDsn());
         if (DB::isError($result)) {
             FastFrame::fatal($result, __FILE__, __LINE__); 
         } 
@@ -506,6 +506,25 @@ class FF_DataAccess {
     function getNextId()
     {
         return $this->o_data->nextId($this->table);
+    }
+
+    // }}}
+    // {{{ getDataDsn()
+
+    /**
+     * Creates the dsn used by the PEAR DB library from the config
+     * values.
+     *
+     * @access public
+     * @return string The DSN
+     */
+    function getDataDsn()
+    {
+        return $this->o_registry->getConfigParam('data/type') . '://' . 
+            $this->o_registry->getConfigParam('data/username') . ':' .
+            $this->o_registry->getConfigParam('data/password') . '@' .
+            $this->o_registry->getConfigParam('data/host') . '/' .
+            $this->o_registry->getConfigParam('data/database');
     }
 
     // }}}

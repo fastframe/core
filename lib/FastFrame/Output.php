@@ -872,9 +872,9 @@ class FF_Output extends FF_Template {
         }
         else {
             $s_footer = str_replace('%version%', $this->o_registry->getConfigParam('version/primary', 
-                        null, array('app' => FASTFRAME_DEFAULT_APP)), $s_footer);
+                        null, FASTFRAME_DEFAULT_APP), $s_footer);
             $s_footer = str_replace('%build%', $this->o_registry->getConfigParam('version/build', 
-                        null, array('app' => FASTFRAME_DEFAULT_APP)), $s_footer);
+                        null, FASTFRAME_DEFAULT_APP), $s_footer);
             $a_microtime = explode(' ', microtime());
             define('FASTFRAME_END_TIME', $a_microtime[1] . substr($a_microtime[0], 1));
             $s_footer = str_replace('%renderTime%', number_format(FASTFRAME_END_TIME - FASTFRAME_START_TIME, 2), $s_footer);

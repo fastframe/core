@@ -213,7 +213,7 @@ class FF_Menu {
         // See if any of the menu files have been updated
         foreach ($this->o_registry->getApps() as $s_app) {
             // Make sure this app is enabled 
-            if ($this->o_registry->getAppParam('status', 'disabled', array('app' => $s_app)) != 'enabled') {
+            if ($this->o_registry->getAppParam('status', 'disabled', $s_app) != 'enabled') {
                 continue;
             }
                 
@@ -301,9 +301,9 @@ class FF_Menu {
     function _getMenuFilename($in_app)
     {
         // Get the profile specific application menu
-        if ($this->o_registry->getAppParam('profile', false, array('app' => $in_app))) {
+        if ($this->o_registry->getAppParam('profile', false, $in_app)) {
             return sprintf('%s/menu.php', 
-                    $this->o_registry->getAppParam('profile', null, array('app' => $in_app)));
+                    $this->o_registry->getAppParam('profile', null, $in_app));
         }
         else {
             return 'menu.php';
@@ -335,7 +335,7 @@ class FF_Menu {
         // Now loop through enabled apps and get the menu variables
         foreach ($this->o_registry->getApps() as $s_app) {
             // Make sure this app is enabled 
-            if ($this->o_registry->getAppParam('status', 'disabled', array('app' => $s_app)) != 'enabled') {
+            if ($this->o_registry->getAppParam('status', 'disabled', $s_app) != 'enabled') {
                 continue;
             }
                 

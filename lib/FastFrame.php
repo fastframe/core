@@ -51,164 +51,87 @@ class FastFrame {
      * Return a session-id-ified version of $uri.
      *
      * @param  string $in_url The URL to be modified
-     * @param  array  $in_queryVars (optional) Set of variable = value pairs
-     *         ...
+     * @param  array  $in_vars (optional) Set of variable = value pairs
      * @param  bool   $in_full (optional) generate a full url?
      *
      * @return string The url with the session id appended
      */
-    function url($in_url)
+    function url($in_url, $in_vars = array(), $in_full = false)
     {
-        $o_registry =& FF_Registry::singleton();
-
-        // merge all the get variable arrays
-        $argv = func_get_args();
-        // pop off the url and the full flag
-        array_shift($argv);
-
-        $last = end($argv);
-        if (!is_array($last)) {
-            $in_full = (bool) array_pop($argv);
-        }
-        else {
-            $in_full = false;
-        }
-
-        // if it begins with javascript then leave as is
         if (strpos($in_url, 'javascript:') === 0) {
             return $in_url;
         }
 
-        // if we have a '/' we assume this is an absolute link
-        // or if it begins with http we assume it's a full link already
-        if (strpos($in_url, '/') === 0 ||
-            preg_match(':^https?\://:', $in_url)) {
-            $url = $in_url;
-        }
-        // we need to just add the web part of the path
-        else {
-            $url = $o_registry->getConfigParam('webserver/web_root') . '/' . $in_url;
+        $o_registry =& FF_Registry::singleton();
+        // If the link does not have the webpath, then add it.
+        if (strpos($in_url, '/') !== 0 && !preg_match(':^https?\://:', $in_url)) {
+            $in_url = $o_registry->getConfigParam('webserver/web_root') . '/' . $in_url;
         }
 
         // see if we need to make this a full query string
         if ($in_full && !preg_match(':^https?\://:', $in_url)) {
-            $url = ($o_registry->getConfigParam('webserver/use_ssl') ? 'https' : 'http') . 
-                   '://' . $o_registry->getConfigParam('webserver/hostname') . $url;
+            $in_url = ($o_registry->getConfigParam('webserver/use_ssl') ? 'https' : 'http') . 
+                   '://' . $o_registry->getConfigParam('webserver/hostname') . $in_url;
         }
 
-        // getVars will be a name=>value pair hash of get variables
-        $getVars = array();
-        foreach($argv as $getVarList) {
-            $getVars = array_merge($getVars, (array) $getVarList);
-        }
-
-        // add the session to the array list if it is configured to do so
+        // Add the session to the array list if it is configured to do so
         if ($o_registry->getConfigParam('session/append')) {
             $sessName = session_name(); 
             // make sure it was not already set (like set to nothing)
-            if (!isset($getVars[$sessName])) {
+            if (!isset($in_vars[$sessName])) {
                 // don't lock the user out with an empty session id!
                 if (!FastFrame::isEmpty(session_id())) {
-                    $getVars[$sessName] = session_id();
+                    $in_vars[$sessName] = session_id();
                 }
-                elseif (isset($_REQUEST[$sessName]) && !empty($_REQUEST[$sessName])) {
-                    $getVars[$sessName] = $_REQUEST[$sessName]; 
+                elseif (!empty($_REQUEST[$sessName])) {
+                    $in_vars[$sessName] = $_REQUEST[$sessName]; 
                 }
             }
             // if it was set to false then remove it
-            elseif (empty($getVars[$sessName])) {
-                unset($getVars[$sessName]);
+            elseif (!$in_vars[$sessName]) {
+                unset($in_vars[$sessName]);
             }
         }
 
-        // urlencode the values as an array with values name=urlencode(value)
-        settype($getPairs, 'array');
-        foreach($getVars as $name => $value) {
-            // make sure we did not end up with an empty name
-            if (!empty($name)) {
-                $getPairs[] = $name . '=' . urlencode($value);
-            }
+        foreach($in_vars as $k => $v) {
+            $in_vars[$k] = urlencode($k) . '=' . urlencode($v);
         }
 
-        $queryString = implode(ini_get('arg_separator.output'), $getPairs);
-
+        $queryString = implode(ini_get('arg_separator.output'), $in_vars);
         if (!empty($queryString)) {
-            $url .= (strpos($url, '?') === false) ? '?' : ini_get('arg_separator.output');
-            $url .= $queryString;
+            $in_url .= (strpos($in_url, '?') === false) ? '?' : ini_get('arg_separator.output');
+            $in_url .= $queryString;
         }
 
-        return $url;
+        return $in_url;
     }
     
-    // }}}
-    // {{{ void    purl()
-
-    /**
-     * Print a session-id-ified version of the URI.
-     *
-     * @param  string $in_url The URL to be modified
-     * @param  array  $in_queryVars (optional) Set of variable = value pairs
-     *         ...
-     * @param  bool   $in_full (optional) whether to generate a full url
-     */
-    function purl($in_url)
-    {
-        $argv = func_get_args();
-        echo call_user_func_array(array('FastFrame', 'url'), $argv);
-    }
-
     // }}}
     // {{{ string  selfURL()
 
     /**
      * Return a session-id-ified version of $PHP_SELF.
      *
-     * @param  array  $in_queryVars (optional) Set of variable = value pairs
-     *         ...
-     * @param bool  $in_full whether to generate a full or partial link
+     * @param array $in_vars (optional) Set of variable = value pairs
+     * @param bool  $in_full (optional) Whether to generate a full or partial link
      *
      * @access public
      * @return string The URL
      */
-    function selfURL()
+    function selfURL($in_vars = array(), $in_full = false)
     {
-        // Get the arguments passed in
-        $argv = func_get_args();
-
         // Add on the module, app, and actionId to the beginning
         $o_actionHandler =& FF_ActionHandler::singleton();
-        array_unshift($argv, array(
-                    'app' => $o_actionHandler->getAppId(), 
-                    'module' => $o_actionHandler->getModuleId(),
-                    'actionId' => $o_actionHandler->getActionId())); 
-
+        $in_vars['app'] = isset($in_vars['app']) ? $in_vars['app'] : $o_actionHandler->getAppId();
+        $in_vars['module'] = isset($in_vars['module']) ? $in_vars['module'] : $o_actionHandler->getModuleId();
+        $in_vars['actionId'] = isset($in_vars['actionId']) ? $in_vars['actionId'] : $o_actionHandler->getActionId();
         // Add on isPopup if it is set
-        if (FF_Request::getParam('isPopup', 'gp', false)) {
-            array_unshift($argv, array('isPopup' => 1));
+        if (FF_Request::getParam('isPopup', 'gp', false) && !isset($in_vars['isPopup'])) {
+            $in_vars['isPopup'] = 1;
         }
 
         // Add on the url to the beginning
-        array_unshift($argv, $_SERVER['PHP_SELF']);
-        return call_user_func_array(array('FastFrame', 'url'), $argv);
-    }
-
-    // }}}
-    // {{{ void    pselfURL()
-
-    /**
-     * Print a session-id-ified version of $PHP_SELF.
-     *
-     * @param  array  $in_queryVars (optional) Set of variable = value pairs
-     *         ...
-     * @param bool  $in_full whether to generate a full or partial link
-     *
-     * @access public
-     * @return string The URL
-     */
-    function pselfURL()
-    {
-        $argv = func_get_args();
-        echo call_user_func_array(array('FastFrame', 'selfURL'), $argv);
+        return FastFrame::url($_SERVER['PHP_SELF'], $in_vars, $in_full);
     }
 
     // }}}
@@ -348,145 +271,6 @@ HTML;
         $o_logger->log($s_message, $in_priority);  
 
         return true;
-    }
-
-    // }}}
-    // {{{ int     bytesToHuman()
-
-    /**
-     * Converts a number of bytes into a human readable
-     * string of kb, mb, or gb depending on what is appropriate
-     *
-     * @param double $in_bytes The value to format
-     * @param integer $in_dec The number of decimals to retain
-     * @param integer $in_sens The sensitiveness.  The bigger the number
-     *                          the larger the step to the next unit
-     *
-     * @access public
-     * @return string Formatted number string
-     */
-    function bytesToHuman($in_bytes, $in_dec = 0, $in_sens = 3)
-    {
-        // the different formats
-        $byteUnits[0] = _('Bytes');
-        $byteUnits[1] = _('KB');
-        $byteUnits[2] = _('MB');
-        $byteUnits[3] = _('GB');
-
-        $li           = pow(10, $in_sens);
-        $dh           = pow(10, $in_dec);
-        $unit         = $byteUnits[0];
-
-        if ($in_bytes >= $li*1000000) {
-            $value = round($in_bytes/(1073741824/$dh))/$dh;
-            $unit  = $byteUnits[3];
-        }
-        else if ($in_bytes >= $li*1000) {
-            $value = round($in_bytes/(1048576/$dh))/$dh;
-            $unit  = $byteUnits[2];
-        }
-        else if ($in_bytes >= $li) {
-            $value = round($in_bytes/(1024/$dh))/$dh;
-            $unit  = $byteUnits[1];
-        }
-        else {
-            $value = $in_bytes;
-            $in_dec = 0;
-        }
-
-        $returnValue = number_format($value, $in_dec);
-
-        return $returnValue.' '.$unit;
-    }
-
-    // }}}
-    // {{{ string  getTmpDir()
-
-    /**
-     * Determine the location of the system temporary directory.
-     * If a specific setting cannot be found, it defaults to /tmp
-     *
-     * @param  string $in_dir tmpdir override
-     *
-     * @return string    A directory name which can be used for temp files
-     *                   or false if one could not be found
-     * [!] if an override is given, it falls back to system tmp instead of app tmp [!]
-     */
-    function getTmpDir($in_dir = null)
-    {
-        $registry =& FF_Registry::singleton();
-
-        $checkDir = is_null($in_dir) ? $registry->getConfigParam('general/tmpdir') : $in_dir;
-
-        return File::getTempDir($checkDir);
-    }
-
-    // }}}
-    // {{{ string  getTmpFile()
-
-    /**
-     * Create a temporary filename for the lifetime of the script, and
-     * (optionally) register it to be deleted at request shutdown.
-     *
-     * @param string $prefix  Prefix to make the temporary name more recognizable
-     * @param optional boolean $delete Delete the file at the end of the request?
-     * @param optional string $dir Directory to create the temporary file in
-     * @return string         containing the full path-name to the temporary file
-     *                        or false if a temp file could not be created
-     */
-    function getTmpFile($in_prefix = 'FastFrame-', $in_delete = true, $in_dir = null)
-    {
-        if (File::isError($tmpDir = FastFrame::getTmpDir($in_dir))) {
-            return $tmpDir;
-        }
-
-        return File::getTempFile($in_prefix, $in_delete, $tmpDir); 
-    }
-    
-    // }}}
-    // {{{ string  getRandomString()
-
-    /**
-     * Generates a random string
-     *
-     * @param int $in_length The length of the string 
-     * @param string $in_possibleChars (optional) Specify characters to use
-     *
-     * @access public
-     * @return string The random string
-     */
-    function getRandomString($in_length, $in_possibleChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
-    {
-        $possibleCharsLength = strlen($in_possibleChars);
-        $string = '';
-        while(strlen($string) < $in_length) {
-            $string .= substr($in_possibleChars, (mt_rand() % $possibleCharsLength), 1);
-        }
-        return $string;
-    }
-    
-    // }}}
-    // {{{ array   createNumericOptionList()
-
-    /**
-     * Creates a numeric array based on a start and end value
-     *
-     * @param int $in_start The start number
-     * @param int $in_end The end number
-     * @param int $in_step The step amount
-     * @param string $in_sprintf (optional) The sprintf statement
-     *
-     * @access public
-     * @return array A sequential array of numbers
-     */
-    function createNumericOptionList($in_start, $in_end, $in_step = 1, $in_sprintf = '%02d')
-    {
-        $select = array();
-        for ($i = $in_start; $i <= $in_end; $i = $i + $in_step) {
-            $select[$i] = sprintf($in_sprintf, $i);
-        }
-
-        return $select;
     }
 
     // }}}

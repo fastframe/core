@@ -314,8 +314,8 @@ class FF_List {
         else {
             $o_searchWidget =& $this->o_output->getWidgetObject('searchTable');
             $s_printLink = $this->o_output->link(
-                    FastFrame::selfURL($this->persistentData, $a_listVars, 
-                        array('printerFriendly' => 1)), 
+                    FastFrame::selfURL(array_merge($this->persistentData, $a_listVars, 
+                        array('printerFriendly' => 1))), 
                     _('Printer Friendly'));
 
             $s_foundText = sprintf(_('%1$d Found (%2$d%%), %3$d Listed out of %4$d Total %5$s'), 
@@ -397,32 +397,32 @@ class FF_List {
         $a_navigation = array();
         $a_navigation['first']    = $this->getPageOffset() > 1 ? 
                                     $this->o_output->link(
-                                            FastFrame::selfURL($a_urlVars, array(
-                                                    "pageOffset[$this->listId]" => $this->getPageId('first'))), 
+                                            FastFrame::selfURL(array_merge($a_urlVars, array(
+                                                    "pageOffset[$this->listId]" => $this->getPageId('first')))), 
                                             $this->o_output->imgTag('first.gif', 'arrows'), 
                                             $lang_firstPage) : 
                                     $this->o_output->imgTag('first-gray.gif', 'arrows', $lang_atFirst);
 
         $a_navigation['previous'] = $this->getPageOffset() > 1 ?
                                     $this->o_output->link(
-                                            FastFrame::selfURL($a_urlVars, array(
-                                                    "pageOffset[$this->listId]" => $this->getPageId('previous'))), 
+                                            FastFrame::selfURL(array_merge($a_urlVars, array(
+                                                    "pageOffset[$this->listId]" => $this->getPageId('previous')))), 
                                             $this->o_output->imgTag('prev.gif', 'arrows'), 
                                             $lang_prevPage) : 
                                     $this->o_output->imgTag('prev-gray.gif', 'arrows', $lang_atFirst);
 
         $a_navigation['next']     = $this->getPageOffset() < $this->getPageId('last') ? 
                                     $this->o_output->link(
-                                            FastFrame::selfURL($a_urlVars, array(
-                                                    "pageOffset[$this->listId]" => $this->getPageId('next'))), 
+                                            FastFrame::selfURL(array_merge($a_urlVars, array(
+                                                    "pageOffset[$this->listId]" => $this->getPageId('next')))), 
                                             $this->o_output->imgTag('next.gif', 'arrows'), 
                                             $lang_nextPage) : 
                                     $this->o_output->imgTag('next-gray.gif', 'arrows', $lang_atLast);
 
         $a_navigation['last']     = $this->getPageOffset() < $this->getPageId('last') ? 
                                     $this->o_output->link(
-                                            FastFrame::selfURL($a_urlVars, array(
-                                                    "pageOffset[$this->listId]" => $this->getPageId('last'))), 
+                                            FastFrame::selfURL(array_merge($a_urlVars, array(
+                                                    "pageOffset[$this->listId]" => $this->getPageId('last')))), 
                                             $this->o_output->imgTag('last.gif', 'arrows'), 
                                             $lang_lastPage) : 
                                     $this->o_output->imgTag('last-gray.gif', 'arrows', $lang_atLast);
