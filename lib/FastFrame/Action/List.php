@@ -112,7 +112,9 @@ class FF_Action_List extends FF_Action_Form {
             $this->getDefaultDisplayLimit()
         );
         $this->o_list->setPersistentData($this->getPersistentData());
-        $this->processFieldMapForList($this->getFieldMap());
+        list($a_colData, $a_searchData) = $this->processFieldMapForList();
+        $this->o_list->setColumnData($a_colData);
+        $this->o_list->setSearchableFields($a_searchData, true);
     }
 
     // }}}
@@ -158,7 +160,8 @@ class FF_Action_List extends FF_Action_Form {
                     'T_table_header' => $this->getTableHeaderText(),
                     'S_table_columns' => $s_numCols)); 
         foreach ($this->o_list->generateSortFields() as $s_cell) {
-            $o_tableWidget->append('fieldCells', array('T_table_field_cell' => $s_cell));
+            $o_tableWidget->append('fieldCells', array('T_table_field_cell' => $s_cell, 
+                        'S_table_field_cell' => 'style="white-space: nowrap;"'));
         }
 
         if (!FF_Request::getParam('printerFriendly', 'gp', false)) {
@@ -217,25 +220,25 @@ class FF_Action_List extends FF_Action_Form {
                     ' onclick="window.location.href=\'' . $this->getHighlightedRowUrl() . '\';"' : '';
                 $a_cells = array();
                 foreach ($this->getFieldMap() as $tmp_fields) {
-                    $s_attr = '';
+                    $s_attr = isset($tmp_fields['attr']) ? $tmp_fields['attr'] : '';
                     $tmp_fields['args'] = isset($tmp_fields['args']) ? $tmp_fields['args'] : array();
-                    // see if the method is in the model 
-                    if (isset($tmp_fields['field'])) {
+                    // Options cell has some special attributes
+                    if ($tmp_fields['method'] == 'getOptions') {
+                        $s_attr = 'id="optionCell' . $i . '" style="width: 5%; white-space: nowrap;"';
+                        $tmp_fields['object'] =& $this;
+                    }
+
+                    if (isset($tmp_fields['object'])) {
+                        $tmp_displayData = $this->o_output->processCellData(
+                                call_user_func_array(array(&$tmp_fields['object'], $tmp_fields['method']), $tmp_fields['args']));
+                    }
+                    // Otherwise use the model object
+                    else {
                         $tmp_displayData = $this->o_output->processCellData(
                                 call_user_func_array(array(&$this->o_model, $tmp_fields['method']), $tmp_fields['args']));
                     }
-                    // otherwise it's a method in this class
-                    else {
-                        $tmp_displayData = $this->o_output->processCellData(
-                                call_user_func_array(array(&$this, $tmp_fields['method']), $tmp_fields['args']));
-                        // Options cell has some special attributes
-                        if ($tmp_fields['method'] = 'getOptions') {
-                            $s_attr = 'id="optionCell' . $i . '" style="width: 5%; white-space: nowrap;"';
-                        }
-                    }
 
-                    $a_cells[] = array('T_table_content_cell' => $tmp_displayData,
-                            'S_table_content_cell' => $s_attr);
+                    $a_cells[] = array('T_table_content_cell' => $tmp_displayData, 'S_table_content_cell' => $s_attr);
                 }
 
                 $in_tableWidget->append('rows', array(
@@ -254,30 +257,35 @@ class FF_Action_List extends FF_Action_Form {
     // {{{ processFieldMapForList()
 
     /**
-     * Process the field map configuration used by FastFrame into the columnData and
-     * searchableFields properties of the list object. 
-     *
-     * @param bool $in_addAllFields (optional) Add the All Fields param to the beginning of the
-     *                              searchable fields list? 
+     * Process the field map configuration used by FastFrame into the
+     * columnData and searchableFields properties of the list object. 
      *
      * @access public
-     * @return void 
+     * @return array An array of 0 => colData, 1 => searchData 
      */
-    function processFieldMapForList($in_addAllFields = true)
+    function processFieldMapForList()
     {
         $a_colData = array();
-        foreach ($this->getFieldMap() as $a_val) {
-            if (isset($a_val['field']) && $a_val['field'] !== false) {
-                $a_colData[] = array('sort' => $a_val['field'], 'name' => $a_val['description']);
+        $a_searchData = array();
+        foreach ($this->getFieldMap() as $s_key => $a_val) {
+            $a_colData[$s_key] = array('name' => $a_val['description']);
+            $a_searchData[$s_key] = array('name' => $a_val['description']);
+
+            if (isset($a_val['field'])) {
+                $a_colData[$s_key]['sort'] = $a_val['field'];
+                $a_searchData[$s_key]['search'] = $a_val['field'];
             }
-            // not a sortable column
-            else {
-                $a_colData[] = array('name' => $a_val['description']);
+
+            if (isset($a_val['search'])) {
+                $a_searchData[$s_key]['search'] = $a_val['search'];
+            }
+
+            if (isset($a_val['sort'])) {
+                $a_colData[$s_key]['sort'] = $a_val['sort'];
             }
         }
         
-        $this->o_list->setColumnData($a_colData);
-        $this->o_list->setSearchableFields($a_colData, $in_addAllFields);
+        return array($a_colData, $a_searchData);
     }
 
     // }}}
@@ -391,12 +399,15 @@ class FF_Action_List extends FF_Action_Form {
      *
      * The map of fields to display in the list page, their description, and the method
      * to run to get the data for that field.  Available keys are:
-     * 'method' => Name of method to call.  If field name is empty then
-     *   the method is assumed to be part of this object (instead of the
-     *   model object)
+     * 'object' => The object used to call the method.  Default is
+     *  $this->o_model.
+     * 'method' => Name of method to call.
      * 'args' => Optional array of args to be passed to method
-     * 'field' => Field name to search & sort by.  If false then field
-     *   is not searchable/sortable.  Can also be empty.
+     * 'search' => Field name to search by.
+     * 'sort' => Field name to sort by.
+     * 'field' => A shortcut way to set a field as both searchable and
+     *  sortable.
+     *  'attr' => Any attributes to apply to the cell
      * 'description' => Description of the field.
      *
      * @access public
