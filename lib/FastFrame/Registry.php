@@ -203,8 +203,16 @@ class FF_Registry {
 
         // now load the configuration for this specific app
         if ($in_app != FASTFRAME_DEFAULT_APP && isset($apps[$in_app]) && !isset($config[$in_app])) {
+            // Look up which profile to use for the config files
+            if (isset($apps[$in_app]['profile'])) {
+                $s_configFile=sprintf('conf.%s.php', $apps[$in_app]['profile']);
+            } 
+            else {
+                $s_configFile='conf.php';
+            }
+
             // here we change our root, but not our basic FastFrame structure in that root
-            $s_file = File::buildPath(array($this->getConfigParam('webserver/file_root'), $this->getAppParam('root_apps'), $in_app, 'config/conf.php'));
+            $s_file = $this->getAppFile($s_configFile, $in_app, 'config');
             if (!is_readable($s_file)) {
                 $tmp_error = PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, null, E_USER_ERROR, "Can not import the config file for $in_app ($s_file)", 'FF_Error', true);
                 FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
@@ -370,7 +378,16 @@ class FF_Registry {
             $in_type = FASTFRAME_DATAPATH;
         }
 
-        $s_filename = File::buildPath(array($this->getAppParam('root_apps'), str_replace('%app%', $s_app, $s_service), $in_filename));
+        // use the app name as the apps directory unless the user has 
+        // overriden it in apps.php
+        if ($this->getAppParam('app_dir',null, array('app'=>$s_app))) {
+            
+            $s_appDir=str_replace('%app%', $this->getAppParam('app_dir',null,array('app'=>$s_app)), $s_service);
+        } 
+        else {
+            $s_appDir=str_replace('%app%', $s_app, $s_service);
+        }
+        $s_filename = File::buildPath(array($this->getAppParam('root_apps'), $s_appDir, $in_filename));
         return $this->getFile($s_filename, $in_type);
     }
 
@@ -453,7 +470,7 @@ class FF_Registry {
     }
 
     // }}}
-    // {{{ getAppParam()
+    // {{{ getAppParam())
 
     /**
      * Get a parameter for the current application

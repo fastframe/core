@@ -200,6 +200,8 @@ class FF_Menu {
             }
                 
             $pth_menu = $this->o_registry->getAppFile('menu.php', $s_app, 'config');
+
+$GLOBALS['o_error']->debug($pth_menu, '', __FILE__, __LINE__);
             if (file_exists($pth_menu) && (filemtime($pth_menu) > $s_cacheMTime)) {
                 return false;
             }
@@ -303,7 +305,7 @@ class FF_Menu {
             $pth_menu = $this->o_registry->getAppFile('menu.php', $s_app, 'config');
             if (file_exists($pth_menu)) {
                 $a_appMenu = null; 
-                require_once $pth_menu;
+                require $pth_menu;
                 if (is_array($a_appMenu) && isset($a_appMenu[0])) {
                     $this->menuVariables[] = array(
                         'app' => $s_app,
