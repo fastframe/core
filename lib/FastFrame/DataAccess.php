@@ -1,5 +1,5 @@
 <?php
-/** $Id: DataAccess.php,v 1.1 2003/02/22 01:57:29 jrust Exp $ */
+/** $Id: DataAccess.php,v 1.2 2003/03/13 18:40:33 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -29,8 +29,8 @@ require_once dirname(__FILE__) . '/Result.php';
 // {{{ class FF_DataAccess 
 
 /**
- * The FF_DataAccess:: class handles the task of making a model persistent.  It will save,
- * delete, and edit an object as well as obtain a model from the persistent layer. 
+ * The FF_DataAccess:: class handles the task of making data persistent.  It will save,
+ * delete, and edit rows from a table.
  *
  * @author  Jason Rust <jrust@codejanitor.com>
  * @version Revision: 1.0 
@@ -102,41 +102,17 @@ class FF_DataAccess {
     }
 
     // }}}
-    // {{{ save()
-        
-    /**
-     * Saves data to the persistent layer
-     *
-     * @param object $in_model The model object to make persistent 
-     * @param bool $in_isUpdate Is this an update?  Otherwise we add.
-     *
-     * @access public
-     * @return object The result object
-     */
-    function save(&$in_model, $in_isUpdate)
-    {
-        if ($in_isUpdate) {
-            $o_result = $this->update($in_model);
-        }
-        else { 
-            $o_result = $this->add($in_model);
-        }
-
-        return $o_result;
-    }
-
-    // }}}
     // {{{ update()
 
     /**
-     * Updates a model that already exists in the persistent layer 
+     * Updates a row that already exists in the table 
      *
-     * @param object $in_model The model object to update
+     * @param array $in_data The new data to update 
      *
      * @access public
      * @return object The Result object 
      */
-    function update(&$in_model)
+    function update($in_data)
     {
         // interface
     }
@@ -145,14 +121,14 @@ class FF_DataAccess {
     // {{{ add()
 
     /**
-     * Adds the model to the persistent layer and sets the primary id on the model. 
+     * Adds a new row to the table 
      *
-     * @param object $in_model The model object to add 
+     * @param array $in_data The array of data to add 
      *
      * @access public
      * @return object The result object 
      */
-    function add(&$in_model)
+    function add($in_data)
     {
         // interface
     }
@@ -185,32 +161,6 @@ class FF_DataAccess {
         }
 
         return $o_result;
-    }
-
-    // }}}
-    // {{{ getModelByPrimaryKey()
-
-    /**
-     * Gets one row of data based on the primary key of the table
-     *
-     * @param int $in_id The primary id value
-     *
-     * @access public
-     * @return mixed A model object or false if it is not found
-     */
-    function &getModelByPrimaryKey($in_id)
-    {
-        $s_query = sprintf('SELECT * FROM %s WHERE %s=%s',
-                              $this->table,
-                              $this->primaryKey,
-                              $this->o_data->quote($in_id)
-                          );
-        if (DB::isError($result = $this->o_data->getAll($s_query))) {
-            return false;
-        }
-        else {
-            return $this->_createModelFromArray($result[0]);
-        }
     }
 
     // }}}
@@ -251,17 +201,29 @@ class FF_DataAccess {
     }
 
     // }}}
-    // {{{ getDataObject()
+    // {{{ getDataByPrimaryKey()
 
     /**
-     * Returns the data object
+     * Gets one row of data based on the primary key of the table
+     *
+     * @param int $in_id The primary key value
      *
      * @access public
-     * @return object The data object.  To be used by application plugins.
+     * @return array The array of data or empty array if not found
      */
-    function &getDataObject()
+    function getDataByPrimaryKey($in_id)
     {
-        return $this->o_data;
+        $s_query = sprintf('SELECT * FROM %s WHERE %s=%s',
+                              $this->table,
+                              $this->primaryKey,
+                              $this->o_data->quote($in_id)
+                          );
+        if (DB::isError($result = $this->o_data->getAll($s_query))) {
+            return array();
+        }
+        else {
+            return $result[0];
+        }
     }
 
     // }}}
@@ -279,33 +241,17 @@ class FF_DataAccess {
     }
 
     // }}}
-    // {{{ getNewModel()
+    // {{{ getNextId()
 
     /**
-     * Returns a new model object
+     * Gets the next id available in the table
      *
      * @access public
-     * @return object A model object
+     * @return int The next id
      */
-    function getNewModel()
+    function getNextId()
     {
-        // interface
-    }
-
-    // }}}
-    // {{{ _createModelFromArray()
-
-    /**
-     * Creates a model object from an array of data.
-     *
-     * @param array $in_data The data array of 'key' => 'value'
-     *
-     * @access private
-     * @return object The model object
-     */
-    function &_createModelFromArray($in_data)
-    {
-        // interface
+        return $this->o_data->nextId($this->table);
     }
 
     // }}}
