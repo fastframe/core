@@ -56,9 +56,7 @@ class FF_Menu_DOM extends FF_Menu {
                 "verticalSubMenuOffsetY", -1,
                 "openMouseoverMenuDelay", -1,
                 "openMousedownMenuDelay", 0,
-                "closeClickMenuDelay", 0,
-                "axis", "vertical",
-                "closeMouseoutMenuDelay", -1
+                "axis", "vertical"
             ));
             ' . $this->_generateMenuVars() . '
             </script>';
