@@ -152,12 +152,7 @@ class FF_DataAccess {
      */
     function connect()
     {
-        $this->o_data =& DB::connect(array(
-                    'phptype' => $this->o_registry->getConfigParam('data/type'),
-                    'username' => $this->o_registry->getConfigParam('data/username'),
-                    'password' => $this->o_registry->getConfigParam('data/password'),
-                    'hostspec' => $this->o_registry->getConfigParam('data/host'),
-                    'database' => $this->o_registry->getConfigParam('data/database')));
+        $this->o_data =& DB::connect($this->getConnectParams());
         if (DB::isError($this->o_data)) {
             trigger_error($this->o_data->getMessage(), E_USER_ERROR);
         } 
@@ -511,6 +506,26 @@ class FF_DataAccess {
     function getNextId()
     {
         return $this->o_data->nextId($this->table);
+    }
+
+    // }}}
+    // {{{ getConnectParams()
+
+    /**
+     * Returns an array of the necessary parameters for connecting to
+     * the database.
+     *
+     * @access public
+     * @return array An array of DB connection options
+     */
+    function getConnectParams()
+    {
+        return array(
+                'phptype' => $this->o_registry->getConfigParam('data/type'),
+                'username' => $this->o_registry->getConfigParam('data/username'),
+                'password' => $this->o_registry->getConfigParam('data/password'),
+                'hostspec' => $this->o_registry->getConfigParam('data/host'),
+                'database' => $this->o_registry->getConfigParam('data/database'));
     }
 
     // }}}
