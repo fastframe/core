@@ -346,7 +346,7 @@ class FF_List {
 
             $o_searchWidget->assign(array('T_switch_type' => $this->o_output->link(
                             FastFrame::selfURL(array_merge($this->persistentData, $a_listVars, 
-                                    array('searchBoxType' => SEARCH_BOX_SIMPLE))), '&#187; ' . _('Fewer Search Options')),
+                                    array('searchBoxType' => SEARCH_BOX_SIMPLE))), '&#171; ' . _('Fewer Search Options')),
                         'T_search_limit' => $s_limitText,
                         'T_search_fields' => _('Search fields'),
                         'T_search_fieldSelect' => $o_renderer->elementToHtml("searchField[$this->listId]"),
