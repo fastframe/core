@@ -341,9 +341,13 @@ class FF_Registry {
             $a_pathParts[] = $in_file;
         }
 
-        // Remove empty values so we don't get repeat slashes
-        $a_pathParts = array_filter($a_pathParts);
-        return implode('/', $a_pathParts);
+        $s_path = implode('/', $a_pathParts);
+        // It's important that there be no double slashes in web paths
+        if ($in_type == FASTFRAME_WEBPATH) {
+            $s_path = str_replace('//', '/', $s_path);
+        }
+        
+        return $s_path;
     }
 
     // }}}

@@ -93,7 +93,7 @@ class FF_FileCache {
     function &save($in_data, $in_filePath, $in_useApp = false)
     {
         $o_result =& new FF_Result();
-        $this->_checkDir($in_filePath, $in_useApp);
+        $this->checkDir($in_filePath, $in_useApp);
         $s_path = $this->getPath($in_filePath, $in_useApp);
         require_once 'File.php';
         $tmp_result = File::write($s_path, $in_data, FILE_MODE_WRITE);
@@ -158,7 +158,7 @@ class FF_FileCache {
             return $o_result;
         }
 
-        $this->_checkDir($in_filePath, $in_useApp);
+        $this->checkDir($in_filePath, $in_useApp);
         if (!move_uploaded_file($in_uploadData['tmp_name'], $this->getPath($in_filePath, $in_useApp))) {
             $o_result->addMessage(_('Could not save the uploaded file.'));
             $o_result->setSuccess(false);
@@ -252,7 +252,7 @@ class FF_FileCache {
     }
 
     // }}}
-    // {{{ _checkDir()
+    // {{{ checkDir()
 
     /**
      * Checks to make sure the directory is created for the cache file
@@ -262,10 +262,10 @@ class FF_FileCache {
      * @param bool $in_useApp (optional) Save it into the current app
      *        dir?
      *
-     * @access private
+     * @access public
      * @return void
      */
-    function _checkDir($in_filePath, $in_useApp = false)
+    function checkDir($in_filePath, $in_useApp = false)
     {
         $a_parts = pathinfo($this->getPath($in_filePath, $in_useApp));
         if (!is_dir($a_parts['dirname'])) {
