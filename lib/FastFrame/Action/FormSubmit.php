@@ -78,6 +78,10 @@ class FF_Action_FormSubmit extends FF_Action {
             return $this->o_nextAction;
         }
 
+        if ($o_result->hasMessages()) {
+            $this->o_output->setMessage($o_result->getMessages(), FASTFRAME_WARNING_MESSAGE);
+        }
+
         $o_result =& $this->o_model->save($this->isUpdate());
         if ($o_result->isSuccess()) {
             // this makes sure the objectId is set if this was an add

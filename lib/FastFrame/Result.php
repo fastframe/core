@@ -1,5 +1,5 @@
 <?php
-/** $Id: Result.php,v 1.2 2003/04/02 00:11:02 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -113,6 +113,20 @@ class FF_Result {
         else {
             return null;
         }
+    }
+
+    // }}}
+    // {{{ hasMessages()
+
+    /**
+     * Tells if there are messages in the stack
+     *
+     * @access public
+     * @return bool True if there are messages, false otherwise
+     */
+    function hasMessages()
+    {
+        return count($this->messages) > 0 ? true : false;
     }
 
     // }}}
