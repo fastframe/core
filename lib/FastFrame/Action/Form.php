@@ -130,6 +130,7 @@ class FF_Action_Form extends FF_Action {
         $b_result = $this->fillModelWithData();
         // see if we encountered an error.
         if (!$b_result) {
+            $this->setProblemActionId();
             return $this->o_nextAction;
         }
 
