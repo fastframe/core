@@ -276,7 +276,7 @@ class FF_List {
         $o_form->addElement('submit', 'query_submit', _('» Search'), 
                 array('style' => 'vertical-align: bottom;'));
         if ($this->listAll) {
-            $o_form->addElement('submit', 'listall_submit', _('» Clear Search'), 
+            $o_form->addElement('submit', 'listall_submit', _('» List All'), 
                 array('onclick' => "document.search_box['searchString[$this->listId]'].value = '';", 
                     'style' => 'vertical-align: bottom;'));
         }
