@@ -566,11 +566,13 @@ class FF_List {
      * in, defaulting to SEARCH_BOX_NORMAL if value is not present.
      *
      * @param int $in_value (optional) Search box type. 
+     * @param bool $in_updateSession Update the session parameter with
+     *        the new value?
      *
      * @access public
      * @return void
      */
-    function setSearchBoxType($in_value = null)
+    function setSearchBoxType($in_value = null, $in_updateSession = true)
     {
         if (is_null($in_value)) {
             $this->searchBoxType = FF_Request::getParam('searchBoxType', 'gps', SEARCH_BOX_NORMAL);
@@ -585,7 +587,9 @@ class FF_List {
             $this->searchBoxType = SEARCH_BOX_NORMAL;
         }
 
-        FF_Request::setParam('searchBoxType', $this->searchBoxType, 's');
+        if ($in_updateSession) {
+            FF_Request::setParam('searchBoxType', $this->searchBoxType, 's');
+        }
     }
 
     // }}}
