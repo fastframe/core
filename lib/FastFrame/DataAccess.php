@@ -71,12 +71,6 @@ class FF_DataAccess {
      */
     var $connectParams;
 
-    /**
-     * The application we are in
-     * @var string
-     */
-    var $app;
-
     // }}}
     // {{{ constructor
 

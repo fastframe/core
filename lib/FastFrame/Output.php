@@ -185,7 +185,8 @@ class FF_Output {
                     'COPYWRITE' => 'Copywrite &#169; 2002-2003 The CodeJanitor Group',
                     'CONTENT_ENCODING' => $this->o_registry->getConfigParam('general/charset', 'ISO-8559-1'),
                     'U_SHORTCUT_ICON' => $this->o_registry->getConfigParam('general/favicon'),
-                    'PAGE_TITLE' => $this->getPageTitle()));
+                    'PAGE_TITLE' => $this->getPageTitle(),
+                    'LANG' => getenv('LANG')));
         $this->_renderPageType();
         $this->_renderMenus();
     }
@@ -606,7 +607,7 @@ class FF_Output {
             $s_tag .= $a_events['onmousemove'] != '' ? ' onmousemove="' . $a_events['onmousemove'] . '"' : '';
             $s_tag .= $a_events['onclick'] != '' ? ' onclick="' . $a_events['onclick'] . '"' : '';
             $s_tag .= isset($in_options['id']) ? " id=\"{$in_options['id']}\"" : '';
-            $s_tag .= isset($in_options['title']) ? " title=\"{$in_options['title']}\"" : '';
+            $s_tag .= isset($in_options['title']) ? " title=\"{$in_options['title']}\" alt=\"{$in_options['title']}\"" : '';
             $s_tag .= isset($in_options['name']) ? " name=\"{$in_options['name']}\"" : '';
             $s_tag .= isset($in_options['hspace']) ? " hspace=\"{$in_options['hspace']}\"" : '';
             $s_tag .= isset($in_options['vspace']) ? " vspace=\"{$in_options['vspace']}\"" : '';
@@ -726,7 +727,23 @@ class FF_Output {
                 continue;
             }
 
-            $a_message = array($s_message, $in_mode);
+            switch ($in_mode) {
+                case FASTFRAME_WARNING_MESSAGE:
+                    $s_text = _('Warning');
+                break;
+                case FASTFRAME_ERROR_MESSAGE:
+                    $s_text = _('Error');
+                break;
+                case FASTFRAME_SUCCESS_MESSAGE:
+                    $s_text = _('Success');
+                break;
+                case FASTFRAME_NORMAL_MESSAGE:
+                default:
+                    $s_text = _('Alert');
+                break;
+            }
+
+            $a_message = array($s_message, $in_mode, $s_text);
             if ($in_top) {
                 array_unshift($this->messages, $a_message);
             }
@@ -861,8 +878,8 @@ class FF_Output {
         foreach ($this->messages as $s_key => $a_message) {
             $this->o_tpl->append('status_messages', array(
                         'T_status_message' => $a_message[0],
-                        'I_status_message' => $this->imgTag($a_message[1], 'alerts'),
-                        'I_status_message_close' => $this->imgTag('close.png', 'actions', array('onclick' => 'document.getElementById(\'message_' . $s_key . '\').style.display = \'none\';', 'style' => 'cursor: pointer;'))));
+                        'I_status_message' => $this->imgTag($a_message[1], 'alerts', array('title' => $a_message[2])),
+                        'I_status_message_close' => $this->imgTag('close.png', 'actions', array('onclick' => 'document.getElementById(\'message_' . $s_key . '\').style.display = \'none\';', 'style' => 'cursor: pointer;', 'title' => _('Close')))));
         }
     }
 
