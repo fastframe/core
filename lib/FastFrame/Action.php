@@ -1,5 +1,5 @@
 <?php
-/** $Id: Action.php,v 1.6 2003/04/02 00:05:58 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -90,11 +90,13 @@ class FF_Action {
      */
     function FF_Action(&$in_model)
     {
+        $o_actionHandler =& FF_ActionHandler::singleton();
+        $this->currentActionId = $o_actionHandler->getActionId();
         $this->o_output =& FF_Output::singleton();
         $this->o_nextAction =& new FF_NextAction();
         $this->o_registry =& FF_Registry::singleton();
         $this->o_perms =& FF_Perms::factory();
-        $this->o_model =&  $in_model;
+        $this->o_model =& $in_model;
     }
 
     // }}}
@@ -109,22 +111,6 @@ class FF_Action {
     function run()
     {
         return $this->o_nextAction; 
-    }
-
-    // }}}
-    // {{{ setCurrentActionId()
-
-    /**
-     * Sets the current action id that this action was called with
-     *
-     * @param string $in_actionId The current action Id
-     *
-     * @access public
-     * @return void
-     */
-    function setCurrentActionId($in_actionId)
-    {
-        $this->currentActionId = $in_actionId;
     }
 
     // }}}

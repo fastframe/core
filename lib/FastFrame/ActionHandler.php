@@ -172,6 +172,25 @@ class FF_ActionHandler {
     }
 
     // }}}
+    // {{{ singleton()
+
+    /**
+     * To be used in place of the contructor to return any open instance.
+     *
+     * @access public
+     * @return object FF_ActionHandler instance
+     */
+    function &singleton()
+    {
+        static $instance;
+        if (!isset($instance)) {
+            $instance = new FF_ActionHandler();
+        }
+
+        return $instance;
+    }
+
+    // }}}
     // {{{ takeAction()
 
     /**
@@ -191,7 +210,6 @@ class FF_ActionHandler {
             if (file_exists($pth_actionFile)) {
                 require_once $pth_actionFile;
                 $o_action =& new $this->availableActions[$this->actionId][1]($this->o_model);
-                $o_action->setCurrentActionId($this->actionId);
                 $o_nextAction =& $o_action->run();
                 if ($o_nextAction->isLastAction()) {
                     $hitLastAction = true;
