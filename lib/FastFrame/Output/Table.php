@@ -1,5 +1,5 @@
 <?php
-/** $Id: Table.php,v 1.5 2003/03/21 23:43:35 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -133,6 +133,14 @@ class FF_Output_Table {
      */
     function renderTwoColumnTable()
     {
+        $tmp_css = '
+        <style type="text/css">
+        td.fieldCell {
+          width: 50%;
+        }
+        </style>';
+        // make the cells even in width
+        $this->o_output->assignBlockData(array('T_css' => $tmp_css), 'css'); 
         $this->beginTable();
         foreach ($this->tableHeaders as $tmp_header) {
             $this->o_output->touchBlock($this->tableNamespace . 'table_row');
