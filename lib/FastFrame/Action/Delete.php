@@ -38,22 +38,6 @@ require_once dirname(__FILE__) . '/../Action.php';
 
 // }}}
 class FF_Action_Delete extends FF_Action {
-    // {{{ constructor
-
-    /**
-     * Set variables on class initialization.
-     *
-     * @param object $in_model The model object
-     *
-     * @access public
-     * @return void
-     */
-    function FF_Action_Delete(&$in_model)
-    {
-        FF_Action::FF_Action($in_model);
-    }
-
-    // }}}
     // {{{ run()
     
     /**

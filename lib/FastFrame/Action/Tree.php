@@ -73,22 +73,6 @@ class FF_Action_Tree extends FF_Action {
     var $numRootNodes;
 
     // }}}
-    // {{{ constructor
-
-    /**
-     * Set variables on class initialization.
-     *
-     * @param object $in_model The model object
-     *
-     * @access public
-     * @return void
-     */
-    function FF_Action_Tree(&$in_model)
-    {
-        FF_Action::FF_Action($in_model);
-    }
-
-    // }}}
     // {{{ run()
     
     /**

@@ -48,22 +48,6 @@ class FF_Action_FormSubmit extends FF_Action {
     var $editActionId = ACTION_EDIT_SUBMIT;
 
     // }}}
-    // {{{ constructor
-
-    /**
-     * Set variables on class initialization.
-     *
-     * @param object $in_model The model object
-     *
-     * @access public
-     * @return void
-     */
-    function FF_Action_FormSubmit(&$in_model)
-    {
-        FF_Action::FF_Action($in_model);
-    }
-
-    // }}}
     // {{{ run()
     
     /**

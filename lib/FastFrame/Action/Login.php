@@ -38,22 +38,6 @@ require_once dirname(__FILE__) . '/Form.php';
 
 // }}}
 class FF_Action_Login extends FF_Action_Form {
-    // {{{ constructor
-
-    /**
-     * Set variables on class initialization.
-     *
-     * @param object $in_model The model object
-     *
-     * @access public
-     * @return void
-     */
-    function FF_Action_Login(&$in_model)
-    {
-        FF_Action_Form::FF_Action_Form($in_model);
-    }
-
-    // }}}
     // {{{ run()
     
     /**

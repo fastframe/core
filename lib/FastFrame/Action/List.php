@@ -56,22 +56,6 @@ class FF_Action_List extends FF_Action_Form {
     var $o_listModeler;
 
     // }}}
-    // {{{ constructor
-
-    /**
-     * Set variables on class initialization.
-     *
-     * @param object $in_model The model object
-     *
-     * @access public
-     * @return void
-     */
-    function FF_Action_List(&$in_model)
-    {
-        FF_Action_Form::FF_Action_Form($in_model);
-    }
-
-    // }}}
     // {{{ run()
     
     /**
