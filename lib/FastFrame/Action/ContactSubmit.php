@@ -163,7 +163,7 @@ class FF_Action_ContactSubmit extends FF_Action {
 
         $s_text .= "\t" . _('Server Name') . ': ' . $_SERVER['SERVER_NAME'] . "\n";
         $s_text .= "\t" . _('Referer') . ': ' . FF_Request::getParam('http_referer', 'p') . "\n";
-        $s_text .= "\t" . _('User Agent') . ': ' . $_SERVER['HTTP_USER_AGENT'];
+        $s_text .= "\t" . _('User Agent') . ': ' . @$_SERVER['HTTP_USER_AGENT'];
         return $s_text;
     }
 
