@@ -1,14 +1,6 @@
 <?php
-/** $Id: Handler.php,v 1.1 2003/01/03 22:42:44 jrust Exp $ */
-// {{{ TODO
-
 // [!] make it work in IE [!]
 // [!] close button on console window [!]
-// [!] SYSTEM_LOG = Off doesn't seem to work [!]
-// [!] display more info in output such as user's ip, referer, etc. [!]
-// [!] send mail logs in one big batch [!]
-
-// }}}
 // {{{ constants
 
 define('SYSTEM_LOG', 0);
@@ -25,7 +17,7 @@ define('E_VERY_ALL',    E_ERROR_ALL | E_WARNING_ALL | E_NOTICE_ALL | E_DEBUG);
 
 // constants for failure of loading this class.  These must be here since they
 // are used as a dire straits situation.
-define('ERRORHANDLER_INI',        'Error_Handler.ini');
+define('ERRORHANDLER_INI',        dirname(__FILE__) . '/Error_Handler.ini');
 define('ERRORHANDLER_LOG_TYPE',   FILE_LOG);
 define('ERRORHANDLER_LOG_TARGET', '/tmp/error_log');
 
@@ -36,22 +28,6 @@ require_once 'PEAR.php';
    
 // }}}
 // {{{ class Error_Handler
-
-/**
- * The error handler class allows the programmer to handle errors intelligently so that
- * errors are not just dumped on an unsuspecting user.  In normal operation it collects the
- * errors into a javascript popup window.  In other modes it will email the errors, log the
- * errors, or just suppress the errors completely.
- *
- * See the enclosed file COPYING for license information (LGPL). If you
- * did not receive this file, see http://www.fsf.org/copyleft/lesser.html.
- *
- * @version Revision: 2.0 
- * @author  Dan Allen <dan@mojavelinux.com>
- * @access  public
- * @package Error 
- */
-
 // }}}
 class Error_Handler extends PEAR
 {
@@ -62,12 +38,6 @@ class Error_Handler extends PEAR
     * @var string $consoleLink
     */
     var $consoleLink = '<div style="position: absolute; right: 0px; top: 1px;"><a style="%s" href="javascript: void(0);" onclick="return showErrors();">%s</a></div>';
-
-   /**
-    * The number of lines to allow for a variable in a context report
-    * @var int $numContextLines
-    */
-    var $numContextLines = 15;
 
    /**
     * console javascript
@@ -195,7 +165,7 @@ otherwise <a href="%1$s">click here</a>.';
     function Error_Handler($inifile = ERRORHANDLER_INI) 
     {
         // call this so that our deconstructor can be registered
-        $this->Pear();
+        $this->PEAR();
 
         // names of the built-in sections to be recognized
         $this->_section = array('CONTEXT', 'LOGGING', 'REPLACE', 'SOURCE', 'STYLES');
@@ -648,7 +618,7 @@ otherwise <a href="%1$s">click here</a>.';
             $context = stripslashes($context);
         }
         $this->_log_all(E_DEBUG, $file_name, $message . $context . "\n");
-        $this->_output($message, array(), array('==> CONTEXT REPORT', $context), false);
+        $this->_output($message, array(), array('==> CONTEXT REPORT', $context));
     }
 
     // }}}
@@ -950,12 +920,11 @@ otherwise <a href="%1$s">click here</a>.';
      * @param  string $message message that the error generated
      * @param  array  $source section of source code to be highlighted
      * @param  array  $context the variable dumps of the souce code
-     * @param  bool   $in_truncateContext (optional) Truncate the context variables?
      *
      * @access private
      * @return void
      */
-    function _output($message, $source, $context, $in_truncateContext = true)
+    function _output($message, $source, $context)
     {
         // concat the error message with the prepend and append settings from php.ini
         $report = ini_get('error_prepend_string').nl2br($message).ini_get('error_append_string');
@@ -968,16 +937,8 @@ otherwise <a href="%1$s">click here</a>.';
 
         // opens an output buffer to gather formatted context
         if (!empty($context[0])) {
-            $contextArr = explode("\n", $context[1]);
-
-            // truncate the context variable, since some of them are huge
-            if ($in_truncateContext && count($contextArr) > $this->numContextLines) {
-                array_splice($contextArr, $this->numContextLines);
-                $contextArr[] = '--> Variable Truncated due to Excessive Length <--';
-            }
-
             // add php tags so that the highlighting will work
-            $output = @highlight_string('<?php' . implode("\n", $contextArr) . '?>', true);
+            $output = @highlight_string('<?php' . $context[1] . '?>', true);
             // strip the php tags
             $output = preg_replace(':<font[^>]*>&lt;\?php</font>:', '', $output);
             $output = preg_replace(':<font[^>]*>\?&gt;</font>:', '', $output);
@@ -985,7 +946,7 @@ otherwise <a href="%1$s">click here</a>.';
         }
 
         // append reports to the console buffer as a javascript instruction
-        $this->_console .= @sprintf("Error_Handler.document.writeln('<div id=\"error{$this->_error_count}\" style=\"float: right;\">Error Number: {$this->_error_count} | <a href=\"javascript: errorJump({$this->_error_count}, -1);\">prev</a> | <a href=\"javascript: errorJump({$this->_error_count}, 1);\">next</a></div>%s<div style=\"height: 1px; line-height: 1px; background-color: black; border: 0; margin-bottom: 5px;\"><br /></div>');\n", @strtr($report, $this->_escchrs));
+        $this->_console .= @sprintf("Error_Handler.document.writeln('<div id=\"error{$this->_error_count}\" style=\"float: right;\">Error Number: {$this->_error_count} | <a href=\"javascript: errorJump({$this->_error_count}, -1);\">prev</a> | <a href=\"javascript: errorJump({$this->_error_count}, 1);\">next</a></div>%s<div style=\"height: 1px; background-color: black; border: 0; margin-bottom: 5px; line-height: 1px;\"><br /></div>');\n", @strtr($report, $this->_escchrs));
     }
 
     // }}}
