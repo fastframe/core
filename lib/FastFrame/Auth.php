@@ -1,5 +1,5 @@
 <?php
-/** $Id: Auth.php,v 1.5 2003/01/22 02:02:10 jrust Exp $ */
+/** $Id: Auth.php,v 1.6 2003/01/22 20:48:51 jrust Exp $ */
 // {{{ constants
 
 define('FASTFRAME_AUTH_OK',         0);
@@ -143,7 +143,6 @@ class FastFrame_Auth {
 
         // We need to check all of the sources in order
         foreach($this->authSources as $source) {
-
             if ($source->authenticate($s_username, $s_password)) {
                 $this->authenticatedSources=$source->getName();
                 $perms=new FastFrame_Perms($s_username);
@@ -425,17 +424,17 @@ class FastFrame_Auth {
         static $isStarted;
         
         if (!isset($isStarted)) {
-            $registry =& FastFrame_Registry::singleton();
+            $o_registry =& FastFrame_Registry::singleton();
             // force usage of querystring for storing session ID
             ini_set('session.use_cookies', 0);
             // don't transparently track session ID, since we do it in all
             // our functions anyhow
             ini_set('session.use_trans_sid', 0);
             // set the cacheing 
-            session_cache_limiter($registry->getConfigParam('session/cache', 'nocache'));
+            session_cache_limiter($o_registry->getConfigParam('session/cache', 'nocache'));
 
             // get the session name from the configuration or just use a default
-            session_name($registry->getConfigParam('session/name', 'FastFrameSESSID'));
+            session_name($o_registry->getConfigParam('session/name', 'FastFrameSESSID'));
             session_start();
             $isStarted = true;
         }
