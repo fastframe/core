@@ -1,9 +1,12 @@
 <?php
+/** $Id: AuthSource.php,v 1.3 2003/01/22 02:03:02 jrust Exp $ */
 // {{{ class  AuthSource
 
 /**
  * Abstract class describing a source to authenticate against
  *
+ * See the enclosed file COPYING for license information (LGPL). If you
+ * did not receive this file, see http://www.fsf.org/copyleft/lesser.html.
  *
  * @version Revision: 1.0 
  * @author  Greg Gilbert <ggilbert@brooks.edu
@@ -14,11 +17,31 @@
 // }}}
 class AuthSource {
     // {{{ properties
+
     /**
      * A unique name to identify an authenticated source
-     * @var string $sourceName
+     * @type string
      */
-    var $sourceName;
+    var $_sourceName;
+
+    // }}}
+    // {{{ constructor
+    
+    /**
+     * Initialize the AuthSource class
+     *
+     * Create an instance of the AuthSource class.  
+     *
+     * @param string $in_name The name of this auth source
+     * @param array $in_params Additional parameters needed for authenticating
+     *
+     * @access public
+     * @return AuthSource object
+     */
+    function AuthSource($in_name, $in_params)
+    {
+        $this->_sourceName = $in_name;
+    }
 
     // }}}
     // {{{ create()
@@ -34,37 +57,29 @@ class AuthSource {
      * @access public
      * @return object Subclass of AuthSource for the specified type, or AuthSource if none is found 
      */
-    function &create($type, $name, $params)
+    function &create($in_type, $in_name, $in_params)
     {
-        @include_once(dirname(__FILE__) . '/' . $type . ".php");
-				
-        $authClass= "AuthSource_" . $type;
-				
-
-        if ( class_exists($authClass)) {
-            $object = &new $authClass( $name, $params);
+        $s_authFile = dirname(__FILE__) . '/' . $in_type . '.php';
+        if (empty($in_type)) {
+            return FastFrame::fatal('No authentication type defined.', __FILE__, __LINE__);
+        }
+        elseif (!@file_exists($s_authFile)) {
+            return FastFrame::fatal("$in_type is an invalid authentication type.", __FILE__, __LINE__);
         }
         else {
-            $object = &new AuthSource( $name, $params);
+            include_once $s_authFile;
         }
 
-        return $object; 
-    }
+        $s_authClass = 'AuthSource_' . $in_type;
+				
+        if (class_exists($s_authClass)) {
+            $o_auth =& new $s_authClass($in_name, $in_params);
+        }
+        else {
+            $o_auth =& new AuthSource($in_name, $in_params);
+        }
 
-    // }}}
-    // {{{ constructor
-    
-    /**
-     * Initialize the AuthSource class
-     *
-     * Create an instance of the AuthSource class.  
-     *
-     * @access public
-     * @return AuthSource object
-     */
-    function AuthSource($name, $params)
-    {
-        $this->sourceName = $name;
+        return $o_auth; 
     }
 
     // }}}
