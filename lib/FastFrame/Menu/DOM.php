@@ -1,5 +1,5 @@
 <?php
-/** $Id: DOM.php,v 1.5 2003/04/01 23:59:02 jrust Exp $ */
+/** $Id: DOM.php,v 1.6 2003/04/03 22:10:15 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -152,7 +152,7 @@ class FF_Menu_DOM extends FF_Menu {
         $tmp_icon = isset($in_data['icon']) ? addcslashes($this->o_output->imgTag($in_data['icon'], 'none'), '\'') . ' ' : '';
         $tmp_contents = $tmp_icon . $tmp_status;
         $tmp_target = isset($in_data['target']) ? $in_data['target'] : '_self';
-        $tmp_uri = $this->_getLinkUrl($in_data['urlParams']);
+        $tmp_uri = isset($in_data['urlParams']) ? $this->_getLinkUrl($in_data['urlParams']) : '';
         $tmp_pad = str_repeat(' ', $s_padNum);
 
         // create js for this node
