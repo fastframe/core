@@ -1,5 +1,5 @@
 <?php
-/** $Id: Auth.php,v 1.6 2003/01/22 20:48:51 jrust Exp $ */
+/** $Id: Auth.php,v 1.7 2003/02/06 18:57:08 jrust Exp $ */
 // {{{ constants
 
 define('FASTFRAME_AUTH_OK',         0);
@@ -123,10 +123,13 @@ class FastFrame_Auth {
     /**
      * Perform the login procedure.
      *
+     * @param string $in_username The username to be authenticated.
+     * @param string $in_password The corresponding password.
+     *
      * @access public
      * @return bool determines if login was successfull
      */
-    function authenticate() 
+    function authenticate($in_username, $in_password) 
     {
         // if we are already logged in, just return true immediately
         if (FastFrame_Auth::checkAuth(false)) {
@@ -137,24 +140,22 @@ class FastFrame_Auth {
         $o_registry->pushApp('login');
         $s_authType = $o_registry->getConfigParam('auth/method');
         $o_registry->popCurrentApp();
-        $s_username = FastFrame::getCGIParam('form_username', 'p');
-        $s_password = FastFrame::getCGIParam('form_password', 'p');
         $b_authenticated = false;
 
         // We need to check all of the sources in order
         foreach($this->authSources as $source) {
-            if ($source->authenticate($s_username, $s_password)) {
-                $this->authenticatedSources=$source->getName();
-                $perms=new FastFrame_Perms($s_username);
+            if ($source->authenticate($in_username, $in_password)) {
+                $this->authenticatedSources = $source->getName();
+                $o_perms = new FastFrame_Perms($in_username);
                 $b_authenticated=true;
                 $a_credentials = array(
-                    'perms' => &$perms,
+                    'perms' => &$o_perms,
                 );
             }
         }	
 
         if ($b_authenticated) {
-            FastFrame_Auth::setAuth($s_username, $a_credentials, true);
+            FastFrame_Auth::setAuth($in_username, $a_credentials, true);
             return true;
         }
         else {
