@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.11 2003/04/07 22:52:49 jrust Exp $ */
+/** $Id: List.php,v 1.12 2003/04/08 21:16:48 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -87,7 +87,10 @@ class FF_Action_List extends FF_Action_Form {
         }
 
         $this->o_output->setPageName($this->getPageName());
-        $this->initList();
+        if (!$this->initList()) {
+            return $this->o_nextAction;
+        }
+
         $this->renderAdditionalLinks();
         $this->o_list->renderSearchBox($this->getSingularText(), $this->getPluralText());
         $this->createListTable();
@@ -102,7 +105,7 @@ class FF_Action_List extends FF_Action_Form {
      * Initializes the list class
      *
      * @access public
-     * @return void
+     * @return bool True if successful, false otherwise 
      */
     function initList()
     {
@@ -114,9 +117,16 @@ class FF_Action_List extends FF_Action_Form {
         );
         $this->processFieldMapForList($this->getFieldMap());
         $this->o_listModeler =& new FF_Model_ListModeler($this->o_list, $this->o_model);
+        if (!$this->o_listModeler->performSearch()) {
+            $this->o_output->setMessage(_('Unable to query data'), FASTFRAME_ERROR_MESSAGE);
+            $this->o_nextAction->setNextActionId(ACTION_PROBLEM);
+            return false;
+        }
+
         $this->o_list->setTotalRecords($this->o_listModeler->getTotalModelsCount());
         $this->o_list->setMatchedRecords($this->o_listModeler->getMatchedModelsCount());
         $this->o_list->setDisplayedRecords($this->o_listModeler->getDisplayedModelsCount());
+        return true;
     }
 
     // }}}
