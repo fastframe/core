@@ -1,5 +1,5 @@
 <?php
-/** $Id: Registry.php,v 1.8 2003/01/22 21:00:28 jrust Exp $ */
+/** $Id: Registry.php,v 1.9 2003/01/23 22:58:25 jrust Exp $ */
 // {{{ constants/globals
 
 // types of filepaths that can be generated
@@ -369,7 +369,7 @@ class FastFrame_Registry {
             $in_type = FASTFRAME_DATAPATH;
         }
 
-        $s_filename = File::buildPath(array($this->getAppParam('root_apps'), str_replace('%app%', $in_app, $s_service), $in_filename));
+        $s_filename = File::buildPath(array($this->getAppParam('root_apps'), str_replace('%app%', $s_app, $s_service), $in_filename));
         return $this->getFile($s_filename, $in_type);
     }
 
