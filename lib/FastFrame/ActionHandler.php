@@ -164,7 +164,6 @@ class FF_ActionHandler {
         // Always set the locale to a guaranteed language first so that a custom language
         // (i.e. en_BIP) will work
         FF_Locale::setLang('en_US');
-        $this->o_registry->setLocale();
         $this->setActionId(FF_Request::getParam('actionId', 'pg'));
         $this->setModuleId(FF_Request::getParam('module', 'pg'));
         $this->setAppId(FF_Request::getParam('app', 'pg'));

@@ -247,8 +247,6 @@ class FF_Registry {
      */
     function pushApp($in_app, $in_locale = true)
     {
-        // We always push the app onto the app stack so it can be popped later
-        $this->appStack[] = $in_app;
         // If we are changing apps then we need to import config
         if ($in_app != $this->getCurrentApp()) {
             // Import the config for this application
@@ -257,6 +255,9 @@ class FF_Registry {
                 $this->setLocale($in_app);
             }
         }
+
+        // Now that we've checked if it's changed, push it on
+        $this->appStack[] = $in_app;
     }
 
     // }}}
