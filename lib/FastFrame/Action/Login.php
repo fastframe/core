@@ -1,5 +1,5 @@
 <?php
-/** $Id: Login.php,v 1.1 2003/02/06 18:48:10 jrust Exp $ */
+/** $Id: Login.php,v 1.2 2003/02/06 21:36:30 jrust Exp $ */
 // {{{ requires
 
 require_once dirname(__FILE__) . '/GenericForm.php';
@@ -103,11 +103,11 @@ class ActionHandler_Login extends ActionHandler_GenericForm {
         /** set the focus on the form elements */
         function setFocus()
         {
-            if (document.login.form_username.value == '') {
-                document.login.form_username.focus();
+            if (document.<?php echo $this->formName; ?>.username.value == '') {
+                document.<?php echo $this->formName; ?>.username.focus();
             } 
             else {
-                document.login.form_password.focus();
+                document.<?php echo $this->formName; ?>.password.focus();
             }
         }
 
@@ -130,7 +130,7 @@ class ActionHandler_Login extends ActionHandler_GenericForm {
             }
 
             if ((keyPressed == "\r" || keyPressed == "\n")) {
-                return validate_login();
+                return validate_<?php echo $this->formName; ?>();
             }
         }
 
