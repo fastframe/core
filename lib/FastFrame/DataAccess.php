@@ -109,7 +109,7 @@ class FF_DataAccess {
                 $a_instances[$s_class] = new $s_class();
             }
             else {
-                FastFrame::fatal("Unable to instantiate DataAccess object for module: $in_module (file: $pth_dao)", __FILE__, __LINE__);
+                trigger_error("Unable to instantiate DataAccess object for module: $in_module", E_USER_ERROR);
             }
         }
 
@@ -152,9 +152,9 @@ class FF_DataAccess {
      */
     function connect()
     {
-        $result = $this->o_data =& DB::connect($this->getDataDsn());
-        if (DB::isError($result)) {
-            FastFrame::fatal($result, __FILE__, __LINE__); 
+        $this->o_data =& DB::connect($this->getDataDsn());
+        if (DB::isError($this->o_data)) {
+            trigger_error($this->o_data->getMessage(), E_USER_ERROR);
         } 
 
         $this->o_data->setFetchMode(DB_FETCHMODE_ASSOC);

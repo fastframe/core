@@ -25,7 +25,6 @@
 // {{{ includes
 
 require_once dirname(__FILE__) . '/FastFrame/Registry.php';
-require_once dirname(__FILE__) . '/FastFrame/Error.php';
 
 // }}}
 // {{{ class FastFrame
@@ -153,125 +152,6 @@ class FastFrame {
     {
         header('Location: ' . $in_url, true);
         exit;
-    }
-
-    // }}}
-    // {{{ void    fatal
-
-    /**
-     * Abort with a fatal error, displaying debug information to the
-     * user.
-     *
-     * @param mixed     $in_message Either a string or a PEAR_Error object.
-     * @param int       $in_file The file in which the error occured.
-     * @param int       $in_line The line on which the error occured.
-     * @param bool      $in_log (optional) Log this message via Horde::logMesage()?
-     *
-     * @access public
-     * @return void
-     */
-    function fatal($in_message, $in_file, $in_line, $in_log = true)
-    {
-        $s_errortext = _('<b>A fatal error has occurred:</b>') . "<br /><br />\n";
-        if (PEAR::isError($in_message)) {
-            $s_errortext .= $in_message->getMessage() . "<br /><br />\n";
-            $s_errortext .= $in_message->getDebugInfo() . "<br /><br />\n";
-        }
-        else {
-            $s_errortext .= $in_message . "<br /><br />\n";
-        }
-
-        $s_errortext .= sprintf(_('[line %s of %s]'), $in_line, $in_file);
-
-        if ($in_log) {
-            $s_errortext .= "<br /><br />\n";
-            $s_errortext .= _('Details have been logged for the administrator.');
-        }
-
-        // Log the fatal error via FastFrame::logMessage() if requested.
-        if ($in_log) {
-            FastFrame::logMessage($in_message, $in_file, $in_line, LOG_EMERG);
-        }
-
-        // Hardcode a small stylesheet so that this doesn't depend on
-        // anything else.
-        echo <<< HTML
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
-<html>
-<head>
-<title>FastFrame :: Fatal Error</title>
-<style type="text/css">
-  body { font-family: Geneva,Arial,Helvetica,sans-serif; font-size: 12px; background-color: #222244; color: #ffffff; }
-  .header { color: #ccccee; background-color: #444466; font-family: Verdana,Helvetica,sans-serif; font-size: 12px; }
-</style>
-</head>
-<body>
-<table border="0" align="center" width="500" cellpadding="2" cellspacing="0">
-<tr><td class="header" align="center">$s_errortext</td></tr>
-</table>
-</body>
-</html>
-HTML;
-
-        exit;
-    }
-
-    // }}}
-    // {{{ void    logMessage()
-
-    /**
-     * Log a message to the global FastFrame log backend.
-     *
-     * @access public
-     *
-     * @param mixed     $in_message Either a string or a PEAR_Error object.
-     * @param string    $in_file What file was the log function called from (e.g. __FILE__) ?
-     * @param int       $in_line What line was the log function called from (e.g. __LINE__) ?
-     * @param int       $in_priority  (optional) The priority of the message. One of: LOG_EMERG,
-     *                                LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING, LOG_NOTICE,
-     *                                LOG_INFO, LOG_DEBUG
-     *
-     * @access public
-     * @return bool True if logging succeeded, false otherwise
-     */
-    function logMessage($in_message, $in_file, $in_line, $in_priority = LOG_INFO)
-    {
-        static $o_logger;
-        $o_registry =& FF_Registry::singleton();
-        
-        if (!$o_registry->getConfigParam('log/enabled') || 
-            $in_priority > $o_registry->getConfigParam('log/priority') ||
-            !is_readable('Log/Log.php')) {
-            return false;
-        }
-
-        if (!isset($o_logger)) {
-            include_once 'Log/Log.php';
-
-            if (is_null($s_type = $o_registry->getConfigParam('log/type')) ||
-                is_null($s_name = $o_registry->getConfigParam('log/name')) ||
-                is_null($s_ident = $o_registry->getConfigParam('log/ident')) ||
-                is_null($a_params = $o_registry->getConfigParam('log/params'))) {
-                PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, E_USER_WARNING, 'FastFrame is not correctly configured to log error messages.  You must configure at least a text file in the conf.php file', 'FF_Error', true);
-            }
-
-            $o_logger = Log::singleton($s_type, $s_name, $s_ident, $a_params);
-        }
-
-        if (PEAR::isError($in_message)) {
-            $s_userinfo = $in_message->getUserInfo();
-            $s_message = $in_message->getMessage();
-            if (!empty($s_userinfo)) {
-                $s_message .= ': ' . $s_userinfo;
-            }
-        }
-
-        $s_message = '[' . $o_registry->getCurrentApp() . '] ' . $s_message . ' [on line ' . $in_line .
-' of "' . $in_file . '"]';
-
-        $o_logger->log($s_message, $in_priority);  
-
-        return true;
     }
 
     // }}}

@@ -187,11 +187,6 @@ class FF_SystemTest {
                 'name' => 'PEAR HTML_BBCodeParser',
                 'errorMsg' => _('You do not have the PEAR HTML_BBCodeParser module installed.  It is required for the alum_website application.'),
                 'successMsg' => _('You have the PEAR HTML_BBCodeParser module.')),
-            'pear_log' => array(
-                'method' => '_checkPEARLog',
-                'name' => 'PEAR Log',
-                'errorMsg' => _('You do not have the PEAR Log module installed.  It is required if you want logging capabilities.'),
-                'successMsg' => _('You have the PEAR Mail module.')),
             'cachedir' => array(
                 'method' => '_checkCacheDir',
                 'name' => 'Writable Cache Dir',

@@ -145,7 +145,7 @@ class FF_Smarty extends Smarty {
         if (!is_dir($pth_tplCompile)) {
             require_once 'System.php';
             if (!@System::mkdir("-p $pth_tplCompile"))  {
-                return PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_WARNING, $pth_tplCompile, 'FF_Error', true);
+                trigger_error('Could not write to the FastFrame cache directory.', E_USER_ERROR);
             }
         }
 

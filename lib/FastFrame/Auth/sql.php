@@ -114,7 +114,7 @@ class FF_AuthSource_sql extends FF_AuthSource {
         // set up database
         $o_data =& DB::connect($s_dsn);
         if (DB::isError($o_data)) {
-            FastFrame::fatal($result, __FILE__, __LINE__);
+            trigger_error($o_data->getMessage(), E_USER_ERROR);
         }
 
         // hash/encrypt the password if needed

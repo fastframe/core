@@ -170,7 +170,7 @@ class FF_Menu_QuickLinks extends FF_Menu_StaticList {
                 );
             }
             else {
-                return PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, null, E_USER_ERROR, "Quick links menu for $this->o_registry->getCurrentApp() is not configured correctly.", 'FF_Error', true);
+                return trigger_error('The menu file ' . basename($pth_menu) . ' for the ' . $this->o_registry->getCurrentApp() . ' application is not configured correctly.', E_USER_WARNING);
             }
         }
     }

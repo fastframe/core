@@ -129,8 +129,8 @@ class FF_Output {
         $this->addScriptFile($this->o_registry->getRootFile('domTT_strip.js', 'javascript', FASTFRAME_WEBPATH));
         $this->addScriptFile($this->o_registry->getRootFile('core.lib.js', 'javascript', FASTFRAME_WEBPATH));
         // Prevents E_ALL errors
-        $this->o_tpl->assign(array('content_left' => array(), 'status_messages' => array(),
-                    'page_explanation' => array(), 'content_right' => array()));
+        $this->o_tpl->assign(array('content_left' => array(), 'content_middle' => array(),
+                    'content_right' => array(), 'status_messages' => array(), 'page_explanation' => array()));
     }
 
     // }}}
@@ -201,7 +201,7 @@ class FF_Output {
         if (!is_dir($s_cssCacheDir)) {
             require_once 'System.php';
             if (!@System::mkdir("-p $s_cssCacheDir"))  {
-                return PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_WARNING, $s_cssCacheDir, 'FF_Error', true);
+                trigger_error('Could not write to the FastFrame cache directory.', E_USER_ERROR);
             }
         }
 
@@ -806,18 +806,10 @@ class FF_Output {
             require_once dirname(__FILE__) . '/Menu.php';
             // Render the main menu
             $o_menu =& FF_Menu::factory($this->menuType);
-            if (FF_Error::isError($o_menu)) {
-                FastFrame::fatal($o_menu, __FILE__, __LINE__); 
-            }
-            
             $o_menu->renderMenu();
 
             // Render the QuickLinks menu
             $o_menu =& FF_Menu::factory('QuickLinks');
-            if (FF_Error::isError($o_menu)) {
-                FastFrame::fatal($o_menu, __FILE__, __LINE__); 
-            }
-            
             $o_menu->renderMenu();
         }
     }

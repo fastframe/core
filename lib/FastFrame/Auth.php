@@ -94,7 +94,8 @@ class FF_Auth {
             }
         }
         else {
-            return FastFrame::fatal('No authentication source was defined in the config file.', __FILE__, __LINE__);
+            trigger_error('No authentication source was defined in the config file.', E_USER_ERROR);
+            return false;
         }
 
         if ($b_authenticated) {

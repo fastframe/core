@@ -144,8 +144,9 @@ class FF_Menu {
     /**
      * Attempts to return a concrete Menu instance based on $type.
      *
-     * @param string $in_type The type of Menu to create.  The code is dynamically included,
-     *                        and we will look for Menu/$type.php to load the file.
+     * @param string $in_type The type of Menu to create.  The code is
+     *        dynamically included, and we will look for Menu/$type.php
+     *        to load the file.
      *
      * @access public
      * @return object The newly created concrete Menu instance
@@ -165,7 +166,7 @@ class FF_Menu {
                 $a_instances[$s_class] = new $s_class($in_type);
             } 
             else {
-                FastFrame::fatal("Invalid menu type: $in_type", __FILE__, __LINE__);
+                trigger_error("Invalid menu type: $in_type", E_USER_ERROR); 
             }
         }
 
@@ -242,7 +243,7 @@ class FF_Menu {
         require_once 'System.php';
         $s_cacheDir = $this->o_registry->getRootFile('menu', 'cache');
         if (!@System::mkdir("-p $s_cacheDir"))  {
-            return PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_WARNING, $s_cacheDir, 'FF_Error', true);
+            trigger_error('Could not write to the FastFrame cache directory.', E_USER_ERROR);
         }
         
         require_once 'File.php';
@@ -352,7 +353,7 @@ class FF_Menu {
                     );
                 }
                 else {
-                    return PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, null, E_USER_ERROR, "Menu for $s_app is not configured correctly.", 'FF_Error', true);
+                    return trigger_error('The menu file ' . basename($pth_menu) . ' for the ' . $s_app . ' application is not configured correctly.', E_USER_WARNING);
                 }
             }
         }

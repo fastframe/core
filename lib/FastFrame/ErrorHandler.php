@@ -79,9 +79,9 @@ class FF_ErrorHandler {
      * @var array
      */
     var $reporters = array(
-            'mail'        => array('level' => 0, 'data' => null),
-            'file'        => array('level' => 0, 'data' => null),
-            'console'    => array('level' => 0, 'data' => null),
+            'mail'      => array('level' => 0, 'data' => null),
+            'file'      => array('level' => 0, 'data' => null),
+            'console'   => array('level' => 0, 'data' => null),
             'stdout'    => array('level' => 0, 'data' => null),
             'system'    => array('level' => 0, 'data' => null),
             'redirect'  => array('level' => 0, 'data' => null),
@@ -289,8 +289,7 @@ class FF_ErrorHandler {
     function addError($in_error)
     {
         // rearrange for eval'd code or create function errors
-        if (preg_match(';^(.*?)\((\d+)\) : (.*?)$;', $in_error['file'], $matches))
-        {
+        if (preg_match(';^(.*?)\((\d+)\) : (.*?)$;', $in_error['file'], $matches)) {
             $in_error['message'] .= ' on line ' . $in_error['line'] . ' in ' . $matches[3];
             $in_error['file'] = $matches[1];
             $in_error['line'] = $matches[2];
@@ -306,6 +305,10 @@ class FF_ErrorHandler {
         }
 
         $this->errorList[] = $in_error;
+        // E_USER_ERROR are showstoppers
+        if ($in_error['level'] == E_USER_ERROR) {
+            $this->_fatal($in_error);
+        }
     }
 
     // }}}
@@ -329,6 +332,36 @@ class FF_ErrorHandler {
             'file' => $in_file, 'line' => $in_line,
             'variables' => array($in_name => $in_variable), 'signature' => mt_rand());
         $this->addError($a_error);
+    }
+
+    // }}}
+    // {{{ _fatal()
+
+    /**
+     * Called when a fatal error occurs.  Shows a minimal amount of
+     * information so as not to be a security risk.  The error is still
+     * processed via the other reporters, so details can be logged via
+     * that mechanism.
+     *
+     * @access private
+     * @return void
+     */
+    function _fatal($in_error)
+    {
+        echo '<html><body>';
+        echo '<style>.errorBox { background-color: #ccc; border: thin dashed #000; font-weight: bold; text-align: center; } .errorMessage { color: red; } .errorNotice { margin-bottom: 10px; color: green; }</style>';
+        echo '<div class="errorBox">';
+        echo '<div class="errorNotice">' . _('A fatal error has occured') . '</div>';
+        echo '<div class="errorMessage">' . $in_error['message'] . '</div>';
+        if ($this->reporters['mail']['level'] & $in_error['level'] ||
+            $this->reporters['file']['level'] & $in_error['level'] ||
+            $this->reporters['system']['level'] & $in_error['level']) {
+            echo '<div style="margin-top: 10px;">' . _('The details have been logged for the administrator') . '</div>';
+        }
+
+        echo '</div>';
+        echo '</body></html>';
+        exit;
     }
 
     // }}}

@@ -117,7 +117,7 @@ class FF_Perms {
                 $a_instances[$s_type][$s_userId] =& new FF_Perms_PermissionsApp($s_userId);
             } 
             else {
-                return FastFrame::fatal('Invalid permissions source was defined in the config file.', __FILE__, __LINE__);
+                trigger_error('Invalid permissions source was defined in the config file.', E_USER_ERROR); 
             }
         }
 

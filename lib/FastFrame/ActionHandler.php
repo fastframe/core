@@ -227,8 +227,7 @@ class FF_ActionHandler {
                 }
             }
             else {
-                $tmp_error = "The class file for action $this->actionId ($pth_actionFile) does not exist";
-                FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
+                trigger_error('The class file ' . basename($pth_actionFile) . ' for action ' . $this->actionId . ' does not exist', E_USER_ERROR);
             }
         }
     }
@@ -275,7 +274,7 @@ class FF_ActionHandler {
                 $a_configObjects[$s_className] =& new $s_className($this);
             }
             else {
-                FastFrame::fatal("The class file for Module $this->moduleId ($pth_config) does not exist", __FILE__, __LINE__); 
+                trigger_error('The class file ' . basename($pth_config) . ' for module ' . $this->moduleId . ' does not exist', E_USER_ERROR);
             }
         }
 

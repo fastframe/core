@@ -24,7 +24,6 @@
 // }}}
 // {{{ includes
 
-require_once dirname(__FILE__) . '/Error.php';
 require_once dirname(__FILE__) . '/Locale.php';
 
 // }}}
@@ -176,8 +175,7 @@ class FF_Registry {
         // :NOTE: All fatal errors generated in this method should not be logged
         // since the log method calls getConfigParam() which could cause an infinite loop
         if (!isset($this->apps[$in_app])) {
-            $tmp_error = PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, null, E_USER_ERROR, "The application $in_app is not a defined application.  Check your apps.php file.", 'FF_Error', true);
-            FastFrame::fatal($tmp_error, __FILE__, __LINE__, false); 
+            trigger_error("The application $in_app is not a defined application.  Check your apps.php file.", E_USER_ERROR);
         }
 
         // Now load the configuration for this specific app
@@ -191,9 +189,8 @@ class FF_Registry {
                     $this->apps[$in_app]['profile'] . '/conf.php' : 'conf.php';
                 $s_appDir = isset($this->apps[$in_app]['app_dir']) ?  $this->apps[$in_app]['app_dir'] : $in_app;
                 $s_file = $this->getAppFile($s_configFile, $s_appDir, 'config');
-                if (!is_readable($s_file)) {
-                    $tmp_error = PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, null, E_USER_ERROR, "Can not import the config file for $in_app ($s_file)", 'FF_Error', true);
-                    FastFrame::fatal($tmp_error, __FILE__, __LINE__, false); 
+                if (!is_file($s_file)) {
+                    trigger_error('Could not import the config file ' . basename($s_file) . ' for the ' . $in_app . ' application', E_USER_ERROR);
                 }
                 else {
                     include_once $s_file;
@@ -375,7 +372,7 @@ class FF_Registry {
             $s_service = '%app%';
         }
         elseif (is_null($s_service = $this->getAppParam('app_' . $in_service))) {
-            return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "The app service 'app_$in_service' could not be found.", 'FF_Error', true);
+            trigger_error("The app service 'app_$in_service' could not be found.", E_USER_ERROR); 
         }
 
         $s_app = !is_null($in_app) ? $in_app : $this->getCurrentApp();
@@ -408,7 +405,7 @@ class FF_Registry {
     function getRootFile($in_filename, $in_service = '', $in_type = FASTFRAME_FILEPATH)
     {
         if (!empty($in_service) && is_null($in_service = $this->getAppParam('root_' . $in_service))) {
-            return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "The service root_$in_service could not be found", 'FF_Error', true);
+            trigger_error("The service root_$in_service could not be found", E_USER_ERROR); 
         }
 
         return $this->getFile(array($in_service, $in_filename), $in_type);
