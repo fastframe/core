@@ -345,6 +345,7 @@ class FF_Output {
         $in_options['menubar'] = (isset($in_options['menubar']) && $in_options['menubar']) ? 'yes' : 'no';
         $in_options['class'] = isset($in_options['class']) ? $in_options['class'] : '';
         $in_options['title'] = isset($in_options['title']) ? $in_options['title'] : $in_text;
+        $in_options['caption'] = isset($in_options['caption']) ? $in_options['caption'] : '';
         $in_options['status'] = isset($in_options['status']) ? $in_options['status'] : '';
         $in_options['width'] = isset($in_options['width']) ? $in_options['width'] : 650;
         $in_options['height'] = isset($in_options['height']) ? $in_options['height'] : 500;
@@ -359,7 +360,8 @@ class FF_Output {
                 $in_name . '.focus(); return false;';
 
         $link = $this->link($s_url, $in_text, 
-                array('onclick' => $s_js, 'title' => $in_options['title'], 'class' => $in_options['class']));
+                array('onclick' => $s_js, 'title' => $in_options['title'], 
+                    'class' => $in_options['class'], 'caption' => $in_options['caption']));
         $link .= '<script>var ' . $in_name . ' = null;</script>';
         return $link;
     }
