@@ -328,9 +328,10 @@ class FF_ErrorHandler {
      */
     function debug($in_variable, $in_name = '*variable*', $in_line = '*line*', $in_file = '*file*', $in_level = E_DEBUG)
     {
-        $a_error = array('level' => intval($in_level), 'message' => 'user variable debug',
-            'file' => $in_file, 'line' => $in_line,
-            'variables' => array($in_name => $in_variable), 'signature' => mt_rand());
+        $a_error = array('level' => intval($in_level), 
+                'message' => 'user variable debug: $' . $in_name,
+                'file' => $in_file, 'line' => $in_line,
+                'variables' => array($in_name => $in_variable), 'signature' => mt_rand());
         $this->addError($a_error);
     }
 
