@@ -1,5 +1,5 @@
 <?php
-/** $Id: ActionHandler.php,v 1.10 2003/04/03 22:11:37 jrust Exp $ */
+/** $Id: ActionHandler.php,v 1.11 2003/04/09 16:22:52 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -169,7 +169,7 @@ class FF_ActionHandler {
             $pth_actionFile = $this->availableActions[$this->actionId][0];
             if (file_exists($pth_actionFile)) {
                 require_once $pth_actionFile;
-                $o_action = new $this->availableActions[$this->actionId][1]($this->o_model);
+                $o_action =& new $this->availableActions[$this->actionId][1]($this->o_model);
                 $o_action->setCurrentActionId($this->actionId);
                 $o_nextAction =& $o_action->run();
                 if ($o_nextAction->isLastAction()) {
