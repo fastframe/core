@@ -74,7 +74,7 @@ class FF_Action_LoginSubmit extends FF_Action {
                 $o_profileModel =& new FF_Model_ProfileProfile();
                 $s_userId = $o_profileModel->getIdByUsername(FF_Auth::getCredential('username'));
                 // if they were able to log on, but don't have a user id, then they logged on
-                // with a auth source other than the profile database, so give them an empty profile
+                // with an auth source other than the profile database, so give them an empty profile
                 if (is_null($s_userId)) {
                     $o_profileModel->setUsername(FF_Auth::getCredential('username'));
                     $o_profileModel->setAuthSource(FF_Auth::getCredential('authSource'));

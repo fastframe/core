@@ -251,6 +251,8 @@ class FF_ActionHandler {
 
         if ($s_lastApp != $this->appId) {
             $this->o_registry->pushApp($this->appId);
+            // If changing apps then need to check profile again
+            $this->_checkProfile();
         }
 
         if (empty($this->moduleId) ) {
@@ -536,7 +538,7 @@ class FF_ActionHandler {
             $this->getActionId() != ACTION_LOGOUT &&
             $this->o_registry->getConfigParam('profile/force_complete', false, array('app' => 'profile'))) {
             require_once $this->o_registry->getAppFile('ActionHandler/actions.php', 'profile', 'libs');
-            // don't redirect if already on the profile page or submitting it
+            // Don't redirect if already on the profile page or submitting it
             if ($this->getActionId() != ACTION_MYPROFILE && $this->getActionId() != ACTION_EDIT_SUBMIT) {
                 FastFrame::redirect(FastFrame::url('index.php', array('app' => 'profile', 'actionId' => ACTION_MYPROFILE)));
             }
