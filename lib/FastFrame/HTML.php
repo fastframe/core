@@ -1,5 +1,5 @@
 <?php
-/** $Id: HTML.php,v 1.7 2003/01/21 19:38:14 jrust Exp $ */
+/** $Id: HTML.php,v 1.8 2003/01/22 18:57:56 jrust Exp $ */
 // {{{ includes
 
 require_once dirname(__FILE__) . '/Template.php';
@@ -96,7 +96,8 @@ class FastFrame_HTML extends FastFrame_Template {
         // include some common js
         $this->assignBlockData(
             array(
-                'T_javascript' => '<script language="Javascript" src="' . $this->FastFrame_Registry->getRootFile('domTT.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>',
+                'T_javascript' => '<script language="Javascript" src="' . $this->FastFrame_Registry->getRootFile('domTT.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" .
+                                  '<script language="Javascript" src="' . $this->FastFrame_Registry->getRootFile('core.lib.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>',
             ),
             'javascript'
         );
