@@ -677,7 +677,7 @@ class FF_Output {
      */
     function setDefaults()
     {
-        $this->setMenuType($this->o_registry->getConfigParam('display/menu_type'));
+        $this->setMenuType('StaticList');
         // Set popup type 
         if (FF_Request::getParam('isPopup', 'gp', false)) {
             $this->setPageType('popup');
@@ -926,13 +926,6 @@ class FF_Output {
     function _renderMenus()
     {
         if ($this->menuType != 'none') {
-            // Non-javascript enabled browsers must use StaticList, and
-            // IE5 on mac just dies with the dom menu
-            if (!Net_UserAgent_Detect::hasFeature('javascript') ||
-                (Net_UserAgent_Detect::isOS('mac') && Net_UserAgent_Detect::isIE())) {
-                $this->setMenuType('StaticList');
-            }
-
             require_once dirname(__FILE__) . '/Menu.php';
             // Render the main menu
             $o_menu =& FF_Menu::factory($this->menuType);
