@@ -161,7 +161,8 @@ class ErrorList extends ArrayList
 		error_reporting(E_ALL);
 		// :NOTE: dallen 2003/01/31 it might be a good idea to keep this on
 		// if the console is used since some cases don't stop E_ERROR
-		ini_set('display_errors', false);
+        // :WARNING: jrust 2003/02/10 This makes it so we can't see parse/fatal errors
+		// ini_set('display_errors', false);
 
 		parent::ArrayList();
 		$this->reporter =& $reporter;
@@ -219,7 +220,7 @@ class ErrorList extends ArrayList
 	// }}}
 	// {{{ debug()
 
-    function debug(&$variable, $name = '*variable*', $line = '*line*', $file = '*file*', $level = E_DEBUG)
+    function debug($variable, $name = '*variable*', $line = '*line*', $file = '*file*', $level = E_DEBUG)
 	{
 		$error = array(
 			'level'		=> intval($level),
