@@ -1,5 +1,5 @@
 <?php
-/** $Id: ActionHandler.php,v 1.13 2003/04/09 20:05:58 jrust Exp $ */
+/** $Id$ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -48,6 +48,7 @@ define('ACTION_LOGIN',          'login');
 define('ACTION_LOGIN_SUBMIT',   'login_submit');
 define('ACTION_LOGOUT',         'logout');
 define('ACTION_DISPLAY',        'display');
+define('ACTION_TREE',           'tree');
 
 // }}}
 // {{{ class FF_ActionHandler 
@@ -117,6 +118,7 @@ class FF_ActionHandler {
         ACTION_LOGIN_SUBMIT=> array('Action/LoginSubmit.php', 'FF_Action_LoginSubmit'),
         ACTION_LOGOUT     => array('Action/Logout.php', 'FF_Action_Logout'),
         ACTION_DISPLAY    => array('Action/Display.php', 'FF_Action_Display'),
+        ACTION_TREE       => array('Action/Tree.php', 'FF_Action_Tree'),
     );
 
     // }}}
