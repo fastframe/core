@@ -181,12 +181,39 @@ class FF_Output {
             $this->renderCSS('widgets', $this->o_registry->getRootFile('widgets', 'themes'), 'print.tpl', 'print');
         }
 
+        if ($this->o_registry->getConfigParam('help/show_link')) {
+            $s_help = $this->link(FastFrame::selfURL(array('actionId' => ACTION_CONTACT)), _('Need Help?'));
+        }
+        else {
+            $s_help = '';
+        }
+
+        if (!FF_Auth::isGuest()) {
+            $o_perms =& FF_Perms::factory();
+            if ($o_perms->hasPerm('has_my_profile', 'profile')) {
+                require_once $this->o_registry->getAppFile('ActionHandler/actions.php', 'profile', 'libs');
+                $s_user = $this->link(FastFrame::selfURL(
+                            array('actionId' => ACTION_MYPROFILE, 'app' => 'profile', 'module' => 'Profile')),
+                        FF_auth::getCredential('username'));
+            }
+            else {
+                $s_user = '<b>' . FF_Auth::getCredential('username') . '</b>';
+            }
+
+            $s_status = sprintf(_('You are logged in as %s.'), $s_user);
+        }
+        else {
+            $s_status = _('You are not logged in.');
+        }
+
         $this->o_tpl->assign(array(
                     'COPYWRITE' => 'Copywrite &#169; 2002-2003 The CodeJanitor Group',
                     'CONTENT_ENCODING' => $this->o_registry->getConfigParam('general/charset', 'ISO-8559-1'),
                     'U_SHORTCUT_ICON' => $this->o_registry->getConfigParam('general/favicon'),
                     'PAGE_TITLE' => $this->getPageTitle(),
-                    'LANG' => getenv('LANG')));
+                    'LANG' => getenv('LANG'),
+                    'T_login_status' => $s_status,
+                    'T_help_link' => $s_help));
         $this->_renderPageType();
         $this->_renderMenus();
     }
@@ -957,16 +984,6 @@ class FF_Output {
     function _getFooterText()
     {
         $s_footer = $this->o_registry->getConfigParam('display/footer_text');
-        if (strpos($s_footer, '%userInfo%') !== false) {
-            if (!FF_Auth::isGuest()) {
-                $s_footer = str_replace('%userInfo%', sprintf(_('You are logged in as %s.'), 
-                            FF_Auth::getCredential('username')), $s_footer);
-            }
-            else {
-                $s_footer = str_replace('%userInfo%', _('You are not logged in.'), $s_footer);
-            }
-        }
-
         if (FastFrame::isEmpty($s_footer)) {
             $s_footer = false;
         }
@@ -976,11 +993,6 @@ class FF_Output {
             $a_microtime = explode(' ', microtime());
             define('FASTFRAME_END_TIME', $a_microtime[1] . substr($a_microtime[0], 1));
             $s_footer = str_replace('%renderTime%', number_format(FASTFRAME_END_TIME - FASTFRAME_START_TIME, 2), $s_footer);
-        }
-
-        if ($this->o_registry->getConfigParam('help/show_link')) {
-            $s_footer .= ' ' . $this->link(FastFrame::selfURL(array('actionId' => ACTION_CONTACT)),
-                    _('Need Help?'));
         }
 
         return $s_footer;
