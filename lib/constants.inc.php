@@ -1,26 +1,8 @@
 <?php
-/** $Id: constants.inc.php,v 1.3 2003/01/23 23:00:52 jrust Exp $ */
+/** $Id: constants.inc.php,v 1.4 2003/02/06 19:01:03 jrust Exp $ */
 if (!defined('IN_FASTFRAME')) {
     die('Hacking Attempt');
 }
-
-/**
- * Global list of all actionID constants used in the different apps.
- */
-define('ACTION_NOOP',             'noop');
-define('ACTION_ADD',              'add');
-define('ACTION_ADD_SUBMIT',       'add_submit');
-define('ACTION_EDIT',             'edit');
-define('ACTION_EDIT_SUBMIT',      'edit_submit');
-define('ACTION_VIEW',             'view');
-define('ACTION_DELETE',           'delete');
-define('ACTION_LIST',             'list');
-define('ACTION_EXPORT',           'export');
-define('ACTION_LOGIN',            'login');
-define('ACTION_LOGIN_SUBMIT',     'login_submit');
-define('ACTION_LOGOUT',           'logout');
-define('ACTION_ACTIVATE',         'activate');
-define('ACTION_DISPLAY',          'display');
 
 /**
  * User classes.  Rough grained permissions.
