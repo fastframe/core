@@ -195,7 +195,7 @@ class FF_SystemTest {
             'pear_mail_mime' => array(
                 'method' => '_checkPEARMailMime',
                 'name' => 'PEAR Mail_mime',
-                'errorMsg' => _('You do not have the PEAR Mail_mime module installed.  It is required for the massmail application.'),
+                'errorMsg' => _('You do not have the PEAR Mail_mime module installed.  It is required for the massmail and mayday applications.'),
                 'successMsg' => _('You have the PEAR Mail_mime module.')),
             'pear_html_bbcodeparser' => array(
                 'method' => '_checkPEARHTMLBBCodeParser',
