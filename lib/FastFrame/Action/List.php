@@ -1,5 +1,5 @@
 <?php
-/** $Id: List.php,v 1.9 2003/03/19 00:36:01 jrust Exp $ */
+/** $Id: List.php,v 1.10 2003/04/02 00:13:46 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -82,6 +82,10 @@ class FF_Action_List extends FF_Action_Form {
      */
     function run()
     {
+        if (!$this->checkPerms()) {
+            return $this->o_nextAction;
+        }
+
         $this->o_output->setPageName($this->getPageName());
         $this->initList();
         $this->renderAdditionalLinks();
@@ -230,6 +234,20 @@ class FF_Action_List extends FF_Action_Form {
     }
 
     // }}}
+    // {{{ checkPerms()
+
+    /**
+     * Check the permissions on this action.
+     *
+     * @access public
+     * @return bool True if everything is ok, false if a new action has been set
+     */
+    function checkPerms()
+    {
+        return true;
+    }
+
+    // }}}
     // {{{ getDefaultSortField()
     
     /**
@@ -305,7 +323,7 @@ class FF_Action_List extends FF_Action_Form {
      */
     function getPageName()
     {
-        return _('List');
+        return $this->getTableHeaderText();
     }
 
     // }}}
