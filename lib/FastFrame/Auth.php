@@ -1,5 +1,5 @@
 <?php
-/** $Id: Auth.php,v 1.11 2003/03/19 00:36:00 jrust Exp $ */
+/** $Id: Auth.php,v 1.12 2003/04/02 00:04:22 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -35,8 +35,6 @@ define('FASTFRAME_AUTH_LOGOUT',    -5);
 // {{{ includes
 
 require_once dirname(__FILE__) . '/Registry.php';
-require_once dirname(__FILE__) . '/Auth/AuthSource.php';
-require_once dirname(__FILE__) . '/Perms.php';
 
 // }}}
 // {{{ class FF_Auth
@@ -60,66 +58,6 @@ require_once dirname(__FILE__) . '/Perms.php';
 
 // }}}
 class FF_Auth {
-    // {{{ properties
-
-    /**
-     * Sources to use for authentication
-     * @type array
-     */
-    var $authSources = array();
-
-    /**
-     * Source we successfully authenticated against
-     * @type string
-     */
-    var $authenticatedSource;
-
-    // }}}
-    // {{{ singleton()
-
-    /**
-     * To be used in place of the contructor to return any open instance.
-     *
-     * The idea with a registry is that we only ever want a single instance since
-     * all of the properties and methods must map to a single state.  Therefore, this
-     * function is used in place of the contructor to return any open instances of
-     * the auth object, and if none are open will create a new instance and cache
-     * it using a static variable.
-     *
-     * @access public
-     * @return object FF_Auth instance
-     */
-    function &singleton()
-    {
-        static $instance;
-
-        if (!isset($instance)) {
-            $instance =& new FF_Auth();
-        }
-
-        return $instance; 
-    }
-
-    // }}}
-    // {{{ constructor
-    
-    /**
-     * Initialize the FF_Auth class
-     *
-     * Create an instance of the FF_Auth class.  When we call the constructor
-     * or the singleton() function which in turn calls the constructor, we want
-     * to start the session.  There the session name will be registered and the
-     * session started up.
-     *
-     * @access public
-     * @return object FF_Auth object
-     */
-    function FF_Auth()
-    {
-        FF_Auth::_session_start();
-    }
-
-    // }}}
     // {{{ authenticate()
 
     /**
@@ -143,33 +81,23 @@ class FF_Auth {
         $s_authType = $o_registry->getConfigParam('auth/method');
         $o_registry->popCurrentApp();
         $b_authenticated = false;
+        $a_credentials = array();
         // populate all of the authentication sources
-        $this->authSources = array();
         $a_sources = $o_registry->getConfigParam('auth/sources');
         if (is_array($a_sources)) {
             foreach ($a_sources as $s_name => $a_source) {
                 // Get an AuthSource of the proper type
-                $o_authSource =& AuthSource::create($a_source['type'], $s_name, $a_source['params']);
-                if ($o_authSource) {
-                    array_push($this->authSources, &$o_authSource);
+                $o_authSource =& FF_Auth::getAuthSourceObject($s_name);
+                if ($o_authSource->authenticate($in_username, $in_password)) {
+                    $a_credentials['authSource'] = $o_authSource->getName();
+                    $b_authenticated = true;
+                    break;
                 }
             }
         }
         else {
             return FastFrame::fatal('No authentication source was defined in the config file.', __FILE__, __LINE__);
         }
-
-        // We need to check all of the sources in order
-        foreach($this->authSources as $source) {
-            if ($source->authenticate($in_username, $in_password)) {
-                $this->authenticatedSources = $source->getName();
-                $o_perms = new FF_Perms($in_username);
-                $b_authenticated=true;
-                $a_credentials = array(
-                    'perms' => &$o_perms,
-                );
-            }
-        }	
 
         if ($b_authenticated) {
             FF_Auth::setAuth($in_username, $a_credentials, true);
@@ -200,13 +128,15 @@ class FF_Auth {
     {
         if (isset($_SESSION['__auth__'])) {
             $o_registry =& FF_Registry::singleton();
-            if (($expire = $o_registry->getConfigParam('session/expire')) > 0 && 
+            if (isset($_SESSION['__auth__']['timestamp']) &&
+                ($expire = $o_registry->getConfigParam('session/expire')) > 0 && 
                 ($_SESSION['__auth__']['timestamp'] + $expire) < time()) {
                 FF_Auth::_set_status(FASTFRAME_AUTH_EXPIRED);
                 FF_Auth::_update_idle();
                 return false;
             }
-            elseif (($idle = $o_registry->getConfigParam('session/idle')) > 0 && 
+            elseif (isset($_SESSION['__auth__']['idle']) &&
+                    ($idle = $o_registry->getConfigParam('session/idle')) > 0 && 
                     ($_SESSION['__auth__']['idle'] + $idle) < time()) {
                 FF_Auth::_set_status(FASTFRAME_AUTH_IDLED);
                 return false;
@@ -214,6 +144,9 @@ class FF_Auth {
             elseif (!empty($_SESSION['__auth__']['registered'])) {
                 FF_Auth::_set_status(FASTFRAME_AUTH_OK);
                 FF_Auth::_update_idle();
+            }
+            else {
+                return false;
             }
         }
         else {
@@ -232,29 +165,6 @@ class FF_Auth {
         }
 
         return true;
-    }
-
-    // }}}
-    // {{{ getAuth()
-
-    /**
-     * Return the currently logged in user, if there is one.
-     *
-     * Check to see if there is a valid user by determinig if the registered bit
-     * is set on the __auth__ array and if so return that userId, else return false
-     *
-     * @access public
-     * @return mixed either the userId of the current user or false if there is no registered user
-     */
-    function getAuth()
-    {
-        if (isset($_SESSION['__auth__']) && 
-            (boolean) $_SESSION['__auth__']['registered'] == true && 
-            !@isempty($_SESSION['__auth__']['userId'])) {
-            return $_SESSION['__auth__']['userId'];
-        }
-
-        return false;
     }
 
     // }}}
@@ -278,32 +188,32 @@ class FF_Auth {
      * Force a transparent login.
      *
      * Set the appropriate variables so as to force a transparent login using
-     * the userId.  The credentials are the extra information on the user such
-     * as the companyID and the perms of the user
+     * the username.  The credentials are the extra information on the user such
+     * as the username
      *
-     * @param  string  $in_userId The userId who has been authorized
+     * @param  string  $in_username The username who has been authorized
      * @param  mixed   $in_credentials (optional) other information to store about the user
-     * @param  bool    $in_setAnchor Set the anchor to tie this session to the browser?
+     * @param  bool    $in_setAnchor (optional) Set the anchor to tie this session to the browser?
      *
      * @access public
      * @return void
      */
-    function setAuth($in_userId, $in_credentials = null, $in_setAnchor = false)
+    function setAuth($in_username, $in_credentials = null, $in_setAnchor = false)
     {
         $_SESSION['__auth__'] = array(
             'registered' => true,
             'status'     => FASTFRAME_AUTH_OK,
-            'userId'     => $in_userId,
+            'username'   => $in_username,
             'timestamp'  => time(),
-            'idle'       => time()
+            'idle'       => time(),
         );
         
         if (!is_null($in_credentials)) {
             $_SESSION['__auth__']['credentials'] = $in_credentials;
         }
 
-        // userId is a credential as well as an auth item
-        $_SESSION['__auth__']['credentials']['userId'] = $in_userId;
+        // username is a credential as well as an auth item
+        $_SESSION['__auth__']['credentials']['username'] = $in_username;
         
         // set the anchor for this browser to never expire
         if ($in_setAnchor) {
@@ -376,7 +286,7 @@ class FF_Auth {
     /**
      * Get a credential from the stack of user properties
      *
-     * Return the credential of the user such as the companyID or perms 
+     * Return the credential of the user such as the username 
      *
      * @access public
      * @return mixed credential value if exists or false if not logged in or no such credential
@@ -429,7 +339,38 @@ class FF_Auth {
     }
 
     // }}}
-    // {{{ _session_start()
+    // {{{ getAuthSourceObject()
+
+    /**
+     * Returns the appropriate auth source object
+     *
+     * @param string $in_name The name of the auth source to get
+     *
+     * @access public
+     * @return object An auth source object
+     */
+    function &getAuthSourceObject($in_name)
+    {
+        static $a_authSources;
+        if (!isset($a_authSources)) {
+            $a_authSources = array();
+            require_once dirname(__FILE__) . '/Auth/AuthSource.php';
+        }
+
+        if (!isset($a_authSources[$in_name])) {
+            $o_registry =& FF_Registry::singleton();
+            $a_authSources[$in_name] =& FF_AuthSource::factory(
+                                            $o_registry->getConfigParam("auth/sources/$in_name/type"), 
+                                            $in_name, 
+                                            $o_registry->getConfigParam("auth/sources/$in_name/params", array())
+                                        );
+        }
+
+        return $a_authSources[$in_name];
+    }
+
+    // }}}
+    // {{{ sessionStart()
 
     /**
      * Start a session.
@@ -438,10 +379,10 @@ class FF_Auth {
      * the session, using the value from the registry for the name of the session.
      * It also disables the cookie params for sessions since they suck.
      *
-     * @access private
+     * @access public 
      * @return void
      */
-    function _session_start() {
+    function sessionStart() {
         static $isStarted;
         
         if (!isset($isStarted)) {
@@ -492,7 +433,7 @@ class FF_Auth {
      */
     function _get_session_anchor()
     {
-        return @md5($_SESSION['__auth__']['userId']);
+        return @md5($_SESSION['__auth__']['username']);
     }
 
     // }}}
