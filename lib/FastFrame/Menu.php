@@ -1,5 +1,5 @@
 <?php
-/** $Id: Menu.php,v 1.8 2003/04/08 21:52:01 jrust Exp $ */
+/** $Id: Menu.php,v 1.9 2003/04/09 19:51:12 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -389,6 +389,9 @@ class FF_Menu {
     function _getLinkUrl($in_url)
     {
         if (is_array($in_url)) {
+            // need to make sure the module isn't set to the value of whatever it is 
+            // on the page creating the menu
+            $in_url['module'] = isset($in_url['module']) ? $in_url['module'] : '';
             $s_url = FastFrame::selfURL($in_url);
             // can't have the current session id in the url
             $s_url = str_replace(session_id(), '<?php echo session_id(); ?>', $s_url);
