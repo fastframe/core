@@ -224,8 +224,7 @@ class FF_Registry {
                 $s_appDir = $in_app;
             }
             // here we change our root, but not our basic FastFrame structure in that root
-            //$s_file = $this->getAppFile($s_configFile, $in_app, 'config');
-            $s_file = FASTFRAME_ROOT . "apps/$s_appDir/config/$s_configFile";
+            $s_file = $this->getAppFile($s_configFile, $in_app, 'config');
             if (!is_readable($s_file)) {
                 $tmp_error = PEAR::raiseError(null, FASTFRAME_NOT_CONFIGURED, null, E_USER_ERROR, "Can not import the config file for $in_app ($s_file)", 'FF_Error', true);
                 FastFrame::fatal($tmp_error, __FILE__, __LINE__, false); 
