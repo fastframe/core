@@ -339,8 +339,6 @@ class FF_ActionHandler {
      */
     function setAppId($in_appId)
     {
-        // get and post vars need to be set if this is changed since FastFrame::selfUrl() uses them
-        $_GET['app'] = $_POST['app'] = $in_appId;
         $this->appId = $in_appId;
     }
 
@@ -355,7 +353,7 @@ class FF_ActionHandler {
      */
     function getAppId()
     {
-        return $this->getAppId;
+        return $this->appId;
     }
 
     // }}}
@@ -371,8 +369,6 @@ class FF_ActionHandler {
      */
     function setModuleId($in_moduleId)
     {
-        // get and post vars need to be set if this is changed since FastFrame::selfUrl() uses them
-        $_GET['module'] = $_POST['module'] = $in_moduleId;
         $this->moduleId = $in_moduleId;
     }
 

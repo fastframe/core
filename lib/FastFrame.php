@@ -186,7 +186,8 @@ class FastFrame {
         $argv = func_get_args();
 
         // add on the module and app to the beginning
-        array_unshift($argv, array('app' => FastFrame::getCGIParam('app', 'gp'), 'module' => FastFrame::getCGIParam('module', 'gp'))); 
+        $o_actionHandler =& FF_ActionHandler::singleton();
+        array_unshift($argv, array('app' => $o_actionHandler->getAppId(), 'module' => $o_actionHandler->getModuleId())); 
 
         // add on the url to the beginning
         array_unshift($argv, $_SERVER['PHP_SELF']);
