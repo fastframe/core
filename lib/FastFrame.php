@@ -1,5 +1,5 @@
 <?php
-/** $Id: FastFrame.php,v 1.1 2003/01/03 22:42:44 jrust Exp $ */
+/** $Id: FastFrame.php,v 1.2 2003/01/08 00:08:51 jrust Exp $ */
 // {{{ includes
 
 require_once dirname(__FILE__) . '/FastFrame/Registry.php';
@@ -235,7 +235,7 @@ class FastFrame {
 
         // Log the fatal error via FastFrame::logMessage() if requested.
         if ($in_log) {
-            FastFrame::logMessage($in_error, $in_file, $in_line, LOG_EMERG);
+            FastFrame::logMessage($in_message, $in_file, $in_line, LOG_EMERG);
         }
 
         // Hardcode a small stylesheet so that this doesn't depend on
