@@ -231,7 +231,7 @@ class FF_List {
         // Add form elements which go only on advanced list
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
             $o_form->addElement('text', "displayLimit[$this->listId]", null, 
-                    array('style' => 'vertical-align: middle;', 'size' => 2, 'maxlength' => 3));
+                    array('style' => 'vertical-align: middle; width: 15px;', 'size' => 2, 'maxlength' => 3));
             $o_form->addRule("displayLimit[$this->listId]", _('Limit must be a positive integer'), 
                     'nonzero', null, 'client', true); 
 
