@@ -48,15 +48,15 @@ class FF_AuthSource {
     var $serverName;
 
     /**
-     * Whether the password value is writable.  If so the source must implement the
-     * updatePassword() method
+     * Whether the password value is writable.  If so the source must
+     * implement the updatePassword() method
      * @var bool
      */
     var $passwordWritable = false;
 
     /**
-     * Whether the username value is writable.  If so the source must implement the
-     * updateUserName() method
+     * Whether the username value is writable.  If so the source must
+     * implement the updateUserName() method
      * @var bool
      */
     var $usernameWritable = false;
@@ -101,20 +101,12 @@ class FF_AuthSource {
     {
         $pth_authFile = dirname(__FILE__) . '/' . $in_type . '.php';
         if (!file_exists($pth_authFile)) {
-            return FastFrame::fatal("$in_type is an invalid authentication type.", __FILE__, __LINE__);
+            return new FF_AuthSource($in_name, $in_params);
         }
 
         require_once $pth_authFile;
         $s_authClass = 'FF_AuthSource_' . $in_type;
-				
-        if (class_exists($s_authClass)) {
-            $o_auth =& new $s_authClass($in_name, $in_params);
-        }
-        else {
-            $o_auth =& new FF_AuthSource($in_name, $in_params);
-        }
-
-        return $o_auth; 
+        return new $s_authClass($in_name, $in_params);
     }
 
     // }}}

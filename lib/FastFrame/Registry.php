@@ -384,7 +384,9 @@ class FF_Registry {
             $a_pathParts[] = $in_file;
         }
 
-        return FASTFRAME_WEBPATH ? File::buildPath($a_pathParts, '/') : File::buildPath($a_pathParts);
+        // Remove empty values so we don't get repeat slashes
+        $a_pathParts = array_filter($a_pathParts);
+        return implode('/', $a_pathParts);
     }
 
     // }}}
@@ -457,10 +459,7 @@ class FF_Registry {
      */
     function getRootFile($in_filename, $in_service = '', $in_type = FASTFRAME_FILEPATH_PUBLIC)
     {
-        if ($in_service == '') {
-            $s_service = '';
-        }
-        elseif (is_null($s_service = $this->getAppParam('root_' . $in_service))) {
+        if (!empty($in_service) && is_null($in_service = $this->getAppParam('root_' . $in_service))) {
             return PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "The service root_$in_service could not be found", 'FF_Error', true);
         }
 
@@ -471,7 +470,7 @@ class FF_Registry {
         }
 
         // right now we have no variables in the root services
-        return $this->getFile(array($s_service, $in_filename), $in_type);
+        return $this->getFile(array($in_service, $in_filename), $in_type);
     }
 
     // }}}
@@ -630,9 +629,9 @@ class FF_Registry {
      */
     function rootPathToWebPath($in_path)
     {
-        if (strpos($in_path, $this->getConfigParam('webserver/file_root')) === 0) {
-            return substr_replace($in_path, $this->getConfigParam('webserver/web_root'), 0,
-                strlen($this->getConfigParam('webserver/file_root')));
+        $s_fileRoot = $this->getConfigParam('webserver/file_root');
+        if (strpos($in_path, $s_fileRoot) === 0) {
+            return substr_replace($in_path, $this->getConfigParam('webserver/web_root'), 0, strlen($s_fileRoot));
         }
         else {
             return $in_path;

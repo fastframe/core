@@ -156,10 +156,10 @@ class FF_Action_FormSubmit extends FF_Action {
     function getProblemMessage()
     {
         if ($this->isUpdate()) {
-            return sprintf(_('There was an error in updating the %s.'), $this->getSingularText());
+            return sprintf(_('There was an error updating the %s.'), $this->getSingularText());
         }
         else {
-            return sprintf(_('There was an error in adding the %s.'), $this->getSingularText());
+            return sprintf(_('There was an error adding the %s.'), $this->getSingularText());
         }
     }
 
