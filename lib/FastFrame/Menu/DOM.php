@@ -54,7 +54,6 @@ class FF_Menu_DOM extends FF_Menu {
                 "subMenuWidthCorrection", -1,
                 "verticalSubMenuOffsetX", -1,
                 "verticalSubMenuOffsetY", -1,
-                "openMouseoverMenuDelay", -1,
                 "openMousedownMenuDelay", 0,
                 "axis", "vertical"
             ));

@@ -418,6 +418,32 @@ class FF_Auth {
     }
 
     // }}}
+    // {{{ encryptPassword()
+
+    /**
+     * Encrypts a password with one of the encryption methods
+     *
+     * @param string $in_plain The plaintext password
+     * @param string $in_method The encryption method
+     *
+     * @access public
+     * @return string An encrypted password
+     */
+    function encryptPassword($in_plain, $in_method)
+    {
+        switch ($in_method) {
+            case 'md5':
+                return md5($in_plain);
+            break;
+            case 'plain':
+            default:
+                return $in_plain;
+            break;
+        }
+
+    }
+
+    // }}}
     // {{{ _sessionEnd()
 
     /**

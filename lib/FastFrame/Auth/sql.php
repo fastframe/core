@@ -42,11 +42,10 @@ class FF_AuthSource_sql extends FF_AuthSource {
     // {{{ properties
 
     /**
-     * The type of encoding used for the password. It can be either
-     * md5 or plain
+     * The type of encoding used for the password
      * @var string
      */
-    var $passwordType;
+    var $encryptionType;
 
     /**
      * The table for the auth class
@@ -114,17 +113,7 @@ class FF_AuthSource_sql extends FF_AuthSource {
                     'database' => $o_registry->getConfigParam('data/database')));
         if (DB::isError($o_data)) {
             trigger_error($o_data->getMessage(), E_USER_ERROR);
-        }
-
-        // hash/encrypt the password if needed
-        switch ($this->encryptionType) {
-            case 'md5':
-                $s_encryptPass = md5($in_password);
-            break;
-            case 'plain':
-            default:
-                $s_encryptPass = $in_password;
-            break;
+            return false;
         }
 
         $s_query = sprintf('SELECT COUNT(*) FROM %s WHERE %s=%s AND %s=%s',
@@ -132,7 +121,7 @@ class FF_AuthSource_sql extends FF_AuthSource {
                               $this->userField,
                               $o_data->quoteSmart($in_username),
                               $this->passField,
-                              $o_data->quoteSmart($s_encryptPass)
+                              $o_data->quoteSmart(FF_Auth::encryptPassword($in_password, $this->encryptionType))
                           );
         $s_result = $o_data->getOne($s_query);
         if ($s_result == 1) {
