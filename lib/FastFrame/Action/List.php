@@ -218,7 +218,6 @@ class FF_Action_List extends FF_Action_Form {
             }
             $a_buttonCells = $this->getButtonCells();
             $a_map = $this->getFieldMap();
-            $s_attrib = $this->getRowAttributes();
             while ($this->o_listModeler->loadNextModel()) {
                 $tmp_extraJs = $b_highlightRows ? 
                     ' onclick="window.location.href=\'' . $this->getHighlightedRowUrl() . '\';"' : '';
@@ -250,7 +249,7 @@ class FF_Action_List extends FF_Action_Form {
 
                 $in_tableWidget->append('rows', array(
                             'S_table_row' => 'class="' . $this->o_output->toggleRow($i++) . '" ' .
-                                $s_attrib . $tmp_extraJs,
+                                $this->getRowAttributes() . $tmp_extraJs,
                             'cells' => $a_cells));
             }
         }
