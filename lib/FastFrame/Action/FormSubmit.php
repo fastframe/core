@@ -39,6 +39,15 @@ require_once dirname(__FILE__) . '/../Action.php';
 
 // }}}
 class FF_Action_FormSubmit extends FF_Action {
+    // {{{ properties
+
+    /**
+     * The action id used in edit mode
+     * @type string
+     */
+    var $editActionId = ACTION_EDIT_SUBMIT;
+
+    // }}}
     // {{{ constructor
 
     /**
@@ -112,7 +121,7 @@ class FF_Action_FormSubmit extends FF_Action {
      */
     function isUpdate()
     {
-        if ($this->currentActionId == ACTION_EDIT_SUBMIT) {
+        if ($this->currentActionId == $this->editActionId) {
             return true;
         }
         else {
@@ -131,7 +140,7 @@ class FF_Action_FormSubmit extends FF_Action {
      */
     function getSuccessMessage()
     {
-        if ($this->currentActionId == ACTION_EDIT_SUBMIT) {
+        if ($this->currentActionId == $this->editActionId) {
             return sprintf(_('Updated the %s successfully.'), $this->getSingularText());
         }
         else {
@@ -150,7 +159,7 @@ class FF_Action_FormSubmit extends FF_Action {
      */
     function getProblemMessage()
     {
-        if ($this->currentActionId == ACTION_EDIT_SUBMIT) {
+        if ($this->currentActionId == $this->editActionId) {
             return sprintf(_('There was an error in updating the %s.'), $this->getSingularText());
         }
         else {
@@ -226,7 +235,7 @@ class FF_Action_FormSubmit extends FF_Action {
      */
     function setProblemActionId()
     {
-        if ($this->currentActionId == ACTION_EDIT_SUBMIT) {
+        if ($this->currentActionId == $this->editActionId) {
             $this->o_nextAction->setNextActionId(ACTION_EDIT);
         }
         else {

@@ -85,6 +85,12 @@ class FF_Action_Form extends FF_Action {
      */
     var $formActionId;
 
+    /**
+     * The action id used in edit mode
+     * @type string
+     */
+    var $editActionId = ACTION_EDIT;
+
     // }}}
     // {{{ constructor
 
@@ -223,7 +229,7 @@ class FF_Action_Form extends FF_Action {
      */
     function fillModelWithData()
     {
-        if ($this->currentActionId == ACTION_EDIT) {
+        if ($this->currentActionId == $this->editActionId) {
             $s_id = FastFrame::getCGIParam('objectId', 'gp');
             $b_result = $this->o_model->fillById($s_id);
             if (!$b_result) {
@@ -264,7 +270,7 @@ class FF_Action_Form extends FF_Action {
      */
     function setSubmitActionId()
     {
-        if ($this->currentActionId == ACTION_EDIT) {
+        if ($this->currentActionId == $this->editActionId) {
             $this->formActionId = ACTION_EDIT_SUBMIT;
         }
         else {
@@ -375,7 +381,7 @@ class FF_Action_Form extends FF_Action {
      */
     function getTableHeaderText()
     {
-        if ($this->currentActionId == ACTION_EDIT) {
+        if ($this->currentActionId == $this->editActionId) {
             return sprintf(_('Update %s'), $this->getSingularText());
         }
         else {
