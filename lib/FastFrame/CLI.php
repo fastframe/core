@@ -144,12 +144,14 @@ class FF_CLI {
 
         $o_registry =& FF_Registry::singleton();
         $o_registry->pushApp($in_app);
-        PEAR::setErrorHandling(PEAR_ERROR_TRIGGER, E_USER_NOTICE); 
-        $o_error =& new FF_ErrorHandler();
-        $GLOBALS['o_error'] =& $o_error;
-        $o_error->setDateFormat('[Y-m-d H:i:s]');
-        $o_error->setExcludeObjects(false);
-        $o_error->addReporter('stdout', E_VERY_ALL, array());
+        if (!isset($GLOBALS['o_error'])) {
+            PEAR::setErrorHandling(PEAR_ERROR_TRIGGER, E_USER_NOTICE); 
+            $o_error =& new FF_ErrorHandler();
+            $GLOBALS['o_error'] =& $o_error;
+            $o_error->setDateFormat('[Y-m-d H:i:s]');
+            $o_error->setExcludeObjects(false);
+            $o_error->addReporter('stdout', E_VERY_ALL, array());
+        }
     }
 
     // }}}
