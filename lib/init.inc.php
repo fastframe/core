@@ -1,5 +1,5 @@
 <?php
-/** $Id: init.inc.php,v 1.1 2003/01/03 22:42:43 jrust Exp $ */
+/** $Id: init.inc.php,v 1.2 2003/01/08 00:08:21 jrust Exp $ */
 /**
  * If you want to use the FastFrame application framework in your application,
  * you have to specify the path, either full or relative to get to the
@@ -26,7 +26,7 @@ require_once 'PEAR.php';
 require_once 'Net/UserAgent/Detect.php';
 require_once 'HTML/QuickForm.php';
 require_once 'XML/XPath.php';
-require_once 'DB.php';
+require_once 'MDB.php';
 require_once 'File.php';
 
 // FastFrame specific libraries (we use dirname() here so it doesn't conflict with PEAR libraries)
@@ -59,11 +59,15 @@ $a_lang =& $o_registry->getRootLocale();
 $s_pageType = 'normal';
 $o_html =& FastFrame_HTML::singleton();
 $a_persistent['actionID'] = FastFrame::getCGIParam('actionID', 'gp', NOOP);
-$a_persistent['displayLimit'] = (int) abs(FastFrame::getCGIParam('displayLimit', 'c', $o_html->defaultLimit));
-$a_persistent['offset'] = $a_persistent['displayLimit'] ? (int) abs(FastFrame::getCGIParam('offset', 'gp', 1)) : 0;
-$a_persistent['sortOrder'] = FastFrame::getCGIParam('sortOrder', 'gp', $o_html->defaultSortOrder);
-$a_persistent['searchString'] = FastFrame::getCGIParam('searchString', 'c', '');
-$a_persistent['searchField'] = FastFrame::getCGIParam('searchField', 'c', '');
+$a_persistent['advancedQuery'] = FastFrame::getCGIParam('advancedQuery', 'gp', 0);
+$a_persistent['displayLimit'] = (int) abs(FastFrame::getCGIParam('displayLimit', 'gps', $o_html->getDefaultLimit()));
+$a_persistent['pageOffset'] = (int) abs(FastFrame::getCGIParam('pageOffset', 'gps', 1));  
+$a_persistent['offset'] = $a_persistent['displayLimit'] ? 
+                          ($a_persistent['pageOffset'] - 1) * $a_persistent['displayLimit'] : 
+                          0;
+$a_persistent['sortOrder'] = FastFrame::getCGIParam('sortOrder', 'gps', $o_html->getDefaultSortOrder());
+$a_persistent['searchString'] = FastFrame::getCGIParam('searchString', 'gps', '');
+$a_persistent['searchField'] = FastFrame::getCGIParam('searchField', 'gps', '');
 
 // }}}
 ?>
