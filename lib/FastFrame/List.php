@@ -479,6 +479,20 @@ class FF_List {
     }
 
     // }}}
+    // {{{ getListId()
+
+    /**
+     * Gets the list id
+     *
+     * @access public
+     * @return string The unique id for this list
+     */
+    function getListId()
+    {
+        return $this->listId;
+    }
+
+    // }}}
     // {{{ getPageId()
 
     /**

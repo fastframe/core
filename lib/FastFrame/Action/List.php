@@ -70,7 +70,6 @@ class FF_Action_List extends FF_Action_Form {
             return $this->o_nextAction;
         }
 
-        $this->o_output->setPageName($this->getPageName());
         $this->initList();
         if (!$this->queryData()) {
             return $this->o_nextAction;
@@ -90,6 +89,7 @@ class FF_Action_List extends FF_Action_Form {
             $this->o_output->assignBlockData(array('T_page_link' => $s_link), 'page_link');
         }
 
+        $this->o_output->setPageName($this->getPageName());
         $this->createListTable();
         $this->setNextAction();
         return $this->o_nextAction; 
