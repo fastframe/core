@@ -78,12 +78,14 @@ class FF_Smarty extends Smarty {
      * template_dir and compile_dir based on the theme and the widget
      * file. 
      *
+     * @param string $cache_id (optional) The cache id
+     *
      * @access public
      * @return void
      */
-    function display()
+    function display($cache_id = null)
     {
-        $this->fetch(true);
+        $this->fetch(true, $cache_id);
     }
 
     // }}}
@@ -96,18 +98,19 @@ class FF_Smarty extends Smarty {
      *
      * @param bool $in_display (optional) Display the template instead
      *        of returning?
+     * @param string $cache_id (optional) The cache id
      *
      * @access public
      * @return string The rendered widget
      */
-    function fetch($in_display = false)
+    function fetch($in_display = false, $cache_id = null)
     {
         $this->_determinePaths();
         if ($in_display) {
-            parent::fetch($this->widget, null, null, true);
+            parent::fetch($this->widget, $cache_id, null, true);
         }
         else {
-            return parent::fetch($this->widget);
+            return parent::fetch($this->widget, $cache_id);
         }
     }
 
