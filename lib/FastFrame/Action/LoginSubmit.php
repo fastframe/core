@@ -1,5 +1,5 @@
 <?php
-/** $Id: LoginSubmit.php,v 1.7 2003/03/19 00:36:01 jrust Exp $ */
+/** $Id: LoginSubmit.php,v 1.8 2003/04/02 00:15:31 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -39,15 +39,6 @@ require_once dirname(__FILE__) . '/../Action.php';
 
 // }}}
 class FF_Action_LoginSubmit extends FF_Action {
-    // {{{ properties
-
-    /**
-     * The authentication object
-     * @type object
-     */
-    var $o_auth;
-    
-    // }}}
     // {{{ constructor
 
     /**
@@ -61,7 +52,6 @@ class FF_Action_LoginSubmit extends FF_Action {
     function FF_Action_LoginSubmit(&$in_model)
     {
         FF_Action::FF_Action($in_model);
-        $this->o_auth =& FF_Auth::singleton();
     }
 
     // }}}
@@ -75,15 +65,48 @@ class FF_Action_LoginSubmit extends FF_Action {
      */
     function run()
     {
-        if ($this->o_auth->authenticate(
+        if (FF_Auth::authenticate(
             FastFrame::getCGIParam('username', 'p'), 
             FastFrame::getCGIParam('password', 'p'))) {
+            // if the profile application is installed then set the user Id
+            if ($this->o_registry->hasApp('profile')) {
+                require_once $this->o_registry->getAppFile('Model/Profile.php', 'profile', 'libs');
+                $o_profileModel =& new FF_Model_ProfileProfile();
+                $s_userId = $o_profileModel->getIdByUsername(FF_Auth::getCredential('username'));
+                // if they were able to log on, but don't have a user id, then they logged on
+                // with a auth source other than the profile database, so give them an empty profile
+                if (is_null($s_userId)) {
+                    $o_profileModel->setUsername(FF_Auth::getCredential('username'));
+                    $o_profileModel->setAuthSource(FF_Auth::getCredential('authSource'));
+                    $o_result =& $o_profileModel->addMinimalProfile();
+                    if (!$o_result->isSuccess()) {
+                        $this->o_output->setMessage(_('Error encountered in creating your profile.'));
+                        $this->o_output->setMessage($o_result->getMessages());
+                        $this->setProblemActionId();
+                        return $this->o_nextAction;
+                    }
+                    else {
+                        $s_userId = $o_profileModel->getId();
+                    }
+                }
+
+                $o_profileModel->fillById($s_userId);
+                FF_Auth::setCredential('isProfileComplete', $o_profileModel->isProfileComplete());
+                $s_theme = $o_profileModel->getTheme();
+            }
+            else {
+                $s_userId = FF_Auth::getCredential('username');
+                $s_theme = $this->o_registry->getConfigParam('general/default_theme');
+            }
+
+            FF_Auth::setCredential('userId', $s_userId); 
+            FF_Auth::setCredential('theme', $s_theme); 
             // login is successful proceed to initial app or where we came from
             $s_redirectURL = FastFrame::getCGIParam('loginRedirect', 'gp', false);
             if (empty($s_redirectURL)) {
                 $s_initialApp = $this->o_registry->getConfigParam('general/initial_app', 'login');
                 if ($s_initialApp != 'login') {
-                    $s_redirectURL = FastFrame::url($this->o_registry->getRootFile('index.php', null, FASTFRAME_WEBPATH), array('app' => $s_initialApp), true);
+                    $s_redirectURL = FastFrame::selfURL(array('app' => $s_initialApp));
                     FastFrame::redirect($s_redirectURL);
                 }
                 else {
