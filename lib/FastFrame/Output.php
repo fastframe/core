@@ -841,6 +841,7 @@ class FF_Output extends FF_Template {
      */
     function _renderPageType()
     {
+        $s_footer = $this->o_registry->getConfigParam('general/footer_text');
         switch ($this->pageType) {
             case 'popup':
                 // a minimal page
@@ -868,20 +869,14 @@ class FF_Output extends FF_Template {
                     'css'
                 );
 
-                $this->assignBlockData(
-                    array(
-                        'T_banner_bottom' => _('Run by FastFrame.  Licensed under the GPL.'),
-                    ),
-                    'switch_banner_bottom'
-                );
+                if ($s_footer) {
+                    $this->assignBlockData(array('T_banner_bottom' => $s_footer), 'switch_banner_bottom');
+                }
             break;
             case 'normal':
-                $this->assignBlockData(
-                    array(
-                        'T_banner_bottom' => _('Run by FastFrame.  Licensed under the GPL.'),
-                    ),
-                    'switch_banner_bottom'
-                );
+                if ($s_footer) {
+                    $this->assignBlockData(array('T_banner_bottom' => $s_footer), 'switch_banner_bottom');
+                }
             break;
             default:
             break;
