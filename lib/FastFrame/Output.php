@@ -350,7 +350,7 @@ class FF_Output {
         $in_options['height'] = isset($in_options['height']) ? $in_options['height'] : 500;
  
         $s_url = FastFrame::selfURL($in_urlParams);
-        $s_js = $in_name . ' = window.open(\'' . $s_url .  '\',' . 
+        $s_js = $in_name . ' = window.open(this.href,' . 
                 '\'' . $in_name . '\',' .
                 '\'toolbar=no,location=no,status=yes,menubar=' . $in_options['menubar'] . 
                 ',scrollbars=yes,resizable,alwaysRaised,dependent,titlebar=no' . 
