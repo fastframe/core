@@ -71,7 +71,8 @@ class FF_Action_List extends FF_Action_Form {
         }
 
         $this->o_output->setPageName($this->getPageName());
-        if (!$this->initList()) {
+        $this->initList();
+        if (!$this->queryData()) {
             return $this->o_nextAction;
         }
 
@@ -98,10 +99,10 @@ class FF_Action_List extends FF_Action_Form {
     // {{{ initList()
 
     /**
-     * Initializes the list class
+     * Initializes the list class with the default parameters.
      *
      * @access public
-     * @return bool True if successful, false otherwise 
+     * @return void
      */
     function initList()
     {
@@ -112,6 +113,19 @@ class FF_Action_List extends FF_Action_Form {
             $this->getPersistentData()
         );
         $this->processFieldMapForList($this->getFieldMap());
+    }
+
+    // }}}
+    // {{{ queryData()
+
+    /**
+     * Queries the datasource for the list data.
+     *
+     * @access public
+     * @return bool True if successful, false otherwise 
+     */
+    function queryData()
+    {
         $this->o_listModeler =& new FF_ListModeler($this->o_list, $this->o_model, $this->getFilter());
         if (!$this->o_listModeler->performSearch()) {
             $this->o_output->setMessage(_('Unable to query data'), FASTFRAME_ERROR_MESSAGE);
