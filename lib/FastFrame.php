@@ -1,5 +1,5 @@
 <?php
-/** $Id: FastFrame.php,v 1.11 2003/03/19 00:36:00 jrust Exp $ */
+/** $Id: FastFrame.php,v 1.12 2003/04/09 20:06:25 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -89,7 +89,7 @@ class FastFrame {
         }
         // we need to just add the web part of the path
         else {
-            $url = $o_registry->getAppParam('web_base') . '/' . $in_url;
+            $url = $o_registry->getConfigParam('webserver/web_root') . '/' . $in_url;
         }
 
         // see if we need to make this a full query string
