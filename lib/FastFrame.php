@@ -1,5 +1,5 @@
 <?php
-/** $Id: FastFrame.php,v 1.8 2003/02/12 20:57:14 jrust Exp $ */
+/** $Id: FastFrame.php,v 1.9 2003/02/22 01:44:39 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -119,7 +119,7 @@ class FastFrame {
                 if (!FastFrame::isEmpty(session_id())) {
                     $getVars[$sessName] = session_id();
                 }
-                elseif (!FastFrame::isEmpty($_REQUEST[$sessName], false)) {
+                elseif (isset($_REQUEST[$sessName])) {
                     $getVars[$sessName] = $_REQUEST[$sessName]; 
                 }
                 else {
