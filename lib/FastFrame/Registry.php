@@ -1,5 +1,5 @@
 <?php
-/** $Id: Registry.php,v 1.6 2003/01/21 19:37:45 jrust Exp $ */
+/** $Id: Registry.php,v 1.7 2003/01/22 02:04:10 jrust Exp $ */
 // {{{ constants/globals
 
 // types of filepaths that can be generated
@@ -27,7 +27,6 @@ $GLOBALS['_FASTFRAME_PATH'] = array(
     'app_pages'       => '%app%/pages',
     'app_data'        => '%app%/data',
     'app_libs'        => '%app%/lib',
-    'app_dataobjects' => '%app%/lib/DataObjects',
     'app_graphics'    => '%app%/graphics',
     'app_language'    => '%app%/locale',
     'app_config'      => '%app%/config',
@@ -624,9 +623,8 @@ class FastFrame_Registry {
      */
     function &getDataConnection(&$in_obj_data)
     {
-        $connections = &PEAR::getStaticProperty('DB_DataObject','connections');
         $in_obj_data->_connect();
-        return $connections[$in_obj_data->_database_dsn_md5];
+        return $GLOBALS['_DB_DATAOBJECT']['CONNECTIONS'][$in_obj_data->_database_dsn_md5];
     }
 
     // }}}
