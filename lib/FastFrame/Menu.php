@@ -103,6 +103,18 @@ class FF_Menu {
     var $o_output;
 
     /**
+     * The FileCache object
+     * @var object
+     */
+    var $o_fileCache;
+
+    /**
+     * The path and name of the cache file
+     * @var string
+     */
+    var $cacheFile;
+
+    /**
      * The array of menu variables
      * @var array
      */
@@ -142,7 +154,9 @@ class FF_Menu {
     {
         $this->o_registry =& FF_Registry::singleton();
         $this->o_output =& FF_Output::singleton();
+        $this->o_fileCache =& FF_FileCache::singleton();
         $this->menuType = $in_type;
+        $this->_setCacheFile();
     }
 
     // }}}
@@ -206,7 +220,7 @@ class FF_Menu {
      */
     function _isMenuCached()
     {
-        if (!file_exists(($pth_file = $this->_getCacheFileName()))) {
+        if (!file_exists(($pth_file = $this->o_fileCache->getPath($this->cacheFile)))) {
             return false;
         }
         else {
@@ -235,30 +249,6 @@ class FF_Menu {
     }
 
     // }}}
-    // {{{ _saveMenuToCache()
-
-    /**
-     * Caches the menu variables as a php file in the cache directory.
-     *
-     * @param string $in_data The data to write to the cache file
-     *
-     * @access private
-     * @return void
-     */
-    function _saveMenuToCache($in_data)
-    {
-        require_once 'System.php';
-        $s_cacheDir = $this->o_registry->getRootFile('menu', 'cache');
-        if (!@System::mkdir("-p $s_cacheDir"))  {
-            trigger_error('Could not write to the FastFrame cache directory.', E_USER_ERROR);
-        }
-        
-        require_once 'File.php';
-        File::write($this->_getCacheFileName(), $in_data, FILE_MODE_WRITE);
-        File::close($this->_getCacheFileName(), FILE_MODE_WRITE);
-    }
-
-    // }}}
     // {{{ _getCachedMenu()
 
     /**
@@ -275,24 +265,10 @@ class FF_Menu {
         $o_registry =& FF_Registry::singleton();
         $o_output =& FF_Output::singleton();
         ob_start();
-        require_once $this->_getCacheFileName();
+        require_once $this->o_fileCache->getPath($this->cacheFile);
         $s_data = ob_get_contents();
         ob_end_clean();
         return $s_data;
-    }
-
-    // }}}
-    // {{{ _getCacheFileName()
-
-    /**
-     * Gets the file name for the cached menu
-     *
-     * @access private
-     * @return string The file name for the cached menu
-     */
-    function _getCacheFileName()
-    {
-        return $this->o_registry->getRootFile('menu/' . $this->menuType . '.php', 'cache');
     }
 
     // }}}
@@ -531,6 +507,20 @@ class FF_Menu {
             $this->_getLinkUrl($in_data['urlParams'], $in_sessionInTags) : '';
 
         return $in_data;
+    }
+
+    // }}}
+    // {{{ _setCacheFile()
+
+    /**
+     * Sets the path and name of the cache file.
+     *
+     * @access private
+     * @return void
+     */
+    function _setCacheFile()
+    {
+        $this->cacheFile = 'menu/' . $this->menuType . '.php';
     }
 
     // }}}

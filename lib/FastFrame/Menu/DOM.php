@@ -62,7 +62,7 @@ class FF_Menu_DOM extends FF_Menu {
             ));
             ' . $this->_generateMenuVars() . '
             </script>';
-            $this->_saveMenuToCache($s_domMenu);
+            $this->o_fileCache->save($s_domMenu, $this->cacheFile);
         }
 
         // Turn on menu

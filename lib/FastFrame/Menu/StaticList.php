@@ -62,7 +62,7 @@ class FF_Menu_StaticList extends FF_Menu {
         if (!$this->_isMenuCached()) {
             $this->_importMenuVars();
             $s_menu = $this->_generateStaticMenu(); 
-            $this->_saveMenuToCache($s_menu);
+            $this->o_fileCache->save($s_menu, $this->cacheFile);
         }
 
         $s_menu = $this->_getCachedMenu();

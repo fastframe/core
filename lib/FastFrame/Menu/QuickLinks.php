@@ -102,7 +102,7 @@ class FF_Menu_QuickLinks extends FF_Menu_StaticList {
      */
     function _isMenuCached()
     {
-        if (!file_exists(($pth_file = $this->_getCacheFileName()))) {
+        if (!file_exists(($pth_file = $this->o_fileCache->getPath($this->cacheFile)))) {
             return false;
         }
         else {
@@ -118,15 +118,15 @@ class FF_Menu_QuickLinks extends FF_Menu_StaticList {
     }
 
     // }}}
-    // {{{ _getCacheFileName()
+    // {{{ _setCacheFile()
 
     /**
-     * Gets the file name for the cached menu
+     * Sets the path and name of the cache file.
      *
      * @access private
-     * @return string The file name for the cached menu
+     * @return void
      */
-    function _getCacheFileName()
+    function _setCacheFile()
     {
         // Get the profile specific application menu
         if ($this->o_registry->getAppParam('profile', false)) {
@@ -137,7 +137,7 @@ class FF_Menu_QuickLinks extends FF_Menu_StaticList {
             $s_menuFile = sprintf('%s.%s.php', $this->menuType, $this->o_registry->getCurrentApp());
         }
 
-        return $this->o_registry->getRootFile("menu/$s_menuFile", 'cache');
+        $this->cacheFile = "menu/$s_menuFile";
     }
 
     // }}}

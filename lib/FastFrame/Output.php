@@ -25,6 +25,7 @@
 // {{{ requires 
 
 require_once dirname(__FILE__) . '/Smarty.php';
+require_once dirname(__FILE__) . '/FileCache.php';
 require_once 'Net/UserAgent/Detect.php';
 
 // }}}
@@ -150,6 +151,7 @@ class FF_Output {
         if (!isset($instance)) {
             $instance = new FF_Output();
         }
+
         return $instance;
     }
 
@@ -195,21 +197,8 @@ class FF_Output {
      */
     function renderCSS($in_theme, $in_themeDir)
     {
-        $s_cssCacheDir = $this->o_registry->getRootFile('css/' . $in_theme, 'cache');
-        if (!is_dir($s_cssCacheDir)) {
-            require_once 'System.php';
-            if (!@System::mkdir("-p $s_cssCacheDir"))  {
-                trigger_error('Could not write to the FastFrame cache directory.', E_USER_ERROR);
-            }
-        }
-
-        // Make the .htaccess file which will override the cache/ .htaccess
-        if (!file_exists($s_cssCacheDir . '/.htaccess')) {
-            require_once 'File.php';
-            File::write($s_cssCacheDir . '/.htaccess', 'Allow from all', FILE_MODE_WRITE);
-            File::close($s_cssCacheDir . '/.htaccess', FILE_MODE_WRITE);
-        }
-
+        require_once dirname(__FILE__) . '/FileCache.php';
+        $o_fileCache =& FF_FileCache::singleton();
         $s_cssTemplateFile = $in_themeDir . '/style.tpl';
         $s_browser = Net_UserAgent_Detect::getBrowser(array('ie', 'gecko'));
         // All other browsers get treated as gecko
@@ -219,11 +208,11 @@ class FF_Output {
 
         // Determine the css file based on the browser
         $s_cssFileName = 'style-' . $s_browser . '.css';
-        $s_cssCacheFile = $s_cssCacheDir . '/' . $s_cssFileName;
+        $s_cssCacheFile = 'css/' . $in_theme . '/' . $s_cssFileName;
 
         // Make the CSS file if needed
-        if (!file_exists($s_cssCacheFile) || 
-            filemtime($s_cssTemplateFile) > filemtime($s_cssCacheFile)) {
+        if (!$o_fileCache->exists($s_cssCacheFile) || 
+            filemtime($s_cssTemplateFile) > filemtime($o_fileCache->getPath($s_cssCacheFile))) {
             $o_cssWidget =& new FF_Smarty($s_cssTemplateFile); 
             // We already know the template is out of date
             $o_cssWidget->force_compile = true;
@@ -233,17 +222,21 @@ class FF_Output {
             $o_cssWidget->assign(array('is_' . $s_browser => true,
                     'THEME_DIR' => $this->o_registry->rootPathToWebPath($in_themeDir),
                     'ROOT_GRAPHICS_DIR' => $this->o_registry->getRootFile('', 'graphics', FASTFRAME_WEBPATH)));
-            require_once 'File.php';
-            File::write($s_cssCacheFile, $o_cssWidget->fetch(), FILE_MODE_WRITE);
-            File::close($s_cssCacheFile, FILE_MODE_WRITE);
+            $o_result =& $o_fileCache->save($o_cssWidget->fetch(), $s_cssCacheFile);
+            if (!$o_result->isSuccess()) {
+                foreach ($o_result->getMessages() as $s_message) {
+                    trigger_error($s_message, E_USER_ERROR);
+                }
+            }
+
+            $o_fileCache->makeViewableFromWeb($s_cssCacheFile);
         }
 
-        $s_cssURL = $this->o_registry->getRootFile('css/' . $in_theme . '/' . $s_cssFileName, 
-                'cache', FASTFRAME_WEBPATH);
+        $s_cssURL = $o_fileCache->getPath($s_cssCacheFile, false, FASTFRAME_WEBPATH);
         // register the CSS file 
         $this->o_tpl->append('css',
                 // put the filemtime on so that they only grab the new file when it is recreated
-                '<link rel="stylesheet" type="text/css" href="' . $s_cssURL . '?fresh=' . filemtime($s_cssCacheFile) . '" />');
+                '<link rel="stylesheet" type="text/css" href="' . $s_cssURL . '?fresh=' . filemtime($s_cssTemplateFile) . '" />');
     }
 
     // }}}
