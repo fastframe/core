@@ -1,5 +1,5 @@
 <?php
-/** $Id: HTML.php,v 1.2 2003/01/08 00:05:13 jrust Exp $ */
+/** $Id: HTML.php,v 1.3 2003/01/09 22:46:29 jrust Exp $ */
 // {{{ includes
 
 require_once dirname(__FILE__) . '/Template.php';
@@ -55,19 +55,19 @@ class FastFrame_HTML extends FastFrame_Template {
      var $templateType = '';
 
     /**
-     * Variables which will always need to exist for pages to function, so we don't
-     * need to constantly pass them around, we just make a function for retrieving the values
+     * Variables which are always used in the list pages that utilize the search box and
+     * navigation bar. 
      * @var array $persistentVariables
      */
     var $persistentVariables = array(
-        'actionID',
-        'pageOffset',
         'sortField',
         'sortOrder',
-        'limit',
-        'queryString',
-        'queryField',
+        'sortField',
+        'searchString',
+        'searchField',
         'advancedQuery',
+        'pageOffset',
+        'displayLimit',
     );
 
     /**
@@ -118,8 +118,7 @@ class FastFrame_HTML extends FastFrame_Template {
         // include some common js
         $this->assignBlockData(
             array(
-                'T_javascript' => '<script language="Javascript" src="' . $this->FastFrame_Registry->getRootFile('core.lib.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" . 
-                                  '<script language="Javascript" src="' . $this->FastFrame_Registry->getRootFile('domTT.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>',
+                'T_javascript' => '<script language="Javascript" src="' . $this->FastFrame_Registry->getRootFile('domTT.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>',
             ),
             'javascript'
         );
@@ -381,7 +380,7 @@ class FastFrame_HTML extends FastFrame_Template {
     */
     function linkEnd()
     {
-        return "</a>";
+        return '</a>';
     }
     
     // }}}
@@ -489,44 +488,68 @@ class FastFrame_HTML extends FastFrame_Template {
      */
     function imgTag($in_img = null, $in_type = 'icons', $in_options = array()) 
     {
-        static $missingImage;
+        static $s_missingImage, $a_themePaths, $a_appPaths;
 
         // cache the missing image from the registry
-        if (!isset($missingImage)) {
-            $missingImage = $this->FastFrame_Registry->getConfigParam('image/missing');
+        if (!isset($s_missingImage)) {
+            $s_missingImage = $this->FastFrame_Registry->getConfigParam('image/missing');
+        }
+
+        if (!isset($a_themePaths)) {
+            $a_themePaths = array();
+            $tmp_theme = $this->FastFrame_Registry->getUserParam('theme');
+            $a_themePaths['web'] = $this->FastFrame_Registry->getRootFile($tmp_theme . '/graphics', 'themes', FASTFRAME_WEBPATH);
+            $a_themePaths['file'] = $this->FastFrame_Registry->getRootFile($tmp_theme . '/graphics', 'themes');
+        }
+
+        if (!isset($a_appPaths)) {
+            $a_appPaths = array();
+            $a_appPaths['web'] = $this->FastFrame_Registry->getAppFile('', null, 'graphics', FASTFRAME_WEBPATH);
+            $a_appPaths['file'] = $this->FastFrame_Registry->getAppFile('', null, 'graphics');
         }
 
         if (empty($in_img) || is_null($in_img)) {
-            $in_img = $missingImage;
+            $in_img = $s_missingImage;
         }
 
         $in_options['state'] = isset($in_options['state']) ? $in_options['state'] : false;
 
         // if image is an absolute path, we assume it is a webpath and check if it exists
         if (strpos($in_img, '/') === 0) {
-            if (!file_exists($imgFilePath = $this->FastFrame_Registry->getConfigParam('webserver/file_root') . $in_img)) {
-                $imgWebPath = $this->FastFrame_Registry->getRootFile($missingImage, 'graphics', FASTFRAME_WEBPATH);
-                $imgFilePath = $this->FastFrame_Registry->getRootFile($missingImage, 'graphics');
+            if (!file_exists($s_imgFilePath = $this->FastFrame_Registry->getConfigParam('webserver/file_root') . $in_img)) {
+                $s_imgWebPath = $this->FastFrame_Registry->getRootFile($s_missingImage, 'graphics', FASTFRAME_WEBPATH);
+                $s_imgFilePath = $this->FastFrame_Registry->getRootFile($s_missingImage, 'graphics');
             }
             else {
-                $imgWebPath = $in_img;
+                $s_imgWebPath = $in_img;
             }
         }
-        // if this is a url, then we just use it as is, no check which is costly
+        // see if it's a relative path to the image
         elseif (!preg_match(';^(http://|ftp://);', $in_img)) {
-            if (!file_exists($imgFilePath = $this->FastFrame_Registry->getRootFile("$in_type/$in_img", 'graphics'))) {
-                $imgWebPath = $this->FastFrame_Registry->getRootFile($missingImage, 'graphics', FASTFRAME_WEBPATH);
-                $imgFilePath = $this->FastFrame_Registry->getRootFile($missingImage, 'graphics');
+            $tmp_img = "/$in_type/$in_img";
+            // see if it's in the theme directory
+            if (file_exists(($s_imgFilePath = $a_themePaths['file'] . $tmp_img))) {
+                $s_imgWebPath = $a_themePaths['web'] . $tmp_img;
             }
+            // see if it's in the app directory
+            elseif (file_exists(($s_imgFilePath = $a_appPaths['file'] . $tmp_img))) {
+                $s_imgWebPath = $a_appPaths['web'] . $tmp_img;
+            }
+            // check in root graphics dir
+            elseif (file_exists($s_imgFilePath = $this->FastFrame_Registry->getRootFile($tmp_img, 'graphics'))) {
+                $s_imgWebPath = $this->FastFrame_Registry->getRootFile($tmp_img, 'graphics', FASTFRAME_WEBPATH);
+            }
+            // image not found
             else {
-                $imgWebPath = $this->FastFrame_Registry->getRootFile("$in_type/$in_img", 'graphics', FASTFRAME_WEBPATH);
+                $s_imgWebPath = $this->FastFrame_Registry->getRootFile($s_missingImage, 'graphics', FASTFRAME_WEBPATH);
+                $s_imgFilePath = $this->FastFrame_Registry->getRootFile($s_missingImage, 'graphics');
             }
         }
-        // this is a url image...maybe even on a remote server
+        // else it's a url, then we just use it as is, no check which is costly
         else {
             // can't change state of web image
             $in_options['state'] = false;
-            $imgWebPath = $imgFilePath = $in_img;
+            $s_imgWebPath = $s_imgFilePath = $in_img;
         }
 
         // change the state of the image (i.e. active, disabled, etc.)
@@ -544,14 +567,14 @@ class FastFrame_HTML extends FastFrame_Template {
             }
 
             // usually these are icons, so save the theme name in the cached image name
-            $parts = pathinfo($imgFilePath);
+            $parts = pathinfo($s_imgFilePath);
             $parts = array_reverse(explode('/', $parts['dirname']));
             $theme = $parts[0];
-            $tmp_newName = $in_options['state'].'-'.$theme.'-'.basename($imgFilePath); 
+            $tmp_newName = $in_options['state'].'-'.$theme.'-'.basename($s_imgFilePath); 
             $tmp_newFilePath = $this->FastFrame_Registry->getRootFile("cache/$tmp_newName", 'graphics');
-            $imgWebPath = $this->FastFrame_Registry->getRootFile("cache/$tmp_newName", 'graphics', FASTFRAME_WEBPATH);
-            FastFrame_Image::_modulate_image($imgFilePath, $tmp_newFilePath, $tmp_settings);
-            $imgFilePath = $tmp_newFilePath;
+            $s_imgWebPath = $this->FastFrame_Registry->getRootFile("cache/$tmp_newName", 'graphics', FASTFRAME_WEBPATH);
+            FastFrame_Image::_modulate_image($s_imgFilePath, $tmp_newFilePath, $tmp_settings);
+            $s_imgFilePath = $tmp_newFilePath;
             // add a special cursor style
             $in_options['style'] = isset($in_options['style']) ? $in_options['style'] : '';
             $in_options['style'] .= ' cursor: default;';
@@ -562,7 +585,7 @@ class FastFrame_HTML extends FastFrame_Template {
 
         // get size [!] (perhaps we can allow scaling here, not done here yet) [!]
         if (!isset($in_options['width']) || !isset($in_options['height'])) {
-            list($width, $height) = getImageSize($imgFilePath);
+            list($width, $height) = getImageSize($s_imgFilePath);
             $in_options['width']  = isset($in_options['width']) ? $in_options['width'] : $width;
             $in_options['height'] = isset($in_options['height']) ? $in_options['height'] : $height;
         }
@@ -599,11 +622,11 @@ class FastFrame_HTML extends FastFrame_Template {
         $in_options['onclick'] = isset($in_options['onclick']) ? " onclick=\"{$in_options['onclick']}\"" : '';
 
         if (isset($in_options['onlyURL']) && $in_options['onlyURL']) {
-            return $imgWebPath;
+            return $s_imgWebPath;
         }
         else {
             $tag = "<{$in_options['type']}";
-            $tag .= " src=\"$imgWebPath\"";
+            $tag .= " src=\"$s_imgWebPath\"";
             $tag .= " border=\"{$in_options['border']}\"";
             $tag .= " width=\"{$in_options['width']}\"";
             $tag .= " height=\"{$in_options['height']}\"";
@@ -698,17 +721,26 @@ class FastFrame_HTML extends FastFrame_Template {
                     ),
                     'css'
                 );
-            case 'normal':
-                // load menu js
-                /**
+
                 $this->assignBlockData(
                     array(
-                        'T_javascript' => '<script type="text/javascript" src="' . $this->FastFrame_Registry->getRootFile('menu_var.lib.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" . 
-                                          '<script type="text/javascript" src="' . $this->FastFrame_Registry->getRootFile('menu.lib.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>',
+                        'T_banner_bottom' => _('Run by FastFrame.  Licensed under the GPL.'),
+                    ),
+                    'switch_banner_bottom'
+                );
+            break;
+            case 'normal':
+                // load menu js
+                $this->assignBlockData(
+                    array(
+                        'T_javascript' => '<script type="text/javascript" src="' . $this->FastFrame_Registry->getRootFile('domMenu.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>' . "\n" .
+                                          '<script type="text/javascript" src="' . $this->FastFrame_Registry->getRootFile('domMenu_items.js', 'javascript', FASTFRAME_WEBPATH) . '"></script>',
                     ),
                     'javascript'
                 );
-                */
+
+                // turn on menu
+                $this->touchBlock('switch_menu');
 
                 $this->assignBlockData(
                     array(
@@ -751,13 +783,13 @@ class FastFrame_HTML extends FastFrame_Template {
      * Registers a navigation bar that has arrows for going from page to page in a data set. 
      *
      * @param int   $in_matchedRecords The total number of matched records in the data set 
-     * @param array $in_persistentData (optional) Additonal info to pass through the query string.
-     *              If not passed we get it from getPersistentData()
+     * @param array $in_persistentVariables (optional) Additonal info to pass through the query string.
+     *              If not passed we get it from getPersistentVariables()
      *
      * @access public
      * @return void 
      */
-    function registerNavigationBar($in_matchedRecords, $in_persistentData = null)
+    function registerNavigationBar($in_matchedRecords, $in_persistentVariables = null)
     {
         // language constructs used in navigation cell
         $lang_firstPage = array('title' => _('First'),    'status' => _('Jump to First Page'));
@@ -767,38 +799,38 @@ class FastFrame_HTML extends FastFrame_Template {
         $lang_atFirst   = array('title' => _('Disabled'), 'status' => _('Already at First Page'));
         $lang_atLast    = array('title' => _('Disabled'), 'status' => _('Already at Last Page'));
       
-        if (is_null($in_persistentData)) {
-            $in_persistentData = $this->getPersistentData();
+        if (is_null($in_persistentVariables)) {
+            $in_persistentVariables = $this->getPersistentVariables();
         }
 
-        if (!isset($in_persistentData['actionID'])) {
-            $in_persistentData['actionID'] = FastFrame::getCGIParam('actionID', 'gp'); 
+        if (!isset($in_persistentVariables['actionID'])) {
+            $in_persistentVariables['actionID'] = FastFrame::getCGIParam('actionID', 'gp'); 
         }
 
-        // make sure our display limit is not 0 or empty
-        if (abs($in_persistentData['limit']) == 0) {
-            $in_persistentData['limit'] = $this->getDefaultLimit(); 
+        // make sure our display displayLimit is not 0 or empty
+        if (abs($in_persistentVariables['displayLimit']) == 0) {
+            $in_persistentVariables['displayLimit'] = $this->getDefaultLimit(); 
         }
 
-        if (abs($in_persistentData['pageOffset']) == 0) {
-            $in_persistentData['pageOffset'] = 1;
+        if (abs($in_persistentVariables['pageOffset']) == 0) {
+            $in_persistentVariables['pageOffset'] = 1;
         }
 
-        $total  = ceil($in_matchedRecords / $in_persistentData['limit']);
-        $current = $in_persistentData['pageOffset'];
+        $total  = ceil($in_matchedRecords / $in_persistentVariables['displayLimit']);
+        $current = $in_persistentVariables['pageOffset'];
 
         $first = 1;
         $prev = max(1, $current - 1);
         $next = min($total, $current + 1);
         $last = $total;
 
-        // note that we override pageOffset in $in_persistentData 
+        // note that we override pageOffset in $in_persistentVariables 
         $this->assignBlockData(
             array(
-                'UI_NAVIGATION_FIRST'    => $current > 1 ? $this->link(FastFrame::selfURL($in_persistentData, array('pageOffset' => $first)), $this->imgTag('first.gif', 'arrows'), $lang_firstPage) : $this->imgTag('first-gray.gif', 'arrows', $lang_atFirst),
-                'UI_NAVIGATION_PREVIOUS' => $current > 1 ? $this->link(FastFrame::selfURL($in_persistentData, array('pageOffset' => $prev)), $this->imgTag('prev.gif', 'arrows'), $lang_prevPage) : $this->imgTag('prev-gray.gif', 'arrows', $lang_atFirst),
-                'UI_NAVIGATION_NEXT'     => $current < $last ? $this->link(FastFrame::selfURL($in_persistentData, array('pageOffset' => $next)), $this->imgTag('next.gif', 'arrows'), $lang_nextPage) : $this->imgTag('next-gray.gif', 'arrows', $lang_atLast),
-                'UI_NAVIGATION_LAST'     => $current < $last ? $this->link(FastFrame::selfURL($in_persistentData, array('pageOffset' => $last)), $this->imgTag('last.gif', 'arrows'), $lang_lastPage) : $this->imgTag('last-gray.gif', 'arrows', $lang_atLast),
+                'I_navigation_first'    => $current > 1 ? $this->link(FastFrame::selfURL($in_persistentVariables, array('pageOffset' => $first)), $this->imgTag('first.gif', 'arrows'), $lang_firstPage) : $this->imgTag('first-gray.gif', 'arrows', $lang_atFirst),
+                'I_navigation_previous' => $current > 1 ? $this->link(FastFrame::selfURL($in_persistentVariables, array('pageOffset' => $prev)), $this->imgTag('prev.gif', 'arrows'), $lang_prevPage) : $this->imgTag('prev-gray.gif', 'arrows', $lang_atFirst),
+                'I_navigation_next'     => $current < $last ? $this->link(FastFrame::selfURL($in_persistentVariables, array('pageOffset' => $next)), $this->imgTag('next.gif', 'arrows'), $lang_nextPage) : $this->imgTag('next-gray.gif', 'arrows', $lang_atLast),
+                'I_navigation_last'     => $current < $last ? $this->link(FastFrame::selfURL($in_persistentVariables, array('pageOffset' => $last)), $this->imgTag('last.gif', 'arrows'), $lang_lastPage) : $this->imgTag('last-gray.gif', 'arrows', $lang_atLast),
             ),
             FASTFRAME_TEMPLATE_GLOBAL_BLOCK,
             false
@@ -823,14 +855,14 @@ class FastFrame_HTML extends FastFrame_Template {
      * @param  array   $in_searchFields array of fields that are searchable
      * @param  array   $in_sortFields (optional) array of fields that are sortable.  If not
      *                 passed then we use the searchFields minus the all option.
-     * @param  array   $in_persistentData (optional) Array of any persistent data. array('pageOffset' =>, 
-     *                 'sortField' =>, 'sortOrder' =>, 'limit' =>, 'actionID' =>, 'advView' =>).  
-     *                 All grabbed by getPersistentData() if not passed.  You can pass in more if needed.
+     * @param  array   $in_persistentVariables (optional) Array of any persistent data. array('pageOffset' =>, 
+     *                 'sortField' =>, 'sortOrder' =>, 'displayLimit' =>, 'actionID' =>, 'advView' =>).  
+     *                 All grabbed by getPersistentVariables() if not passed.  You can pass in more if needed.
      *
      * @access public
      * @return string table for the search box
      */
-    function registerSearchBox($in_elementTitles, $in_dataInfo, $in_searchFields, $in_sortFields = null, $in_persistentData = null)
+    function registerSearchBox($in_elementTitles, $in_dataInfo, $in_searchFields, $in_sortFields = null, $in_persistentVariables = null)
     {
         // {{{ variable preparation
 
@@ -844,8 +876,8 @@ class FastFrame_HTML extends FastFrame_Template {
         }
 
         // handle non-required arguments
-        if (is_null($in_persistentData)) {
-            $in_persistentData = $this->getPersistentData();
+        if (is_null($in_persistentVariables)) {
+            $in_persistentVariables = $this->getPersistentVariables();
         }
 
         if (is_null($in_sortFields)) {
@@ -854,16 +886,16 @@ class FastFrame_HTML extends FastFrame_Template {
         }
 
 
-        // make sure our display limit is not 0 or empty
-        if (abs($in_persistentData['limit']) == 0) {
-            $in_persistentData['limit'] = $this->getDefaultLimit(); 
+        // make sure our display displayLimit is not 0 or empty
+        if (abs($in_persistentVariables['displayLimit']) == 0) {
+            $in_persistentVariables['displayLimit'] = $this->getDefaultLimit(); 
         }
 
-        if (abs($in_persistentData['pageOffset']) == 0) {
-            $in_persistentData['pageOffset'] = 1;
+        if (abs($in_persistentVariables['pageOffset']) == 0) {
+            $in_persistentVariables['pageOffset'] = 1;
         }
 
-        $s_totalPages  = ceil($in_dataInfo['matchedRecords'] / $in_persistentData['limit']);
+        $s_totalPages  = ceil($in_dataInfo['matchedRecords'] / $in_persistentVariables['displayLimit']);
 
         if ($in_dataInfo['totalRecords'] > 0) {
             $matchedRecordsPercent = round(($in_dataInfo['matchedRecords'] / $in_dataInfo['totalRecords']) * 100, 2);
@@ -876,21 +908,21 @@ class FastFrame_HTML extends FastFrame_Template {
         // {{{ quickform preparation
 
         $o_form =& $this->quickFormFactory('search_box');
-        $a_constants = $in_persistentData;
+        $a_constants = $in_persistentVariables;
         $a_constants['actionID'] = $GLOBALS['a_persistent']['actionID'];
-        $a_constants['oldLimit'] = $a_constants['limit']; 
+        $a_constants['oldLimit'] = $a_constants['displayLimit']; 
         $o_form->setConstants($a_constants);
         
-        // make sure our display limit is not to big so the page will render
-        $s_limitCheck = 'if(document.search_box.limit.value > 100){ document.search_box.limit.value = 100; }';
+        // make sure our display displayLimit is not to big so the page will render
+        $s_displayLimitCheck = 'if(document.search_box.displayLimit.value > 100){ document.search_box.displayLimit.value = 100; }';
 
         // Add all the form elements
-        if ($in_persistentData['advancedQuery']) {
-            $o_form->addElement('text', 'limit', null, array('class' => 'input_content', 'style' => 'vertical-align: middle;', 'size' => 3, 'maxlength' => 3));
-            $o_form->addRule('limit', _('Limit must be an integer'), 'nonzero', null, 'client', true); 
-            $o_form->addElement('submit', 'limit_submit', _('Update'), array('onclick' => $s_limitCheck, 'style' => 'vertical-align: middle;'));
-            $o_form->addElement('select', 'queryField', null, $in_searchFields, array('class' => 'input_content', 'style' => 'vertical-align: text-top;')); 
-            $o_form->addElement('text', 'queryString', null, array('size' => 15, 'class' => 'input_content', 'style' => 'vertical-align: text-top;'));
+        if ($in_persistentVariables['advancedQuery']) {
+            $o_form->addElement('text', 'displayLimit', null, array('class' => 'input_content', 'style' => 'vertical-align: middle;', 'size' => 3, 'maxlength' => 3));
+            $o_form->addRule('displayLimit', _('Limit must be an integer'), 'nonzero', null, 'client', true); 
+            $o_form->addElement('submit', 'displayLimit_submit', _('Update'), array('onclick' => $s_displayLimitCheck, 'style' => 'vertical-align: middle;'));
+            $o_form->addElement('select', 'searchField', null, $in_searchFields, array('class' => 'input_content', 'style' => 'vertical-align: text-top;')); 
+            $o_form->addElement('text', 'searchString', null, array('size' => 15, 'class' => 'input_content', 'style' => 'vertical-align: text-top;'));
 
             // need to set page offset to one when we search
             if ($s_totalPages > 1) {
@@ -900,31 +932,31 @@ class FastFrame_HTML extends FastFrame_Template {
                 $tmp_onclick = 'void(0);';
             }
 
-            $o_form->addElement('submit', 'query_submit', _('Search'), array('onclick' => $s_limitCheck . ' ' . $tmp_onclick, 'style' => 'vertical-align: middle;'));
-            $o_form->addElement('submit', 'listall_submit', _('List All'), array('onclick' => $s_limitCheck . ' document.search_box.queryString.value = \'\';' . $tmp_onclick, 'style' => 'vertical-align: middle;'));
+            $o_form->addElement('submit', 'query_submit', _('Search'), array('onclick' => $s_displayLimitCheck . ' ' . $tmp_onclick, 'style' => 'vertical-align: middle;'));
+            $o_form->addElement('submit', 'listall_submit', _('List All'), array('onclick' => $s_displayLimitCheck . ' document.search_box.searchString.value = \'\';' . $tmp_onclick, 'style' => 'vertical-align: middle;'));
 
             $o_form->addElement('select', 'sortOrder', null, array(0 => 'DESC', 1 => 'ASC'), array('class' => 'input_content'));
             $o_form->addElement('select', 'sortField', null, $in_sortFields, array('class' => 'input_content'));
-            $o_form->addElement('submit', 'sort_submit', _('Sort'), null, array('onclick' => $s_limitCheck));
+            $o_form->addElement('submit', 'sort_submit', _('Sort'), null, array('onclick' => $s_displayLimitCheck));
         }
         // just make them all hidden if not in advanced view
         else {
-            $o_form->addElement('hidden', 'limit');
-            $o_form->addElement('hidden', 'queryField');
-            $o_form->addElement('hidden', 'queryString');
+            $o_form->addElement('hidden', 'displayLimit');
+            $o_form->addElement('hidden', 'searchField');
+            $o_form->addElement('hidden', 'searchString');
             $o_form->addElement('hidden', 'sortOrder');
             $o_form->addElement('hidden', 'sortField');
             // need at least one rule so the js form is made
-            $o_form->addRule('limit', _('Limit must be an integer'), 'nonzero', null, 'client', true);
+            $o_form->addRule('displayLimit', _('Limit must be an integer'), 'nonzero', null, 'client', true);
         }
 
         // common elements on all pages
-        $o_form->addElement('checkbox', 'advancedQuery', null, _('Advanced Search'), array('onclick' => 'if (this.checked) { this.form.submit(); } else if (validate_search_box()) { document.search_box.queryString.value = \'\'; this.form.submit(); } else { return false; }'));
+        $o_form->addElement('checkbox', 'advancedQuery', null, _('Advanced Search'), array('onclick' => 'if (this.checked) { this.form.submit(); } else if (validate_search_box()) { document.search_box.searchString.value = \'\'; this.form.submit(); } else { return false; }'));
         $o_form->addElement('hidden','actionID');
         $o_form->addElement('hidden','oldLimit');
 
         // add as hidden elements any persistent data keys we don't know about
-        foreach ($in_persistentData as $key => $val) {
+        foreach ($in_persistentVariables as $key => $val) {
             if (!in_array($key, $this->persistentVariables)) {
                 $o_form->addElement('hidden', $key);
             }
@@ -987,7 +1019,7 @@ class FastFrame_HTML extends FastFrame_Template {
                         _('%1$d Found (%2$d%%), %3$d Listed out of %4$d Total %5$s'),
                         $in_dataInfo['matchedRecords'], 
                         $matchedRecordsPercent, 
-                        min($in_persistentData['limit'], $in_dataInfo['listedRecords']),
+                        min($in_persistentVariables['displayLimit'], $in_dataInfo['listedRecords']),
                         $in_dataInfo['totalRecords'], 
                         $in_dataInfo['totalRecords'] == 1 ? $s_singularElement : $s_pluralElement
                     );
@@ -1008,7 +1040,7 @@ class FastFrame_HTML extends FastFrame_Template {
         );
 
         // Add the data to the first row
-        if ($in_persistentData['advancedQuery']) {
+        if ($in_persistentVariables['advancedQuery']) {
             // assigns attributes to all cells in the row
             $this->assignBlockData(
                 array(
@@ -1021,8 +1053,8 @@ class FastFrame_HTML extends FastFrame_Template {
             
             $tmp_text = sprintf(
                             _('%1$s rows per page %2$s'), 
-                            $o_form->renderElement('limit', true), 
-                            $o_form->renderElement('limit_submit', true)
+                            $o_form->renderElement('displayLimit', true), 
+                            $o_form->renderElement('displayLimit_submit', true)
                         );
 
             $this->assignBlockData(
@@ -1034,8 +1066,8 @@ class FastFrame_HTML extends FastFrame_Template {
 
             $tmp_text = sprintf(
                             _('Find %1$s in %2$s'), 
-                            $o_form->renderElement('queryString', true), 
-                            $o_form->renderElement('queryField', true) . ' ' .
+                            $o_form->renderElement('searchString', true), 
+                            $o_form->renderElement('searchField', true) . ' ' .
                             $o_form->renderElement('query_submit', true) . ' ' .
                             $o_form->renderElement('listall_submit', true)
                         );
@@ -1076,27 +1108,27 @@ class FastFrame_HTML extends FastFrame_Template {
      *               the cells to.  If not passed in then we just return the array of sort
      *               fields.  It is up to you to branch the block, and assign
      *               global table variables such as S_TABLE_COLUMNS
-     * @param array $in_persistentData (optional) Any persistent data to be passed on
-     *              through the link.  If not sent in we get it form getPersistentData()
+     * @param array $in_persistentVariables (optional) Any persistent data to be passed on
+     *              through the link.  If not sent in we get it form getPersistentVariables()
      *
      * @requires 'sortField', 'sortOrder', 'pageOffset'. All these must be in persistentData 
      * @return mixed Either nothing (we register the cells) or an array of the sort fields 
      */
-    function registerSortFields($in_fieldData, $in_tableNamespace = null, $in_persistentData = null)
+    function registerSortFields($in_fieldData, $in_tableNamespace = null, $in_persistentVariables = null)
     {
         $s_defaultSort = ($this->getDefaultSortOrder() == 'ASC') ? 1 : 0;
         $a_fieldCells = array();
         settype($in_fieldData, 'array');
-        if (is_null($in_persistentData)) {
-            $in_persistentData = $this->getPersistentData();
+        if (is_null($in_persistentVariables)) {
+            $in_persistentVariables = $this->getPersistentVariables();
         }
 
         foreach ($in_fieldData as $a_fieldData) {
             // check to see if it is sortable, and if so build the link
             if (!empty($a_fieldData['sort'])) {
                 // if we previously sorted on this field, reverse the sort direction
-                if ($in_persistentData['sortField'] == $a_fieldData['sort']) {
-                    $tmp_sort = $in_persistentData['sortOrder'] ? 0 : 1;
+                if ($in_persistentVariables['sortField'] == $a_fieldData['sort']) {
+                    $tmp_sort = $in_persistentVariables['sortOrder'] ? 0 : 1;
                 }
                 // this is a new column sort, default sort
                 else {
@@ -1104,7 +1136,7 @@ class FastFrame_HTML extends FastFrame_Template {
                 }
 
                 // modify the two get variables for this sort
-                $a_persistent = array_merge($in_persistentData, array('sortField' => $a_fieldData['sort'], 'sortOrder' => $tmp_sort));
+                $a_persistent = array_merge($in_persistentVariables, array('sortField' => $a_fieldData['sort'], 'sortOrder' => $tmp_sort));
 
                 $tmp_title = sprintf(
                                 _('Sort %1$s (%2$s)'), 
@@ -1121,9 +1153,9 @@ class FastFrame_HTML extends FastFrame_Template {
                 );
 
                 // see if we should display an arrow 
-                if ($in_persistentData['sortField'] == $a_fieldData['sort']) {
+                if ($in_persistentVariables['sortField'] == $a_fieldData['sort']) {
                     // Determine which image to display
-                    $tmp_img = $in_persistentData['sortOrder'] ? 
+                    $tmp_img = $in_persistentVariables['sortOrder'] ? 
                         $this->imgTag('up.gif', 'arrows', array('align' => 'middle')) : 
                         $this->imgTag('down.gif', 'arrows', array('align' => 'middle'));
                     $tmp_href .= ' ' . $this->link(FastFrame::selfURL($a_persistent), $tmp_img, array('title' => $tmp_title)); 
@@ -1178,8 +1210,8 @@ class FastFrame_HTML extends FastFrame_Template {
             array(
                 'S_status_message_count' => $s_count,
                 'T_status_message' => $in_message,
-                'I_status_message' => $this->imgTag($in_mode, 'actions'),
-                'UI_status_message_close' => $this->imgTag('close.png', 'actions', array('onclick' => 'document.getElementById(\'message_' . $s_count . '\').style.display = \'none\';', 'style' => 'cursor: pointer;')),
+                'I_status_message' => $this->imgTag($in_mode, 'alerts'),
+                'I_status_message_close' => $this->imgTag('close.gif', 'actions', array('onclick' => 'document.getElementById(\'message_' . $s_count . '\').style.display = \'none\';', 'style' => 'cursor: pointer;')),
             ),
             'status_message'
         );
@@ -1272,6 +1304,20 @@ class FastFrame_HTML extends FastFrame_Template {
     }
 
     // }}}
+    // {{{ getDefaultSortField()
+
+    /**
+     * Get the default sort field from the registry
+     *
+     * @access public
+     * @return string The default sort field or null if it's not set
+     */
+    function getDefaultSortField()
+    {
+        return $this->FastFrame_Registry->getConfigParam('data/default_sort');
+    }
+
+    // }}}
     // {{{ getDefaultSortOrder()
 
     /**
@@ -1289,10 +1335,10 @@ class FastFrame_HTML extends FastFrame_Template {
     // {{{ getDefaultLimit()
 
     /**
-     * Get the default limit (maybe someday this will interface with the config as well
+     * Get the default displayLimit (maybe someday this will interface with the config as well
      *
      * @access public
-     * @return int The default limit for list pages
+     * @return int The default displayLimit for list pages
      */
     function getDefaultLimit()
     {
@@ -1348,40 +1394,71 @@ class FastFrame_HTML extends FastFrame_Template {
     }
 
     // }}}
-    // {{{ getPersistentData()
+    // {{{ getPersistentVariables()
     
     /**
-     * Gets data that is always used when we create search boxes, navigation bars, etc.
+     * Grabs/calculates variabes that are used when we create search boxes and navigation
+     * bars.  These are grabbed from GET/POST/SESSION and returned in an associative array.
      *
      * @param array $in_constants (optional) An associative array of keys and values
-     *              that allow you to override the default values or add new values.  i.e. 'pageOffset' => 2
+     *              that allow you to override the default values or add new values.  i.e.
+     *              'pageOffset' => 2
      *
+     * @see $persistentVariables
      * @access public
-     * @return array The array of persistent data
+     * @return array The array of persistent variables 
      */
-    function getPersistentData($in_constants = array())
+    function getPersistentVariables($in_constants = array())
     {
-        static $a_persistentData;
+        static $a_persistentVariables;
 
-        // get persistent data from globals
-        if (!isset($a_persistentData)) {
-            $a_persistentData = array();
+        // get persistent vars if we haven't yet
+        if (!isset($a_persistentVariables)) {
+            $a_persistentVariables = array();
             foreach($this->persistentVariables as $s_var) {
-                $a_persistentData[$s_var] =& $GLOBALS['a_persistent'][$s_var];
+                switch ($s_var) {
+                    case 'advancedQuery':
+                        $a_persistentVariables[$s_var] = FastFrame::getCGIParam($s_var, 'gp', 0);
+                    break;
+                    case 'displayLimit':
+                        $a_persistentVariables[$s_var] = (int) abs(FastFrame::getCGIParam($s_var, 'gps', $this->getDefaultLimit()));
+                    break;
+                    case 'pageOffset':
+                        $a_persistentVariables[$s_var] = (int) abs(FastFrame::getCGIParam($s_var, 'gps', 1));  
+                    break;
+                    case 'sortOrder':
+                        $a_persistentVariables[$s_var] = FastFrame::getCGIParam($s_var, 'gps', $this->getDefaultSortOrder());
+                    break;
+                    case 'sortField':
+                        $a_persistentVariables[$s_var] = FastFrame::getCGIParam($s_var, 'gps', $this->getDefaultSortField());
+                    break;
+                    case 'searchString':
+                    case 'searchField':
+                        $a_persistent[$s_var] = FastFrame::getCGIParam($s_var, 'gps', '');
+                    break;
+                    default:
+                        $a_persistent[$s_var] = FastFrame::getCGIParam($s_var, 'gp');
+                    break;
+                }
             }
+
+            // offset is a special one calculated from others and not passed via gps
+            $a_persistentVariables['offset'] = $a_persistentVariables['displayLimit'] ? 
+                                               ($a_persistentVariables['pageOffset'] - 1) * $a_persistentVariables['displayLimit'] : 
+                                               0;
         }
 
-        if (count($in_constants) > 0) {
-            // now do any overrides
-            $a_returnData = $a_persistentData;
+        // now do any overrides (overrides are not persistent, however)
+        if (count((array) $in_constants) > 0) {
+            $a_return = $a_persistentVariables;
             foreach ($in_constants as $s_key => $s_value) {
-                $a_returnData[$s_key] = $s_value;
+                $a_return[$s_key] = $s_value;
             }
 
-            return $returnData;
+            return $a_return;
         }
         else {
-            return $a_persistentData;
+            return $a_persistentVariables;
         }
     }
 
