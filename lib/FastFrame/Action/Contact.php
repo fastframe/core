@@ -52,7 +52,7 @@ class FF_Action_Contact extends FF_Action_Form {
     {
         $this->o_form->addElement('hidden', 'actionId');
         $this->o_form->addElement('submit', 'submitbutton');
-        $this->o_form->addElement('hidden', 'http_referer', $_SERVER['HTTP_REFERER']);
+        $this->o_form->addElement('hidden', 'http_referer', @$_SERVER['HTTP_REFERER']);
         $this->o_form->addElement('text', 'name', null, array('maxlength' => 150, 'size' => 30));
         $this->o_form->addElement('text', 'subject', null, array('maxlength' => 150, 'size' => 30));
         $this->o_form->addElement('text', 'email', null, array('maxlength' => 150, 'size' => 30));
