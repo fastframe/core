@@ -1,5 +1,5 @@
 <?php
-/** $Id: Auth.php,v 1.2 2003/01/15 18:25:02 jrust Exp $ */
+/** $Id: Auth.php,v 1.3 2003/01/20 17:33:44 ggilbert Exp $ */
 // {{{ constants
 
 define('FASTFRAME_AUTH_OK',         0);
@@ -13,6 +13,8 @@ define('FASTFRAME_AUTH_LOGOUT',    -5);
 // {{{ includes
 
 require_once dirname(__FILE__) . '/Registry.php';
+require_once dirname(__FILE__) . '/Auth/AuthSource.php';
+require_once dirname(__FILE__) . '/Perms.php';
 
 // }}}
 // {{{ class FastFrame_Auth
@@ -39,6 +41,19 @@ require_once dirname(__FILE__) . '/Registry.php';
 
 // }}}
 class FastFrame_Auth {
+    // {{{ properties
+    /**
+     * Sources to use for authentication
+     * @var array $authSources
+     */
+    var $authSources;
+
+    /**
+     * Source we successfully authenticated against
+     * @var string $authenticatedSource
+     */
+    var $authenticatedSource;
+    // }}}
     // {{{ singleton()
 
     /**
@@ -81,6 +96,23 @@ class FastFrame_Auth {
     function FastFrame_Auth()
     {
         FastFrame_Auth::_session_start();
+
+        $registry =& FastFrame_Registry::singleton();
+        $this->authSources=array();
+        $a_sources=$registry->getConfigParam('auth/sources', null, 'FastFrameSESSID');
+
+        // populate all of the authentication sources
+        if (is_array($a_sources)){
+            foreach ($a_sources as $s_name=>$a_source) {
+                // Get an AuthSource of the proper type
+                $o_authSource=&AuthSource::create($a_source['type'], $s_name, $a_source['params']);
+
+                if ($o_authSource)
+                    array_push($this->authSources, &$o_authSource);
+
+            }
+
+        }
     }
 
     // }}}
@@ -107,20 +139,18 @@ class FastFrame_Auth {
         $s_password = FastFrame::getCGIParam('form_password', 'p');
         $b_authenticated = false;
 
-        if ($s_authType == 'guest') {
-            $b_authenticated = true;
-            $a_credentials = array(
-                'perms' => 0,
-            );
-        }
-        elseif ($s_authType == 'database') {
-            if ($s_username == 'jrust' && $s_password == 'foo') {
-                $b_authenticated = true;
+        // We need to check all of the sources in order
+        foreach($this->authSources as $source) {
+
+            if ($source->authenticate($s_username, $s_password)) {
+                $this->authenticatedSources=$source->getName();
+                $perms=new FastFrame_Perms($s_username);
+                $b_authenticated=true;
                 $a_credentials = array(
-                    'perms' => 2,
+                    'perms' => &$perms,
                 );
             }
-        }
+        }	
 
         if ($b_authenticated) {
             FastFrame_Auth::setAuth($s_username, $a_credentials, true);
