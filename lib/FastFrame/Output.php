@@ -271,6 +271,11 @@ class FF_Output extends FF_Template {
 
         $s_cssTemplateFile = $this->o_registry->getRootFile("$this->theme/style.tpl", 'themes');
         $s_browser = Net_UserAgent_Detect::getBrowser(array('ie', 'gecko'));
+        // All other browsers get treated as gecko
+        if (is_null($s_browser)) {
+            $s_browser = 'gecko';
+        }
+
         // Determine the css file based on the browser
         $s_cssFileName = 'style-' . $s_browser . '.css';
         $s_cssCacheFile = File::buildPath(array($s_cssCacheDir, $s_cssFileName));
