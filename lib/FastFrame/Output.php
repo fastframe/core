@@ -747,11 +747,11 @@ class FF_Output {
         $s_page = $this->pageName;
 
         if ($s_title != $s_page) {
-            $s_title = "$s_title :: $s_page";
+            $s_title = "$s_title &#187; $s_page";
         }
 
         if (!FastFrame::isEmpty(($s_siteName = $this->o_registry->getConfigParam('display/site_name')))) {
-            $s_title = "$s_siteName :: $s_title";
+            $s_title = "$s_siteName &#187; $s_title";
         }
 
         return $s_title;
