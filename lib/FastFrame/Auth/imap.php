@@ -41,6 +41,11 @@ class FF_AuthSource_imap extends FF_AuthSource {
      */
     var $serverPort;
 
+    /**
+     * The options used on the server 
+     * @var string
+     */
+    var $serverOptions;
     // }}}
     // {{{ constructor
 
@@ -60,6 +65,7 @@ class FF_AuthSource_imap extends FF_AuthSource {
     {
         FF_AuthSource::FF_AuthSource($in_name, $in_params);
         $this->serverName = $in_params['hostname'];
+        $this->serverOptions = $in_params['options'];
         $this->serverPort = isset($in_params['port']) ? $in_params['port'] : 143;
 
     }
@@ -80,7 +86,8 @@ class FF_AuthSource_imap extends FF_AuthSource {
      */
     function authenticate($in_username, $in_password)
     {
-        $s_imapString = '{' . $this->serverName . ':' . $this->serverPort .'}';
+        $s_optionString = isset($this->serverOptions) ?  '/' . $this->serverOptions : '';
+        $s_imapString = '{' . $this->serverName . ':' . $this->serverPort . $s_optionString .'}';
         if (($result = @imap_open($s_imapString, $in_username, $in_password))) {
             @imap_close($result);
             return true;
