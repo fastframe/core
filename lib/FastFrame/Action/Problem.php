@@ -1,5 +1,5 @@
 <?php
-/** $Id: Problem.php,v 1.6 2003/03/15 01:26:57 jrust Exp $ */
+/** $Id: Problem.php,v 1.7 2003/03/18 23:56:27 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -81,7 +81,7 @@ class FF_Action_Problem extends FF_Action {
      */
     function getProblemMessage()
     {
-        return _('A problem was encountered in processing your request.'), 
+        return _('A problem was encountered in processing your request.');
     }
 
     // }}}
