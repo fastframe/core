@@ -297,8 +297,8 @@ class FF_List {
         // {{{ template preparation
 
         $tmp_help = _('Search for items in the list by entering a search term in the box below.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy');
-        $s_findText = $this->o_output->getHelpLink($tmp_help, _('Search Help')) . ' ' . 
-            $this->o_output->highlightAccessKey(_('Search terms'));
+        $s_findText = $this->o_output->highlightAccessKey(_('Search terms')) . ' ' .
+            $this->o_output->getHelpLink($tmp_help, _('Search Help'));
         $s_searchSubmit = $o_renderer->elementToHtml('query_submit');  
         if ($this->listAll) {
             $s_searchSubmit .= ' ' . $o_renderer->elementToHtml('listall_submit');
