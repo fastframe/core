@@ -1,5 +1,5 @@
 <?php
-/** $Id: Result.php,v 1.1 2003/02/22 01:49:08 jrust Exp $ */
+/** $Id: Result.php,v 1.2 2003/04/02 00:11:02 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -107,7 +107,12 @@ class FF_Result {
      */
     function getMessages()
     {
-        return $this->messages;
+        if (count($this->messages) > 0) {
+            return $this->messages;
+        }
+        else {
+            return null;
+        }
     }
 
     // }}}
