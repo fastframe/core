@@ -57,9 +57,11 @@ require_once dirname(__FILE__) . '/Output.php';
  *    // then that app name is passed to the hasPerm() method instead of
  *    // the current app name.
  *    'perms' => 'has_groups_app',
- *    // If the link should be shown to guest users (i.e. not logged in)
- *    // you can set this to true.
- *    'guest_visible' => true,
+ *    // Optional key that affects when this menu item is shown.
+ *    // Possible values: 'guest_only' (only non-logged in users will see it),
+ *    // 'always' (all users will see it), 'logged_in' (only logged_in users see
+ *    // it).  Default is 'logged_in'
+ *    'visibility' => 'logged_in',
  *    // If you only want a link to show up when the user in the
  *    // application the link refers to, then you can set:
  *    'app_private' => true,
@@ -357,7 +359,7 @@ class FF_Menu {
     /**
      * Processes any permissions the node may have by wrapping a
      * permissions call around the node if permissions have been
-     * specified.  Also processes the guest_visible key since that is a
+     * specified.  Also processes the visibility key since that is a
      * basic form of permissions.
      *
      * @param array $in_data The data for the node
@@ -369,7 +371,12 @@ class FF_Menu {
     function _processPerms($in_data, $in_node)
     {
         $a_ifStatements = array();
-        if (empty($in_data['guest_visible'])) {
+        // Possible options for visibility are guest_only, logged_in, and always
+        $in_data['visibility'] = isset($in_data['visibility']) ? $in_data['visibility'] : 'logged_in';
+        if ($in_data['visibility'] == 'guest_only') {
+            $a_ifStatements[] = '!FF_Auth::checkAuth()';
+        }
+        elseif ($in_data['visibility'] == 'logged_in') {
             $a_ifStatements[] = 'FF_Auth::checkAuth()';
         }
 
@@ -470,10 +477,10 @@ class FF_Menu {
             $s_url = FastFrame::url('index.php', $in_url);
             // Can't have the current session id in the url
             if ($in_sessionInTags) {
-                $s_url = str_replace(session_id(), '<?php echo session_id(); ?>', $s_url);
+                $s_url = preg_replace('/(' . session_name() . '=).*?(&|$)/S', '\\1<?php echo session_id(); ?>\\2', $s_url);
             }
             else {
-                $s_url = str_replace(session_id(), '\' . session_id() . \'', $s_url);
+                $s_url = preg_replace('/(' . session_name() . '=).*?(&|$)/S', '\\1\' . session_id() . \'\\2', $s_url);
             }
 
             return $s_url;

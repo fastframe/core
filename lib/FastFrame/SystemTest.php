@@ -170,7 +170,7 @@ class FF_SystemTest {
             'pear_validate' => array(
                 'method' => '_checkPEARValidate',
                 'name' => 'PEAR Validate',
-                'errorMsg' => _('You do not have the PEAR Validate module installed.  It is required for the profile and checkout applications.'),
+                'errorMsg' => _('You do not have the PEAR Validate module installed.  It is required for the profile, alum_website, and checkout applications.'),
                 'successMsg' => _('You have the PEAR Validate module.')),
             'pear_db_nestedset' => array(
                 'method' => '_checkPEARDBNestedSet',
@@ -180,8 +180,13 @@ class FF_SystemTest {
             'pear_mail' => array(
                 'method' => '_checkPEARMail',
                 'name' => 'PEAR Mail',
-                'errorMsg' => _('You do not have the PEAR Mail module installed.  It is required for the checkout application.'),
+                'errorMsg' => _('You do not have the PEAR Mail module installed.  It is required for the checkout and alum_website applications.'),
                 'successMsg' => _('You have the PEAR Mail module.')),
+            'pear_html_bbcodeparser' => array(
+                'method' => '_checkPEARHTMLBBCodeParser',
+                'name' => 'PEAR HTML_BBCodeParser',
+                'errorMsg' => _('You do not have the PEAR HTML_BBCodeParser module installed.  It is required for the alum_website application.'),
+                'successMsg' => _('You have the PEAR HTML_BBCodeParser module.')),
             'pear_log' => array(
                 'method' => '_checkPEARLog',
                 'name' => 'PEAR Log',
@@ -307,6 +312,21 @@ class FF_SystemTest {
     {
         @include_once 'Mail.php';
         return class_exists('Mail');
+    }
+
+    // }}}
+    // {{{ _checkPEARHTMLBBCodeParser()
+
+    /**
+     * Tests to see if the PEAR HTML_BBCodeParser module is loaded.
+     *
+     * @access private
+     * @return bool True if it succeeds, false otherwise
+     */
+    function _checkPEARHTMLBBCodeParser()
+    {
+        @include_once 'HTML/BBCodeParser.php';
+        return class_exists('HTML_BBCodeParser');
     }
 
     // }}}
