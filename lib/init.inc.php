@@ -1,5 +1,5 @@
 <?php
-/** $Id: init.inc.php,v 1.3 2003/01/09 22:43:25 jrust Exp $ */
+/** $Id: init.inc.php,v 1.4 2003/01/15 00:59:11 jrust Exp $ */
 /**
  * If you want to use the FastFrame application framework in your application,
  * you have to specify the path, either full or relative to get to the
@@ -19,7 +19,7 @@ require_once dirname(__FILE__) . '/Error/Handler.php';
 $o_error =& new Error_Handler(realpath(FASTFRAME_ROOT . 'config/Error_Handler.ini'));
 
 // }}}
-// {{{ include libraries
+// {{{ require libraries
 
 // PEAR libraries
 require_once 'PEAR.php';
@@ -34,6 +34,8 @@ require_once dirname(__FILE__) . '/constants.inc.php';
 require_once dirname(__FILE__) . '/FastFrame.php';
 require_once dirname(__FILE__) . '/FastFrame/SQL.php';
 require_once dirname(__FILE__) . '/FastFrame/HTML.php';
+require_once dirname(__FILE__) . '/FastFrame/Menu.php';
+require_once dirname(__FILE__) . '/FastFrame/Auth.php';
 
 // }}}
 // {{{ init
