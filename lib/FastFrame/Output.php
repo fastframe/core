@@ -259,12 +259,12 @@ class FF_Output extends FF_Template {
     function renderCSS($in_remakeCSS = false)
     {
         require_once 'System.php';
-        $s_cssCacheDir = $this->o_registry->getRootFile("css/$this->theme", 'cache');
+        $s_cssCacheDir = $this->o_registry->getRootFile(File::buildPath(array('css', $this->theme)), 'cache');
         if (!@System::mkdir("-p $s_cssCacheDir"))  {
             return PEAR::raiseError(null, FASTFRAME_NO_PERMISSIONS, null, E_USER_WARNING, $s_cssCacheDir, 'FF_Error', true);
         }
 
-        $s_cssTemplateFile = $this->o_registry->getRootFile("$this->theme/style.tpl", 'themes');
+        $s_cssTemplateFile = $this->o_registry->getRootFile(File::buildPath(array($this->theme, 'style.tpl')), 'themes');
         $s_browser = Net_UserAgent_Detect::getBrowser(array('ie', 'gecko'));
         // All other browsers get treated as gecko
         if (is_null($s_browser)) {
@@ -295,7 +295,9 @@ class FF_Output extends FF_Template {
             File::close($s_cssCacheFile, FILE_MODE_WRITE);
         }
 
-        $s_cssURL = $this->o_registry->getRootFile("css/$this->theme/$s_cssFileName", 'cache', FASTFRAME_WEBPATH);
+        $s_cssURL = $this->o_registry->getRootFile(
+                File::buildPath(array('css', $this->theme, $s_cssFileName), '/'), 
+                'cache', FASTFRAME_WEBPATH);
         // register the CSS file 
         $this->assignBlockData(
             array(

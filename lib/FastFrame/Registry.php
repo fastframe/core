@@ -373,7 +373,7 @@ class FF_Registry {
                 break;
         }
         
-        return File::buildPath($pathParts);
+        return FASTFRAME_WEBPATH ? File::buildPath($pathParts, '/') : File::buildPath($pathParts);
     }
 
     // }}}

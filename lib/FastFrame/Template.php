@@ -348,18 +348,15 @@ class FF_Template {
     // {{{ void    setDirectory()
 
     /**
-    * Sets the file root. The file root gets prefixed to all filenames passed to the object.
-    *
-    * Make sure that you override this function when using the class
-    * on windows.  The function will return the old root just like the ini_set
-    * functions in php.
-    *
-    * @param   string
-    *
-    * @return  string old file root (for reseting)
-    * @access  public
-    * @see     constructor, _get_file()
-    */
+     * Sets the file root. The file root gets prefixed to all filenames
+     * passed to the object.
+     *
+     * @param   string
+     *
+     * @return  string old file root (for reseting)
+     * @access  public
+     * @see     constructor, _get_file()
+     */
     function setDirectory($root)
     {
         if ($root != '/' && substr($root, -1) != '/') {
@@ -401,6 +398,9 @@ class FF_Template {
             }
             else {
                 $contents = $this->_get_file($in_template);
+                if (PEAR::isError($contents)) {
+                    return $contents;
+                }
             }
         }
         elseif ($in_type == 'string') {
@@ -1123,17 +1123,36 @@ class FF_Template {
      */
     function _get_file($in_filename)
     {
-        // append file root if not an absolute path
-        $filename = strpos($in_filename, '/') === 0 || strpos($in_filename, './') === 0 ? $in_filename : $this->fileRoot . $in_filename;
-
-        if (!($fp = @fopen($filename, 'r'))) {
-            return PEAR::raiseError(null, FASTFRAME_TEMPLATE_FILE_NOT_FOUND, null, E_USER_ERROR, $filename, 'FF_Template_Error', true);
+        // See if root should be prepended
+        if (!$this->_is_absolute($in_filename)) {
+            $in_filename = $this->fileRoot . $in_filename;
         }
 
-        $content = fread($fp, filesize($filename));
-        fclose($fp);
+        File::rewind($in_filename, FILE_MODE_READ);
+        return File::readAll($in_filename);
+    }
 
-        return $content;
+    // }}}
+    // {{{ _is_absolute()
+
+    /**
+     * Tells if a path is abolute.  Allows for ../ in the path, unlike
+     * the File::isAbsolute() method.
+     *
+     * @param $in_path The path
+     *
+     * @access private
+     * @return bool True if it is absolute.
+     */
+    function _is_absolute($in_path)
+    {
+        if ((DIRECTORY_SEPARATOR == '/' && (substr($in_path, 0, 1) == '/' || substr($in_path, 0, 1) == '~')) ||
+            (DIRECTORY_SEPARATOR == '\\' && preg_match('/^[a-z]:\\\/i', $in_path))) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     // }}}
