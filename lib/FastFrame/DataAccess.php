@@ -292,13 +292,15 @@ class FF_DataAccess {
      * @param string $in_orderByDir The order by direction 
      * @param int $in_offset The offset to start at
      * @param int $in_limit The limit of records
+     * @param string $in_fields (optional) The fields to select (default is all fields)
      *
      * @access public
      * @return object The result object
      */
-    function &getListData($in_where, $in_orderByField, $in_orderByDir, $in_offset, $in_limit)
+    function &getListData($in_where, $in_orderByField, $in_orderByDir, $in_offset, $in_limit, $in_fields = '*')
     {
-        $s_query = sprintf('SELECT * FROM %s WHERE %s ORDER BY %s %s',
+        $s_query = sprintf('SELECT %s FROM %s WHERE %s ORDER BY %s %s',
+                              $in_fields,
                               $this->table,
                               $in_where,
                               $in_orderByField,
