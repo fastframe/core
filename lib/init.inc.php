@@ -1,5 +1,5 @@
 <?php
-/** $Id: init.inc.php,v 1.2 2003/01/08 00:08:21 jrust Exp $ */
+/** $Id: init.inc.php,v 1.3 2003/01/09 22:43:25 jrust Exp $ */
 /**
  * If you want to use the FastFrame application framework in your application,
  * you have to specify the path, either full or relative to get to the
@@ -59,15 +59,6 @@ $a_lang =& $o_registry->getRootLocale();
 $s_pageType = 'normal';
 $o_html =& FastFrame_HTML::singleton();
 $a_persistent['actionID'] = FastFrame::getCGIParam('actionID', 'gp', NOOP);
-$a_persistent['advancedQuery'] = FastFrame::getCGIParam('advancedQuery', 'gp', 0);
-$a_persistent['displayLimit'] = (int) abs(FastFrame::getCGIParam('displayLimit', 'gps', $o_html->getDefaultLimit()));
-$a_persistent['pageOffset'] = (int) abs(FastFrame::getCGIParam('pageOffset', 'gps', 1));  
-$a_persistent['offset'] = $a_persistent['displayLimit'] ? 
-                          ($a_persistent['pageOffset'] - 1) * $a_persistent['displayLimit'] : 
-                          0;
-$a_persistent['sortOrder'] = FastFrame::getCGIParam('sortOrder', 'gps', $o_html->getDefaultSortOrder());
-$a_persistent['searchString'] = FastFrame::getCGIParam('searchString', 'gps', '');
-$a_persistent['searchField'] = FastFrame::getCGIParam('searchField', 'gps', '');
 
 // }}}
 ?>
