@@ -34,12 +34,13 @@ require_once dirname(__FILE__) . '/Output.php';
  * entries and the format is as follows:
  * // create one top level menu (can make as many as needed)
  * $a_appMenu[0] = array(
+ *    // The description of the element (required).
  *    'contents' => _('Top Level Description'),
- *    // array of url parameters.  %currentApp% is a placeholder that will be replaced
- *    // with the app name, and can be used in any of the settings.  You must have at least
- *    // 'app' and 'actionId'.  An optional parameter is 'module' which must correspond with
- *    // an action handler class file.  If not supplied it will go to the default app.
- *    // If you don't want the element to be a link, set the value to blank.  If you want to
+ *    // Array of url parameters (optional).  %currentApp% is a placeholder that will be
+ *    // replaced with the app name, and can be used in any of the settings.  You must have
+ *    // at least 'actionId'.  Optional parameters are 'module' and 'app' which can specify a
+ *    // specific module or application different than the current one.
+ *    // If you don't want the element to be a link, leave this element out.  If you want to
  *    // make a straight link to somewhere else make the argument a string instead of an array.
  *    'urlParams' => array('app' => '%currentApp%', 'actionId' => LOGOUT_SUBMIT),
  *    // optional window target.  Defaults to _self
@@ -49,8 +50,9 @@ require_once dirname(__FILE__) . '/Output.php';
  *    // optional path to an icon. 
  *    'icon' => 'actions/logout.gif',
  *    // optional permissions to apply to this node.  If a string then it is a single perm 
- *    // for this app.  If an array then the first element is the perms(s) to check and the
- *    // second element is an optional app name to pass to the hasPerm() method.
+ *    // for this app.  If an array then it is treated as a list of perm(s) to check.  If an
+ *    // element has 'app' as the key then that app name is passed to the hasPerm() method
+ *    // instead of the current app name.
  *    'perms' => 'has_groups_app',
  *    0 => array(
  *         // first element in menu, same structure as above.
@@ -333,16 +335,18 @@ class FF_Menu {
         if (isset($in_data['perms'])) {
             $s_permsCall = '$o_perms->hasPerm(';
             if (is_array($in_data['perms'])) {
+                $s_app = isset($in_data['perms']['app']) ? $in_data['perms']['app'] : $this->currentAppPlaceholder;
+                unset($in_data['perms']['app']);
+                $s_permsList = '\'' . implode($in_data['perms'], '\',\'') . '\'';
                 // first argument is list of perms to check, second is the app
-                $s_permsCall .= $in_data['perms'][0] . ',\'';
-                $s_permsCall .= isset($in_data['perms'][1]) ? $in_data['perms'][1] : $this->currentAppPlaceholder;
-                $s_permsCall .= '\')';
+                $s_permsCall .= 'array(' . $s_permsList . '),\'' . $s_app . '\'';
             }
             else {
-                // if a string then that is the perm to check
-                $s_permsCall .= '\'' . $in_data['perms'] . '\',\'' . $this->currentAppPlaceholder . '\')';
+                // If a string then that is the perm to check
+                $s_permsCall .= '\'' . $in_data['perms'] . '\',\'' . $this->currentAppPlaceholder . '\'';
             }
 
+            $s_permsCall .= ')';
             $in_node = "\n<?php if ($s_permsCall) { ?>\n$in_node\n<?php } ?>\n";
         }
 
@@ -389,6 +393,10 @@ class FF_Menu {
     function _getLinkUrl($in_url)
     {
         if (is_array($in_url)) {
+            if (!isset($in_url['app'])) {
+                $in_url['app'] = $this->currentAppPlaceholder;
+            }
+
             $s_url = FastFrame::url('index.php', $in_url);
             // can't have the current session id in the url
             $s_url = str_replace(session_id(), '<?php echo session_id(); ?>', $s_url);
