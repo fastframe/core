@@ -291,9 +291,8 @@ class FF_Output extends FF_Template {
                 $this->getGlobalBlockName()
             );
 
-            $fp = fopen($s_cssCacheFile, 'w');
-            fwrite($fp, $o_cssWidget->render());
-            fclose($fp);
+            File::write($s_cssCacheFile, $o_cssWidget->render(), FILE_MODE_WRITE);
+            File::close($s_cssCacheFile, FILE_MODE_WRITE);
         }
 
         $s_cssURL = $this->o_registry->getRootFile("css/$this->theme/$s_cssFileName", 'cache', FASTFRAME_WEBPATH);
