@@ -321,7 +321,7 @@ class FF_Output extends FF_Template {
      * @param  string $in_text content for the link tag
      * @param  array  $in_options A number of options that have to do with the a tag.  The 
      *                            options are as follows:
-     *                            status, title, tooltipType, class, target, onclick, style, help, confirm
+     *                            status, title, tooltipType, class, target, onclick, style, confirm
      *
      * @access public
      * @return string Entire <a> tag plus attributes
@@ -342,7 +342,7 @@ class FF_Output extends FF_Template {
      * @param  string $in_url The full URL to be linked to
      * @param  array  $in_options A number of options that have to do with the a tag.  The 
      *                            options are as follows:
-     *                            status, title, tooltipType, class, target, onclick, style, help, confirm
+     *                            status, title, tooltipType, class, target, onclick, style, confirm
      *
      * @return string The start <a> tag plus attributes
      */
@@ -420,84 +420,36 @@ class FF_Output extends FF_Template {
     /**
      * Create a popup link
      *
-     * @param string $in_type The identifier of the window (i.e. mycode)
-     * @param optional array $in_data Additional data to be passed through the link.
-     * @param optional array $in_options Additional options.  Availabe options are
-                              action, app, image, text, title, width, height, class
-     * @param optional boolean $in_custom Specifies that this is a custom popup link
-     *                        and thus does not use any of the predefined settings.
+     * @param string $in_name The identifier of the window (i.e. mycode)
+     * @param string $in_text The text for the link
+     * @param array $in_urlParams URL parameters to pass to the selfURL() method
+     * @param array $in_options (optional) Additional options.  Availabe options are
+                    menubar, status, width, height, class, title
      *
      * @access public
      * @return string The link to the popup page
      */
-    function popupLink($in_type, $in_data = array(), $in_options = array(), $in_custom = false)
+    function popupLink($in_name, $in_text, $in_urlParams, $in_options = array())
     {
-        if (!$in_custom) {
-            $settings = array(
-                'action' => array(
-                    'bigtext'  => STANDARDFORM_BIGTEXT,
-                ),
-                'app' => array(
-                    'bigtext'  => 'standardForm',
-                ),
-                'image' => array(
-                    'bigtext'  => ' ' . FF_Output::imgTag('textarea.gif', 'symbols'),
-                ),
-                'text' => array(
-                    'bigtext'  => '',
-                ),
-                'title' => array(
-                    'bigtext'  => _('Expand your text here'),
-                ),
-                'menubar' => array(
-                    'bigtext'  => false, 
-                ),
-            );
-        }
-        else {
-            $settings['action'][$in_type] = null;
-            $settings['app'][$in_type] = null;
-            $settings['image'][$in_type] = null;
-            $settings['text'][$in_type] = null;
-            $settings['title'][$in_type] = null;
-            $settings['menubar'][$in_type] = null;
-        }
-
-        if (isset($in_options['action'])) {
-            $settings['action'][$in_type] = $in_options['action'];
-        }
-        if (isset($in_options['app'])) {
-            $settings['app'][$in_type] = $in_options['app'];
-        }
-        if (isset($in_options['image'])) {
-            $settings['image'][$in_type] = $in_options['image'];
-        }
-        if (isset($in_options['text'])) {
-            $settings['text'][$in_type] = $in_options['text'];
-        }
-        if (isset($in_options['title'])) {
-            $settings['title'][$in_type] = $in_options['title'];
-        }
-        if (isset($in_options['menubar'])) {
-            $settings['menubar'][$in_type] = $in_options['menubar'];
-        }
-
-        $settings['menubar'][$in_type] = (isset($settings['menubar'][$in_type]) && $settings['menubar'][$in_type]) ? 'yes' : 'no';
+        $in_options['menubar'] = (isset($in_options['menubar']) && $in_options['menubar']) ? 'yes' : 'no';
         $in_options['class'] = isset($in_options['class']) ? $in_options['class'] : '';
+        $in_options['title'] = isset($in_options['title']) ? $in_options['title'] : $in_text;
         $in_options['status'] = isset($in_options['status']) ? $in_options['status'] : '';
         $in_options['width'] = isset($in_options['width']) ? $in_options['width'] : 650;
         $in_options['height'] = isset($in_options['height']) ? $in_options['height'] : 500;
-        $in_options['useHelp'] = isset($in_options['useHelp']) ? $in_options['useHelp'] : false;
  
-        $js = $in_type . 'Window = window.open(\'';
-        $js .= FastFrame::url($this->o_registry->getAppFile('index.php', $settings['app'][$in_type], '', FASTFRAME_WEBPATH), array('actionId' => $settings['action'][$in_type]), $in_data);
-        $js .= '\',\'' . $in_type . 'Window\',';
-        $js .= '\'toolbar=no,location=no,status=yes,menubar=' . $settings['menubar'][$in_type] . ',scrollbars=yes,resizable,alwaysRaised,dependent,titlebar=no,width=' . $in_options['width'] . ',height=' . $in_options['height'] . ',left=50,screenX=50,top=50,screenY=50\');';
-        $js .= $in_type . 'Window.focus();';
-        $js .= 'return false;';
+        $s_url = FastFrame::selfURL($in_urlParams);
+        $s_js = $in_name . ' = window.open(\'' . $s_url .  '\',' . 
+                '\'' . $in_name . '\',' .
+                '\'toolbar=no,location=no,status=yes,menubar=' . $in_options['menubar'] . 
+                ',scrollbars=yes,resizable,alwaysRaised,dependent,titlebar=no' . 
+                ',width=' . $in_options['width'] . ',height=' . $in_options['height'] . 
+                ',left=50,screenX=50,top=50,screenY=50\'); ' .
+                $in_name . '.focus(); return false;';
 
-        $link = $this->link('javascript: void(0);', $settings['text'][$in_type] . $settings['image'][$in_type], array('onclick' => $js, 'title' => $settings['title'][$in_type], 'status' => $in_options['status'], 'help' => $in_options['useHelp'], 'class' => $in_options['class']));
-        $link .= '<script>var ' . $in_type . 'Window = null;</script>';
+        $link = $this->link($s_url, $in_text, 
+                array('onclick' => $s_js, 'title' => $in_options['title'], 'class' => $in_options['class']));
+        $link .= '<script>var ' . $in_name . ' = null;</script>';
         return $link;
     }
 
