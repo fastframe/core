@@ -462,10 +462,18 @@ class FF_Registry {
         }
 
         list($tmp1, $tmp2) = explode('/', $in_paramPath);
-        return isset($this->config[$in_app][$tmp1][$tmp2]) ? 
-            $this->config[$in_app][$tmp1][$tmp2] :
-            (isset($this->config[FASTFRAME_DEFAULT_APP][$tmp1][$tmp2]) ?
-             $this->config[FASTFRAME_DEFAULT_APP][$tmp1][$tmp2] : $in_default);
+        if ($tmp2 == '*') {
+            return isset($this->config[$in_app][$tmp1]) ? 
+                $this->config[$in_app][$tmp1] :
+                (isset($this->config[FASTFRAME_DEFAULT_APP][$tmp1]) ?
+                 $this->config[FASTFRAME_DEFAULT_APP][$tmp1] : $in_default);
+        }
+        else {
+            return isset($this->config[$in_app][$tmp1][$tmp2]) ? 
+                $this->config[$in_app][$tmp1][$tmp2] :
+                (isset($this->config[FASTFRAME_DEFAULT_APP][$tmp1][$tmp2]) ?
+                 $this->config[FASTFRAME_DEFAULT_APP][$tmp1][$tmp2] : $in_default);
+        }
     }
 
     // }}}
