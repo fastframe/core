@@ -184,15 +184,12 @@ class FF_List {
      */
     function renderSearchBox($in_singularLang, $in_pluralLang)
     {
-        // {{{ variable preparation
-
-        // }}}
         // {{{ quickform preparation
 
         $a_listVars = $this->getAllListVariables();
         $o_form =& new HTML_QuickForm('search_box', 'POST', FastFrame::selfURL(), '_self');
         $o_renderer =& new HTML_QuickForm_Renderer_QuickHtml($o_form);
-        $o_form->setConstants($a_listVars);
+        $o_form->setConstants(array_merge($this->persistentData, $a_listVars));
         
         // Need to set page offset to one when we search or change limit
         $tmp_onclick = ($this->getTotalPages() > 1) ? 
@@ -294,7 +291,7 @@ class FF_List {
             }
         }
 
-        // add as hidden elements any persistent data
+        // Add as hidden elements any persistent data
         foreach ($this->persistentData as $s_key => $s_val) {
             $o_form->addElement('hidden', $s_key, $s_val);
         }
@@ -765,7 +762,7 @@ class FF_List {
     function setSearchString($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->searchString = FastFrame::getCGIParam("searchString[$this->listId]", 'gps', '');
+            $this->searchString = FastFrame::getCGIParam("searchString[$this->listId]", 'gps');
         }
         else {
             $this->searchString = $in_value;
