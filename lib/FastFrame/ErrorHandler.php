@@ -88,6 +88,12 @@ class FF_ErrorHandler {
             'browser'   => array('level' => 0, 'data' => null));
   
     /**
+     * The url we hyperlink filenames to
+     * @var string
+     */
+    var $fileUrl = '';
+
+    /**
      * The number of context lines to display
      * @var int
      */
@@ -125,12 +131,11 @@ class FF_ErrorHandler {
     var $templates = array(
             'message' => '<b>%date%</b> <span class="errorLevel">[%errorLevel%]</span> in %file% on line <span style="text-decoration: underline; padding-bottom: 1px; border-bottom: 1px solid black;">%line%</span>
 <div class="errorMessage">%errorMessage%</div>',
-            'variable' => '<div style="margin: 5px 5px 0 5px; font-weight: bold;">==> Variable scope report</div>
-<div style="margin: 0px 5px 5px 5px;">%variable%</div>',
-            'backtraceHeader' => '<div style="margin: 5px 5px 0 5px; font-weight: bold;">==> Backtrace</div>',
+            'header' => '<div id="%id%" style="border: thin solid #000; background-color: #eee; margin: 5px 5px 2px 5px; font-weight: bold;">==> %header%</div>',
+            'variable' => '<div style="margin: 0px 5px 5px 5px;">%variable%</div>',
             'backtrace' => '<div style="margin: 0px 5px 5px 5px;"><b>%num%</b>. Function %func% called in %file% on line %line%</div>',
-            'details' => '<div style="margin: 5px 5px 0 5px; font-weight: bold;">==> Source report from %file% around line %line% (%ctxStart% - %ctxEnd%)</div>
-<div style="margin: 0 5px 5px 5px; background-color: #eee; border: 1px dashed #000;">%source%</div>');
+            'sourceMessage' => 'Source report from %file% around line %line% (%ctxStart% - %ctxEnd%)',
+            'source' => '<div style="margin: 0 5px 5px 5px; background-color: #eee; border: 1px dashed #000;">%source%</div>');
 
     // }}}
     // {{{ __constructor()
@@ -175,7 +180,7 @@ class FF_ErrorHandler {
      * Sets one of the templates.
      * 
      * @param string $in_name The name of the template (message,
-     *        details, variable, backtrace, backtraceHeader)
+     *        header, variable, backtrace, sourceMessage, source)
      * @param string $in_template The template string
      *
      * @access public
@@ -184,6 +189,23 @@ class FF_ErrorHandler {
     function setTemplate($in_name, $in_template)
     {
         $this->templates[$in_name] = $in_template;
+    }
+
+    // }}}
+    // {{{ setFileUrl()
+
+    /**
+     * Sets the file url.  Keywords that are replaced are %file% and
+     * %line% in the url.  Example would be file:///%file%#%line%
+     *
+     * @param string $in_value The url value
+     *
+     * @access public
+     * @return void
+     */
+    function setFileUrl($in_value)
+    {
+        $this->fileUrl = $in_value;
     }
 
     // }}}
@@ -391,13 +413,10 @@ class FF_ErrorHandler {
             $tmp_level = 'unknown';
         }
 
-        $s_message = $this->templates['message'];
-        $s_message = str_replace('%date%', $in_error['date'], $s_message);
-        $s_message = str_replace('%errorLevel%', $tmp_level, $s_message);
-        $s_message = str_replace('%file%', $in_error['file'], $s_message);
-        $s_message = str_replace('%line%', $in_error['line'], $s_message);
-        $s_message = str_replace('%errorMessage%', $in_error['message'], $s_message);
-        return $s_message;
+        $a_replace = array('%date%' => $in_error['date'], '%errorLevel%' => $tmp_level, 
+                '%file%' => $this->_getFileLink($in_error['file'], $in_error['line']), 
+                '%line%' => $in_error['line'], '%errorMessage%' => $in_error['message']);
+        return str_replace(array_keys($a_replace), $a_replace, $this->templates['message']);
     }
 
     // }}}
@@ -413,18 +432,21 @@ class FF_ErrorHandler {
      */
     function _getDetails($in_error)
     {
-        $s_message = "\n" . $this->templates['details'];
-        $s_message = str_replace('%file%', $in_error['file'], $s_message);
-        $s_message = str_replace('%line%', $in_error['line'], $s_message);
-        $s_message = str_replace('%ctxStart%', $in_error['context']['start'], $s_message);
-        $s_message = str_replace('%ctxEnd%', $in_error['context']['end'], $s_message);
-        $s_message = str_replace('%source%', str_replace('  ', '&nbsp; ', str_replace('&nbsp;', ' ', @highlight_string(stripslashes($in_error['context']['source']), true))), $s_message);
+        $a_replace = array('%file%' => $this->_getFileLink($in_error['file'], $in_error['line']), 
+                '%line%' => $in_error['line'], '%ctxStart%' => $in_error['context']['start'], 
+                '%ctxEnd%' => $in_error['context']['end']);
+        $s_message = str_replace(array_keys($a_replace), $a_replace, $this->templates['sourceMessage']);
+        $a_replace = array('%header%' => $s_message, '%id%' => 'src_' . $in_error['signature']);
+        $s_message = "\n" . str_replace(array_keys($a_replace), $a_replace, $this->templates['header']);
+        $s_message .= str_replace('%source%', str_replace('  ', '&nbsp; ', str_replace('&nbsp;', ' ', @highlight_string(stripslashes($in_error['context']['source']), true))), $this->templates['source']);
         $s_message .= $this->_getBacktrace($in_error);
         $variables = $this->_exportVariables($in_error['variables'], $in_error['context']['variables'], $in_error['level']);
         if ($variables !== false) {
             $variables = @highlight_string(stripslashes('<?php' . $variables . '?>'), true);
             // strip the php tags
             $variables = preg_replace(':(&lt;\?php(<br />)*|\?&gt;):', '', $variables);
+            $a_replace = array('%header%' => 'Variable scope report', '%id%' => 'var_' . $in_error['signature']);
+            $s_message .= str_replace(array_keys($a_replace), $a_replace, $this->templates['header']);
             $s_message .= str_replace('%variable%', $variables, $this->templates['variable']);
         }
         
@@ -450,7 +472,10 @@ class FF_ErrorHandler {
         $s_message = '';
         if (count($in_error['backtrace'])) {
             $in_error['backtrace'] = array_reverse($in_error['backtrace']);
-            $s_message = $this->templates['backtraceHeader'] . "\n";
+            $a_replace = array('%header%' => 'Backtrace report', '%id%' => 'bt_' . $in_error['signature']);
+            $s_message = str_replace(array_keys($a_replace), $a_replace, $this->templates['header']);
+            // All backtraces need to be in one big div for console js to work
+            $s_message .= '<div>' . "\n";
             foreach ($in_error['backtrace'] as $k => $a_trace) {
                 if (isset($a_trace['class'])) {
                     $a_trace['function'] = $a_trace['class'] . $a_trace['type'] . $a_trace['function'];
@@ -462,11 +487,12 @@ class FF_ErrorHandler {
                 $a_trace['function'] .= '<span style="color: #006600;">)</span>';
 
                 $a_replace = array('%num%' => $k + 1, '%func%' => $a_trace['function'], 
-                        '%line%' => $a_trace['line'], '%file%' => $a_trace['file']);
+                        '%line%' => $a_trace['line'], 
+                        '%file%' => $this->_getFileLink($a_trace['file'], $a_trace['line']));
                 $s_message .= str_replace(array_keys($a_replace), $a_replace, $this->templates['backtrace']) . "\n";
             }
 
-            $s_message .= "\n";
+            $s_message .= "</div>\n";
         }
 
         return $s_message;
@@ -673,6 +699,21 @@ class FF_ErrorHandler {
         $in_msg = strip_tags($in_msg);
         $in_msg = str_replace(get_html_translation_table(HTML_ENTITIES), array_keys(get_html_translation_table(HTML_ENTITIES)), $in_msg);
         return $in_msg;
+    }
+
+    // }}}
+    // {{{ _getFileLink()
+
+    function _getFileLink($in_file, $in_line)
+    {
+        if (!empty($this->fileUrl)) {
+            $a_replace = array('%file%' => $in_file, '%line%' => $in_line);
+            return '<a href="' . str_replace(array_keys($a_replace), $a_replace, $this->fileUrl) . 
+                '" target="_blank">' .  $in_file . '</a>';
+        }
+        else {
+            return $in_file;
+        }
     }
 
     // }}}

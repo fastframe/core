@@ -532,6 +532,7 @@ class FF_ActionHandler {
         $GLOBALS['o_error'] =& $o_error;
         $o_error->setDateFormat('[Y-m-d H:i:s]');
         $o_error->setExcludeObjects(false);
+        $o_error->setFileUrl($this->o_registry->getConfigParam('error/file_url'));
         foreach ($this->o_registry->getConfigParam('error/reporters', array()) as $s_type => $a_reporter) {
             // Text-based browsers can't use console method
             if ($s_type == 'console' && !Net_UserAgent_Detect::hasFeature('javascript')) {
