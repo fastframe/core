@@ -74,23 +74,21 @@ class FastFrame {
         }
 
         // Add the session to the array list if it is configured to do so
-        if ($o_registry->getConfigParam('session/append') ||
-            !isset($_COOKIE[session_name()])) {
-            $sessName = session_name(); 
-            // make sure it was not already set (like set to nothing)
-            if (!isset($in_vars[$sessName])) {
-                // don't lock the user out with an empty session id!
-                if (!FastFrame::isEmpty(session_id())) {
-                    $in_vars[$sessName] = session_id();
-                }
-                elseif (!empty($_REQUEST[$sessName])) {
-                    $in_vars[$sessName] = $_REQUEST[$sessName]; 
-                }
+        $s_sessName = session_name();
+        if (!isset($in_vars[$s_sessName]) &&
+            (!isset($_COOKIE[$s_sessName]) || $o_registry->getConfigParam('session/append'))) {
+            // don't lock the user out with an empty session id!
+            if (!FastFrame::isEmpty(session_id())) {
+                $in_vars[$s_sessName] = session_id();
             }
-            // if it was set to false then remove it
-            elseif (!$in_vars[$sessName]) {
-                unset($in_vars[$sessName]);
+            elseif (!empty($_REQUEST[$s_sessName])) {
+                $in_vars[$s_sessName] = $_REQUEST[$s_sessName];
             }
+        }
+
+        // See if they want the session explicitly unset
+        if (isset($in_vars[$s_sessName]) && $in_vars[$s_sessName] === false) {
+            unset($in_vars[$s_sessName]);
         }
 
         foreach($in_vars as $k => $v) {
