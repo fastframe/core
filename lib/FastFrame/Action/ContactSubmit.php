@@ -28,7 +28,7 @@ require_once dirname(__FILE__) . '/../Action.php';
 // {{{ class FF_Action_ContactSubmit
 
 /**
- * The FF_Action_Edit_Contact:: class handles the processing of the form
+ * The FF_Action_ContactSubmit:: class handles the processing of the form
  * information and sending the email to the help address.
  *
  * @author  Jason Rust <jrust@codejanitor.com>
@@ -65,7 +65,7 @@ class FF_Action_ContactSubmit extends FF_Action {
         }
 
         $a_headers = array();
-        $a_headers['Subject'] = _('[FastFrame Contact]') . ' ' . FF_Request::getParam('subject', 'p');
+        $a_headers['Subject'] = $this->getSubjectPrepend() . FF_Request::getParam('subject', 'p');
         $a_headers['From'] = FF_Request::getParam('name', 'p') . ' <' . FF_Request::getParam('email', 'p') . '>';
         $s_body = wordwrap(htmlspecialchars(FF_Request::getParam('message', 'p')));
         $s_body .= $this->getExtraInfo();
@@ -164,6 +164,20 @@ class FF_Action_ContactSubmit extends FF_Action {
         return $s_text;
     }
 
+    // }}}
+    // {{{ getSubjectPrepend()
+
+    /**
+     * Gets the string to prepend to the subject
+     *
+     * @access public
+     * @return string The data to prepend to the subject
+     */
+    function getSubjectPrepend()
+    {
+        return _('[FastFrame Help Request]') . ' ';
+    }
+    
     // }}}
 }
 ?>
