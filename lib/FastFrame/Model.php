@@ -1,5 +1,5 @@
 <?php
-/** $Id: Model.php,v 1.3 2003/03/15 01:24:46 jrust Exp $ */
+/** $Id: Model.php,v 1.4 2003/03/18 23:59:33 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -98,12 +98,8 @@ class FF_Model {
      */
     function remove($in_id = null)
     {
-        if (is_null($in_id)) {
-            return $this->o_dataAccess->remove($this->getId());
-        }
-        else {
-            return $this->o_dataAccess->remove($in_id);
-        }
+        $s_id = is_null($in_id) ? $this->getId() : $in_id;
+        return $this->o_dataAccess->remove($s_id);
     }
 
     // }}}
