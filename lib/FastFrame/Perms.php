@@ -1,5 +1,5 @@
 <?php
-/** $Id: Perms.php,v 1.5 2003/02/08 00:10:54 jrust Exp $ */
+/** $Id: Perms.php,v 1.6 2003/02/22 02:03:43 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -23,6 +23,19 @@
 // {{{ includes
 
 require_once dirname(__FILE__) . '/Perms/PermSource.php';
+
+// }}}
+// {{{ constants
+
+/**
+ * User classes.  Rough grained permissions.
+ */
+define('UC_GUEST',          1);
+define('UC_USER',           2); 
+define('UC_ADMIN_VIEWER',   4); 
+define('UC_ADMIN_EDITOR',   8); 
+define('UC_ADMIN',          16); 
+define('UC_ROOT',           32); 
 
 // }}}
 // {{{ class FastFrame_Perms
