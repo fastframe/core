@@ -23,7 +23,7 @@ function showErrors()
     return false;
 }
 </script>
-<div style="position: absolute; right: 1px; top: 1px;"><img src="../../graphics/general/core.png" style="cursor: pointer; cursor: hand;" onclick="return showErrors();" title="Error Reporter" alt="Error Reporter" /></div>
+<div style="position: absolute; right: 1px; top: 1px;"><img src="./graphics/general/core.png" style="cursor: pointer; cursor: hand;" onclick="return showErrors();" title="Error Reporter" alt="Error Reporter" /></div>
 <?php
 }
 ?>
