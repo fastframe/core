@@ -1,5 +1,5 @@
 <?php
-/** $Id: ActionHandler.php,v 1.2 2003/02/08 00:10:54 jrust Exp $ */
+/** $Id: ActionHandler.php,v 1.3 2003/02/12 20:52:38 jrust Exp $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -69,10 +69,10 @@ class ActionHandler {
      */
     var $availableActions = array(
         'problem'       => array('ACTION_PROBLEM', 'ActionHandler/Problem.php', 'ActionHandler_Problem'),
-        'add'           => array('ACTION_ADD', 'ActionHandler/Add.php', 'ActionHandler_Add'),
-        'add_submit'    => array('ACTION_ADD_SUBMIT', 'ActionHandler/AddSubmit.php', 'ActionHandler_AddSubmit'),
-        'edit'          => array('ACTION_EDIT', 'ActionHandler/Edit.php', 'ActionHandler_Edit'),
-        'edit_submit'   => array('ACTION_EDIT_SUBMIT', 'ActionHandler/EditSubmit.php', 'ActionHandler_EditSubmit'),
+        'add'           => array('ACTION_ADD', 'ActionHandler/Form.php', 'ActionHandler_Form'),
+        'add_submit'    => array('ACTION_ADD_SUBMIT', 'ActionHandler/FormSubmit.php', 'ActionHandler_FormSubmit'),
+        'edit'          => array('ACTION_EDIT', 'ActionHandler/Form.php', 'ActionHandler_Form'),
+        'edit_submit'   => array('ACTION_EDIT_SUBMIT', 'ActionHandler/FormSubmit.php', 'ActionHandler_FormSubmit'),
         'view'          => array('ACTION_VIEW', 'ActionHandler/View.php', 'ActionHandler_View'),
         'delete'        => array('ACTION_DELETE', 'ActionHandler/Delete.php', 'ActionHandler_Delete'),
         'list'          => array('ACTION_LIST', 'ActionHandler/List.php', 'ActionHandler_List'),
@@ -101,7 +101,6 @@ class ActionHandler {
         $this->_initializeDefaultConstants();
         $this->_makeActionPathsAbsolute();
         $this->setActionId(FastFrame::getCGIParam('actionId', 'gp'));
-        FastFrame::setPersistentData('actionId', $this->actionId);
     }
 
     // }}}
@@ -159,7 +158,8 @@ class ActionHandler {
             $o_action->run();
         }
         else {
-            PEAR::raiseError(null, FASTFRAME_ERROR, null, E_USER_ERROR, "The class file for action $this->actionId ($pth_actionFile) does not exist", 'FastFrame_Error', true);
+            $tmp_error = "The class file for action $this->actionId ($pth_actionFile) does not exist";
+            FastFrame::fatal($tmp_error, __FILE__, __LINE__); 
         }
     }
 
@@ -201,6 +201,31 @@ class ActionHandler {
     {
         $this->availableActions[$in_actionId][1] = $in_classFile;
         $this->availableActions[$in_actionId][2] = $in_className;
+    }
+
+    // }}}
+    // {{{ batchModifyActions()
+
+    /**
+     * This method makes it easier to modify a batch actions so that if the new action
+     * classes are all in the same directory and are named the same as the default class
+     * file, then you can easily modify the default actions to reflect this.
+     *
+     * @param array $in_actions The array of actions to modify
+     * @param string $in_path The path to where all the classes for the modified actions are
+     *               stored.
+     * @param string $in_classExtension  The extension you are giving to the class name
+     *               (i.e. Action_Form => becomes Action_Form_MyApp, then pass in _MyApp)
+     *
+     * @access public
+     * @return void
+     */
+    function batchModifyActions($in_actions, $in_path, $in_classExtension) {
+        foreach ($in_actions as $s_actionId) {
+            $s_newPath = File::buildPath(array($in_path, basename($this->availableActions[$s_actionId][1])));
+            $s_newClass = $this->availableActions[$s_actionId][2] . $in_classExtension;
+            $this->modifyAction($s_actionId, $s_newPath, $s_newClass);
+        }
     }
 
     // }}}
