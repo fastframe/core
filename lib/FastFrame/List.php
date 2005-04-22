@@ -599,6 +599,11 @@ class FF_List {
             $this->searchBoxType = $in_value;
         }
 
+        // Ensure a correct value was set
+        if (!in_array($this->searchBoxType, array(SEARCH_BOX_SIMPLE, SEARCH_BOX_ADVANCED, SEARCH_BOX_ONLYSEARCH))) {
+            $this->searchBoxType = SEARCH_BOX_SIMPLE;
+        }
+
         if ($this->searchBoxType == SEARCH_BOX_ONLYSEARCH) {
             $this->toggleListAll(false);
             $this->toggleTypeLocked(true);
