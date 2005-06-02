@@ -447,8 +447,8 @@ class FF_Action_List extends FF_Action_Form {
      * 'sort' => Field name to sort by.
      * 'field' => A shortcut way to set a field as both searchable and
      *  sortable.
-     *  'notable' => Hides the field from being displayed in the table.
-     *  'attr' => Any attributes to apply to the cell
+     * 'notable' => Hides the field from being displayed in the table.
+     * 'attr' => Any attributes to apply to the cell
      * 'description' => Description of the field.
      * 'img' => Makes the column header the specified image
      * 'style' => Specifies the style for the column header

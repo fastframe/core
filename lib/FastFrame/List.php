@@ -469,6 +469,10 @@ class FF_List {
                 $a_fieldCells[] = $tmp_href;
             }
             else {
+                if (isset($a_colData['style'])) {
+                    $a_colData['name'] = '<div style="' . $a_colData['style'] . '">' . $a_colData['name'] . '</div>';
+                }
+
                 $a_fieldCells[] = $a_colData['name'];
             }
         }
