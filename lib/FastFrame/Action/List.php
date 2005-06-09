@@ -78,7 +78,7 @@ class FF_Action_List extends FF_Action_Form {
         $this->o_output->o_tpl->assign(array('has_search_box' => true, 
                     'W_search_box' => $this->o_list->renderSearchBox($this->getPluralText(), true)));
         $this->o_output->setPageName($this->getPageName());
-        $this->createListTable();
+        $this->o_output->o_tpl->append('content_middle', $this->createListTable());
         $this->setNextAction();
         return $this->o_nextAction; 
     }
@@ -138,7 +138,7 @@ class FF_Action_List extends FF_Action_Form {
      * Creates the list table and fills in the data
      *
      * @access public
-     * @return void
+     * @return string The html for the table
      */
     function createListTable()
     {
@@ -161,7 +161,7 @@ class FF_Action_List extends FF_Action_Form {
                     'T_navigation_last' => $a_data['last']));
 
         $this->renderListData($o_tableWidget, $s_numCols);
-        $this->o_output->o_tpl->append('content_middle', $o_tableWidget->fetch());
+        return $o_tableWidget->fetch();
     }
     
     // }}}

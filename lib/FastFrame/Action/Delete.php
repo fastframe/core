@@ -52,7 +52,7 @@ class FF_Action_Delete extends FF_Action {
             return $this->o_nextAction;
         }
 
-        $o_result =& $this->o_model->remove(FF_Request::getParam('objectId', 'gp'));
+        $o_result =& $this->remove();
         if ($o_result->isSuccess()) {
             $this->o_output->setMessage($this->getSuccessMessage(), FASTFRAME_SUCCESS_MESSAGE);
             $this->setSuccessActionId();
@@ -64,6 +64,20 @@ class FF_Action_Delete extends FF_Action {
         }
         
         return $this->o_nextAction;
+    }
+
+    // }}}
+    // {{{ remove()
+
+    /**
+     * Runs the remove command on the model
+     *
+     * @access public
+     * @return object The Result object
+     */
+    function &remove()
+    {
+        return $this->o_model->remove(FF_Request::getParam('objectId', 'gp'));
     }
 
     // }}}
