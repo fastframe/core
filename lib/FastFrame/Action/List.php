@@ -221,6 +221,15 @@ class FF_Action_List extends FF_Action_Form {
                 $this->o_output->o_tpl->append('javascript', '<script>addOnload(function () { initHighlight("listTable"); })</script>');
                 $b_highlightRows = true;
             }
+
+            // See if an element was updated/added, if so highlight it
+            $s_updatedId = false;
+            if (FF_Request::getParam('submitWasSuccess', 'g', false) &&
+                !FastFrame::isEmpty(FF_Request::getParam('objectId', 'p'))) {
+                $s_updatedId = FF_Request::getParam('objectId', 'p');
+                $this->o_output->addScriptFile($this->o_registry->getRootFile('fat.js', 'javascript', FASTFRAME_WEBPATH));
+            }
+
             $a_buttonCells = $this->getButtonCells();
             $a_map = $this->getFieldMap();
             while ($this->o_listModeler->loadNextModel()) {
@@ -260,8 +269,13 @@ class FF_Action_List extends FF_Action_Form {
                     $a_cells[] = array('T_table_content_cell' => $tmp_displayData, 'S_table_content_cell' => $s_attr);
                 }
 
+                $s_class = $this->o_output->toggleRow($i++);
+                if ($s_updatedId && $s_updatedId == $this->o_model->getId()) {
+                    $s_class .= ' fade';
+                }
+
                 $in_tableWidget->append('rows', array(
-                            'S_table_row' => 'class="' . $this->o_output->toggleRow($i++) . '" ' .
+                            'S_table_row' => 'class="' . $s_class . '" ' .
                                 $this->getRowAttributes() . $tmp_extraJs,
                             'cells' => $a_cells));
             }
