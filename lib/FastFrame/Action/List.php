@@ -74,6 +74,7 @@ class FF_Action_List extends FF_Action_Form {
             return $this->o_nextAction;
         }
 
+        $this->redirectUponSingleResult();
         $this->renderAdditionalLinks();
         $this->o_output->o_tpl->assign(array('has_search_box' => true, 
                     'W_search_box' => $this->o_list->renderSearchBox($this->getPluralText(), true)));
@@ -129,6 +130,26 @@ class FF_Action_List extends FF_Action_Form {
 
         $this->o_list->setMatchedRecords($this->o_listModeler->getMatchedModelsCount());
         return true;
+    }
+
+    // }}}
+    // {{{ redirectUponSingleResult()
+
+    /**
+     * Takes them to the matched record if their search was on the money
+     * (i.e. returned only one result).
+     *
+     * @access public
+     * @return void
+     */
+    function redirectUponSingleResult()
+    {
+        if ($this->o_listModeler->getMatchedModelsCount() == 1 &&
+            !FastFrame::isEmpty(FF_Request::getParam('searchString', 'p')) &&
+            !is_null($s_url = $this->getHighlightedRowUrl())) {
+            $this->o_listModeler->loadNextModel();
+            FastFrame::redirect(str_replace('objectId=', 'objectId=' . $this->o_model->getId(), $s_url));
+        }
     }
 
     // }}}
