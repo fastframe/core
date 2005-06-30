@@ -238,6 +238,7 @@ class FF_ActionHandler {
             $this->loadActions();
             $this->_checkActionId();
             $this->checkAuth();
+            $this->moduleConfig->checkPerms();
             $pth_actionFile = $this->availableActions[$this->actionId][0];
             if (file_exists($pth_actionFile)) {
                 require_once $pth_actionFile;
@@ -312,7 +313,6 @@ class FF_ActionHandler {
         $this->availableActions = $this->defaultActions;
         $this->moduleConfig =& $a_configObjects[$s_className];
         $this->moduleConfig->loadConfig();
-        $this->moduleConfig->checkPerms();
     }
 
     // }}}
