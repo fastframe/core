@@ -74,7 +74,6 @@ class FF_Action_List extends FF_Action_Form {
             return $this->o_nextAction;
         }
 
-        $this->redirectUponSingleResult();
         $this->renderAdditionalLinks();
         $this->o_output->o_tpl->assign(array('has_search_box' => true, 
                     'W_search_box' => $this->o_list->renderSearchBox($this->getPluralText(), true)));
