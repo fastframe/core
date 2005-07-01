@@ -144,7 +144,8 @@ class FF_Action_List extends FF_Action_Form {
      */
     function redirectUponSingleResult()
     {
-        if ($this->o_listModeler->getMatchedModelsCount() == 1 &&
+        if ($this->currentActionId == ACTION_LIST &&
+            $this->o_listModeler->getMatchedModelsCount() == 1 &&
             !FastFrame::isEmpty(FF_Request::getParam('searchString', 'p')) &&
             !is_null($s_url = $this->getHighlightedRowUrl())) {
             $this->o_listModeler->loadNextModel();
