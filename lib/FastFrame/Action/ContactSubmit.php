@@ -66,8 +66,10 @@ class FF_Action_ContactSubmit extends FF_Action {
 
         $a_headers = array();
         $a_headers['Subject'] = $this->getSubjectPrepend() . FF_Request::getParam('subject', 'p');
-        $a_headers['From'] = FF_Request::getParam('name', 'p') . ' <' . FF_Request::getParam('email', 'p') . '>';
-        $s_body = wordwrap(htmlspecialchars(FF_Request::getParam('message', 'p')));
+        $a_headers['From'] = FF_Request::getParam('email', 'p');
+        $s_body = _('Name: ') . FF_Request::getParam('name', 'p') . "\n";
+        $s_body .= _('Email: ') . FF_Request::getParam('email', 'p') . "\n";
+        $s_body .= wordwrap(htmlspecialchars(FF_Request::getParam('message', 'p')));
         $s_body .= $this->getExtraInfo();
         $o_mailResult = $o_mail->send($this->o_registry->getConfigParam('help/email'), $a_headers, $s_body);
         if (PEAR::isError($o_mailResult)) {
