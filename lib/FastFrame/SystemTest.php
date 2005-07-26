@@ -147,6 +147,16 @@ class FF_SystemTest {
                 'name' => 'Gettext Support',
                 'errorMsg' => _('You do not have gettext support compiled into PHP.'),
                 'successMsg' => _('You have gettext support.')),
+            'db_connectivity' => array(
+                'method' => '_checkDBConnectivity',
+                'name' => 'Database Connectivity',
+                'errorMsg' => _('Unable to connect to the database using the username and password in conf.php.'),
+                'successMsg' => _('Connected to the database successfully.')),
+            'session' => array(
+                'method' => '_checkSession',
+                'name' => 'Session',
+                'errorMsg' => _('The session does not work.'),
+                'successMsg' => _('If the Session Counter increments when you reload the page, then the session works.')),
             'pear' => array(
                 'method' => '_checkPEAR',
                 'name' => 'PEAR',
@@ -519,6 +529,44 @@ class FF_SystemTest {
     function _checkPHPVersion()
     {
         return version_compare(phpversion(), '4.2.1', '>=');
+    }
+
+    // }}}
+    // {{{ _checkDBConnectivity()
+
+    /**
+     * Tests to see if we can connect to the database
+     *
+     * @access private
+     * @return bool True if it succeeds, false otherwise
+     */
+    function _checkDBConnectivity()
+    {
+        require_once FASTFRAME_ROOT . 'lib/FastFrame/DataAccess.php';
+        $o_dao =& FF_DataAccess::factory('Profile', 'profile');
+        $o_result =& DB::connect($o_dao->getConnectParams('profile'));
+        return !PEAR::isError($o_result);
+    }
+
+    // }}}
+    // {{{ _checkSession()
+
+    /**
+     * Tests to see if we can save session variables
+     *
+     * @access private
+     * @return bool Always true, user has to check if counter increments
+     */
+    function _checkSession()
+    {
+        require_once FASTFRAME_ROOT . 'lib/FastFrame/Auth.php';
+        FF_Auth::startSession();
+        if (!isset($_SESSION['counter'])) {
+            $_SESSION['counter'] = 0;
+        }
+
+        $_SESSION['counter']++;
+        return true;
     }
 
     // }}}

@@ -151,7 +151,12 @@ class FF_CLI {
             $GLOBALS['o_error'] =& $o_error;
             $o_error->setDateFormat('[Y-m-d H:i:s]');
             $o_error->setExcludeObjects(false);
-            $o_error->addReporter('stdout', E_VERY_ALL, array());
+            if ($this->_console) {
+                $o_error->addReporter('stdout', E_VERY_ALL, array());
+            }
+            else {
+                $o_error->addReporter('console', E_VERY_ALL, array());
+            }
         }
     }
 
