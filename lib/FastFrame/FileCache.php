@@ -302,7 +302,7 @@ class FF_FileCache {
         if (!is_dir($a_parts['dirname'])) {
             require_once 'System.php';
             if (!@System::mkdir("-p {$a_parts['dirname']}"))  {
-                trigger_error('Could not write to the FastFrame cache directory.', E_USER_ERROR);
+                trigger_error('Could not write to the FastFrame data directory.', E_USER_ERROR);
             }
         }
     }
