@@ -209,9 +209,14 @@ class FF_SystemTest {
                 'successMsg' => _('You have the PEAR HTTP_Request module.')),
             'cachedir' => array(
                 'method' => '_checkCacheDir',
-                'name' => 'Writable Cache Dir',
-                'errorMsg' => _('The FastFrame/cache directory is not writable.'),
+                'name' => 'Writable Cache Directory',
+                'errorMsg' => _('The FastFrame/cache directory is not writable.  It must be writable by the webserver.'),
                 'successMsg' => _('The cache directory is writable.')),
+            'datadir' => array(
+                'method' => '_checkDataDir',
+                'name' => 'Writable Data Directory',
+                'errorMsg' => _('The FastFrame/data directory is not writable.  It must be writable by the webserver.'),
+                'successMsg' => _('The data directory is writable.')),
             'conffile' => array(
                 'method' => '_checkConfFile',
                 'name' => 'Conf File',
@@ -433,6 +438,26 @@ class FF_SystemTest {
     {
         if (@touch(FASTFRAME_ROOT . 'cache/foo')) {
             unlink(FASTFRAME_ROOT . 'cache/foo');
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    // }}}
+    // {{{ _checkDataDir()
+
+    /**
+     * Tests to see if the data directory is writable 
+     *
+     * @access private
+     * @return bool True if it succeeds, false otherwise
+     */
+    function _checkDataDir()
+    {
+        if (@touch(FASTFRAME_ROOT . 'data/foo')) {
+            unlink(FASTFRAME_ROOT . 'data/foo');
             return true;
         }
         else {

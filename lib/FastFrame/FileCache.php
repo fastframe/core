@@ -24,7 +24,7 @@
 
 /**
  * The FF_FileCache:: class provides methods for saving, retrieving, and
- * removing files from cache.
+ * removing files from the data cache.
  *
  * @author  Jason Rust <jrust@codejanitor.com>
  * @version Revision: 1.0 
@@ -280,7 +280,7 @@ class FF_FileCache {
     function getPath($in_filePath, $in_useApp = false, $in_type = FASTFRAME_FILEPATH)
     {
         $s_app = $in_useApp ? $this->o_registry->getCurrentApp() . '/' : '';
-        return $this->o_registry->getRootFile($s_app . $in_filePath, 'cache', $in_type);
+        return $this->o_registry->getRootFile($s_app . $in_filePath, 'data', $in_type);
     }
 
     // }}}
