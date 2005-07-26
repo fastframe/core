@@ -88,6 +88,7 @@ class FF_Registry {
         'root_javascript' =>  'js',
         'root_graphics'   =>  'graphics',
         'root_cache'      =>  'cache',
+        'root_data'       =>  'data',
         'root_themes'     =>  'themes',
         // names of the services inside an app (%app% is the basename of the app)
         'app_libs'        => '%app%/lib',
