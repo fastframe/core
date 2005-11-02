@@ -243,7 +243,7 @@ class FF_ActionHandler {
             if (file_exists($pth_actionFile)) {
                 require_once $pth_actionFile;
                 $o_action =& new $this->availableActions[$this->actionId][1]($this->o_model);
-                $o_nextAction =& $o_action->run();
+                $o_nextAction = $o_action->run();
                 if ($o_nextAction->isLastAction()) {
                     $hitLastAction = true;
                 }
