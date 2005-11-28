@@ -85,7 +85,7 @@ class FastFrame {
                 $in_vars[$s_sessName] = session_id();
             }
             elseif (!empty($_REQUEST[$s_sessName])) {
-                $in_vars[$s_sessName] = $_REQUEST[$s_sessName];
+                $in_vars[$s_sessName] = urlencode($_REQUEST[$s_sessName]);
             }
         }
 
