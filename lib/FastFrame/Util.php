@@ -130,5 +130,25 @@ class FF_Util {
     }
 
     // }}}
+    // {{{ array   createMonthOptionList()
+
+    /**
+     * Creates an of months based on the current locale setting
+     *
+     * @access public
+     * @return array An array of 'monthName' => 'monthName'
+     */
+    function createMonthOptionList()
+    {
+        $select = array();
+        for ($i = 1; $i <= 12; $i++) {
+            $time = mktime(0, 0, 0, $i, 1, 2005);
+            $select[$i] = date('F', $time);
+        }
+
+        return $select;
+    }
+
+    // }}}
 }
 ?>
