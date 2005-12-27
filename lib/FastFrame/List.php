@@ -456,8 +456,8 @@ class FF_List {
                 if ($this->getSortField() == $a_colData['sort']) {
                     // Determine which image to display
                     $tmp_img = $this->getSortOrder() ? 
-                        $this->o_output->imgTag('up.png', 'arrows', array('align' => 'middle', 'height' => 8, 'width' => 8)) : 
-                        $this->o_output->imgTag('down.png', 'arrows', array('align' => 'middle', 'height' => 8, 'width' => 8));
+                        $this->o_output->imgTag('up.gif', 'arrows', array('align' => 'middle', 'height' => 8, 'width' => 8)) : 
+                        $this->o_output->imgTag('down.gif', 'arrows', array('align' => 'middle', 'height' => 8, 'width' => 8));
                     $tmp_href .= ' ' . $this->o_output->link(FastFrame::selfURL($a_listVars), 
                             $tmp_img, array('title' => $tmp_title)); 
                 }

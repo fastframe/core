@@ -35,10 +35,10 @@ require_once 'Net/UserAgent/Detect.php';
  * Message constants.  These images need to be in the graphics/alerts directory.
  * The theme can mimic the grapics/alerts directory to override the default image.
  */
-define('FASTFRAME_NORMAL_MESSAGE', 'message.png', true);
-define('FASTFRAME_ERROR_MESSAGE', 'error.png', true);
-define('FASTFRAME_WARNING_MESSAGE', 'warning.png', true);
-define('FASTFRAME_SUCCESS_MESSAGE', 'success.png', true);
+define('FASTFRAME_NORMAL_MESSAGE', 'message.gif', true);
+define('FASTFRAME_ERROR_MESSAGE', 'error.gif', true);
+define('FASTFRAME_WARNING_MESSAGE', 'warning.gif', true);
+define('FASTFRAME_SUCCESS_MESSAGE', 'success.gif', true);
 
 // }}}
 // {{{ class FF_Output
@@ -411,7 +411,7 @@ class FF_Output {
     {
         if ($this->o_registry->getConfigParam('help/show_tooltips', false)) {
             $in_title = is_null($in_title) ? _('Help') : $in_title;
-            return $this->link('#', $this->imgTag('help.png', 'actions', array('height' => 16, 'width' => 16)),
+            return $this->link('#', $this->imgTag('help.gif', 'actions', array('height' => 16, 'width' => 16)),
                     array('title' => $in_text, 'caption' => $in_title));
         }
         else {
@@ -894,7 +894,7 @@ class FF_Output {
             $this->o_tpl->append('status_messages', array(
                         'T_status_message' => $a_message[0],
                         'I_status_message' => $this->imgTag($a_message[1], 'alerts', array('title' => $a_message[2])),
-                        'I_status_message_close' => $this->imgTag('close.png', 'actions', array('onclick' => 'document.getElementById(\'message_' . $s_key . '\').style.display = \'none\';', 'style' => 'cursor: pointer;', 'title' => _('Close')))));
+                        'I_status_message_close' => $this->imgTag('close.gif', 'actions', array('onclick' => 'document.getElementById(\'message_' . $s_key . '\').style.display = \'none\';', 'style' => 'cursor: pointer;', 'title' => _('Close')))));
         }
     }
 
