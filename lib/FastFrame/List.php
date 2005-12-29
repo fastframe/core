@@ -763,13 +763,20 @@ class FF_List {
      * present
      *
      * @param string $in_field The fallback field to sort on
+     * @param bool $in_force (optional) Forces sort field to be set to $in_field
      *
      * @access public
      * @return void
      */
-    function setSortField($in_field)
+    function setSortField($in_field, $in_force = false)
     {
-        $this->sortField = FF_Request::getParam("sortField[$this->listId]", 'gps', $in_field);
+        if ($in_force) {
+            $this->sortField = $in_field;
+        }
+        else {
+            $this->sortField = FF_Request::getParam("sortField[$this->listId]", 'gps', $in_field);
+        }
+
         FF_Request::setParam('sortField[\'' . $this->listId . '\']', $this->sortField, 's');
     }
 
@@ -1013,7 +1020,6 @@ class FF_List {
         $a_vars = array();
         $a_vars["sortField[$this->listId]"] = $this->getSortField();
         $a_vars["sortOrder[$this->listId]"] = $this->getSortOrder();
-        $a_vars["sortField[$this->listId]"] = $this->getSortField();
         $a_vars["searchString[$this->listId]"] = $this->getSearchString();
         $a_vars["searchField[$this->listId]"] = $this->getSearchField();
         $a_vars["pageOffset[$this->listId]"] = $this->getPageOffset();
