@@ -127,6 +127,8 @@ class FF_Output {
         $this->setDefaults();
         // Include some common js
         $this->addScriptFile($this->o_registry->getRootFile('core.lib.js', 'javascript', FASTFRAME_WEBPATH));
+        // For the Fade Anything Technique
+        $this->addScriptFile($this->o_registry->getRootFile('fat.js', 'javascript', FASTFRAME_WEBPATH));
         // Prevents E_ALL errors
         $this->o_tpl->assign(array('content_left' => array(), 'content_middle' => array(),
                     'content_right' => array(), 'status_messages' => array(), 'page_explanation' => array()));

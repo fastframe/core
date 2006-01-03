@@ -227,7 +227,6 @@ class FF_Action_List extends FF_Action_Form {
             if (FF_Request::getParam('submitWasSuccess', 'g', false) &&
                 !FastFrame::isEmpty(FF_Request::getParam('objectId', 'p'))) {
                 $s_updatedId = FF_Request::getParam('objectId', 'p');
-                $this->o_output->addScriptFile($this->o_registry->getRootFile('fat.js', 'javascript', FASTFRAME_WEBPATH));
             }
 
             $a_buttonCells = $this->getButtonCells();
