@@ -731,13 +731,20 @@ class FF_List {
      * back onto passed in value
      *
      * @param int $in_sort What order to sort the data. 1 for ASC, 0 for DESC
+     * @param bool $in_force (optional) Forces sort order to be set to $in_sort
      *
      * @access public
      * @return void
      */
-    function setSortOrder($in_sort)
+    function setSortOrder($in_sort, $in_force = false)
     {
-        $this->sortOrder = (int) FF_Request::getParam("sortOrder[$this->listId]", 'gps', $in_sort);
+        if ($in_force) {
+            $this->sortOrder = $in_sort;
+        }
+        else {
+            $this->sortOrder = (int) FF_Request::getParam("sortOrder[$this->listId]", 'gps', $in_sort);
+        }
+
         FF_Request::setParam('sortOrder[\'' . $this->listId . '\']', $this->sortOrder, 's');
     }
 
