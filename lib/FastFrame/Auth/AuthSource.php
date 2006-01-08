@@ -108,7 +108,8 @@ class FF_AuthSource {
 
         require_once $pth_authFile;
         $s_authClass = 'FF_AuthSource_' . $in_type;
-        return new $s_authClass($in_name, $in_params);
+        $o_auth =& new $s_authClass($in_name, $in_params);
+        return $o_auth;
     }
 
     // }}}
