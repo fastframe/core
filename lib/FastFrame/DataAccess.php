@@ -181,7 +181,7 @@ class FF_DataAccess {
     function update($in_data)
     {
         $s_where = $this->primaryKey . '=' . $this->o_data->quoteSmart($in_data[$this->primaryKey]);
-        $o_result =& new FF_Result();
+        $o_result = new FF_Result();
         if (PEAR::isError($result = $this->o_data->autoExecute($this->table, $in_data, DB_AUTOQUERY_UPDATE, $s_where))) {
             $o_result->addMessage($result->getMessage());
             $o_result->setSuccess(false);
@@ -201,9 +201,9 @@ class FF_DataAccess {
      * @access public
      * @return object The result object 
      */
-    function &add($in_data)
+    function add($in_data)
     {
-        $o_result =& new FF_Result();
+        $o_result = new FF_Result();
         if (PEAR::isError($result = $this->o_data->autoExecute($this->table, $in_data))) {
             $o_result->addMessage($result->getMessage());
             $o_result->setSuccess(false);
@@ -227,7 +227,7 @@ class FF_DataAccess {
      */
     function remove($in_value, $in_field = null)
     {
-        $o_result =& new FF_Result();
+        $o_result = new FF_Result();
         $s_field = is_null($in_field) ? $this->primaryKey : $in_field;
         $s_stmt = $this->o_data->prepare("DELETE FROM $this->table WHERE $s_field = ?");
         if (DB::isError($result = $this->o_data->execute($s_stmt, $in_value))) {
@@ -313,7 +313,7 @@ class FF_DataAccess {
      * @access public
      * @return object The result object
      */
-    function &getListData($in_where, $in_orderByField, $in_orderByDir, $in_fields = '*')
+    function getListData($in_where, $in_orderByField, $in_orderByDir, $in_fields = '*')
     {
         $s_query = "SELECT $in_fields FROM $this->table WHERE $in_where ORDER BY $in_orderByField " .
                     $this->_getOrderByDirection($in_orderByDir);

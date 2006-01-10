@@ -146,7 +146,7 @@ class FF_Action_Form extends FF_Action {
         $this->o_form->setDefaults($this->getFormDefaults());
         $this->createFormElements();
         $this->o_form->accept($this->o_renderer);
-        $o_table =& $this->renderFormTable();
+        $o_table = $this->renderFormTable();
         $o_tableWidget =& $o_table->getWidgetObject();
         $this->o_output->o_tpl->append('content_middle', $this->o_renderer->toHtml($o_tableWidget->fetch()));
         return $this->o_nextAction;
@@ -218,7 +218,7 @@ class FF_Action_Form extends FF_Action {
      * @access public
      * @return object The table object 
      */
-    function &renderFormTable()
+    function renderFormTable()
     {
         require_once dirname(__FILE__) . '/../Output/Table.php';
         $o_table =& new FF_Output_Table('twoColumn');

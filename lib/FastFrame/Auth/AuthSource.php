@@ -77,7 +77,7 @@ class FF_AuthSource {
     function FF_AuthSource($in_name, $in_params)
     {
         $this->name = $in_name;
-        $this->o_result =& new FF_Result();
+        $this->o_result = new FF_Result();
         $this->o_result->setSuccess(false);
     }
 

@@ -96,7 +96,7 @@ class FF_Model {
      * @access public
      * @return object A result object 
      */
-    function &remove($in_id = null)
+    function remove($in_id = null)
     {
         $s_id = is_null($in_id) ? $this->getId() : $in_id;
         return $this->o_dataAccess->remove($s_id);

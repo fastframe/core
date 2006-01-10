@@ -75,7 +75,7 @@ class FF_Action_Delete extends FF_Action {
      * @access public
      * @return object The Result object
      */
-    function &remove()
+    function remove()
     {
         return $this->o_model->remove(FF_Request::getParam('objectId', 'gp'));
     }

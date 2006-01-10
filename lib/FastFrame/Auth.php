@@ -77,7 +77,7 @@ class FF_Auth {
         $b_authenticated = false;
         $a_credentials = array('apps' => array('*'));
         $a_sources = (array) $o_registry->getConfigParam('auth/sources');
-        $o_result =& new FF_Result();
+        $o_result = new FF_Result();
         $o_result->setSuccess(false);
         foreach ($a_sources as $a_source) {
             $o_authSource =& FF_Auth::getAuthSourceObject($a_source['name']);
@@ -289,7 +289,7 @@ class FF_Auth {
      */
     function logout()
     {
-        $o_result =& new FF_Result();
+        $o_result = new FF_Result();
         $s_status = FF_Request::getParam('__auth__[\'status\']', 's');
         switch ($s_status) {
             case FASTFRAME_AUTH_BROWSER:

@@ -90,9 +90,9 @@ class FF_FileCache {
      * @access public
      * @return object A success object
      */
-    function &save($in_data, $in_filePath, $in_useApp = false)
+    function save($in_data, $in_filePath, $in_useApp = false)
     {
-        $o_result =& new FF_Result();
+        $o_result = new FF_Result();
         $this->checkDir($in_filePath, $in_useApp);
         $s_path = $this->getPath($in_filePath, $in_useApp);
         require_once 'File.php';
@@ -126,9 +126,9 @@ class FF_FileCache {
      * @access public
      * @return object A success object
      */
-    function &saveUploadedFile($in_uploadData, $in_filePath, $in_maxSize, $in_validTypes = array(), $in_useApp = false)
+    function saveUploadedFile($in_uploadData, $in_filePath, $in_maxSize, $in_validTypes = array(), $in_useApp = false)
     {
-        $o_result =& new FF_Result();
+        $o_result = new FF_Result();
         // See if a file was sent
         if (empty($in_uploadData['name']) || $in_uploadData['name'] == 'none') {
             return $o_result;

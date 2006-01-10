@@ -680,7 +680,7 @@ class FF_ErrorHandler {
     // }}}
     // {{{ _var_export()
 
-    function &_var_export(&$variable, $arrayIndent = '', $inArray = false, $level = 0)
+    function _var_export(&$variable, $arrayIndent = '', $inArray = false, $level = 0)
     {
         static $maxLevels = 0, $followObjectReferences = false;
         if ($inArray != false) {

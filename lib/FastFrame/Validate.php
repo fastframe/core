@@ -86,7 +86,7 @@ class FF_Validate {
     {
         $this->o_model =& $in_model; 
         $this->isUpdate = $in_isUpdate;
-        $this->o_result =& new FF_Result();
+        $this->o_result = new FF_Result();
         $this->additionalData = $in_additionalData;
     }
 
