@@ -107,7 +107,7 @@ class FF_Action_FormSubmit extends FF_Action {
      * @access public
      * @return object The result object
      */
-    function &save()
+    function save()
     {
         return $this->o_model->save($this->isUpdate());
     }
@@ -187,7 +187,7 @@ class FF_Action_FormSubmit extends FF_Action {
      * @access public
      * @return object A result object 
      */
-    function &validateInput()
+    function validateInput()
     {
         return new FF_Result();
     }
