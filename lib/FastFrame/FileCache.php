@@ -131,6 +131,14 @@ class FF_FileCache {
         $o_result = new FF_Result();
         // See if a file was sent
         if (empty($in_uploadData['name']) || $in_uploadData['name'] == 'none') {
+            $o_result->addMessage(_('You must specify a name for your attachment.'));
+            $o_result->setSuccess(false);
+            return $o_result;
+        }
+
+        if ($in_uploadData['size'] == 0) {
+            $o_result->addMessage(_('The file you tried to attach contains no data.'));
+            $o_result->setSuccess(false);
             return $o_result;
         }
 
