@@ -126,6 +126,7 @@ class FF_Output {
         $this->o_tpl =& new FF_Smarty('overall');
         $this->setDefaults();
         // Include some common js
+        $this->addScriptFile($this->o_registry->getRootFile('prototype.js', 'javascript', FASTFRAME_WEBPATH));
         $this->addScriptFile($this->o_registry->getRootFile('core.lib.js', 'javascript', FASTFRAME_WEBPATH));
         // For the Fade Anything Technique
         $this->addScriptFile($this->o_registry->getRootFile('fat.js', 'javascript', FASTFRAME_WEBPATH));

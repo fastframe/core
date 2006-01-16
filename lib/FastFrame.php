@@ -193,4 +193,25 @@ class FastFrame {
 
     // }}}
 }
+
+    // {{{ clone()
+
+    /**
+     * For PHP4 compatibility
+     *
+     * @param object $obj The object to clone
+     *
+     * @return object The cloned object
+     */
+    if (version_compare(phpversion(), '5.0') === -1) {
+        // Needs to be wrapped in eval as clone is a keyword in PHP5
+        eval('
+            function clone($obj)
+            {
+                return $obj;
+            }
+        ');
+    }
+   
+    // }}} 
 ?>

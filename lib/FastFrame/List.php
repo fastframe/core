@@ -272,13 +272,14 @@ class FF_List {
         }
 
         $o_form->addElement('text', "searchString[$this->listId]", null, 
-                array('size' => 15, 'style' => 'vertical-align: middle;', 'onfocus' => 'this.select();',
+                array('size' => 15, 'style' => 'vertical-align: middle;', 
+                    'onfocus' => 'this.select();', 'id' => "searchString-$this->listId",
                     'accesskey' => $this->o_output->getAccessKey(_('Search for'))));
         $o_form->addElement('submit', 'query_submit', _('» Search'), 
                 array('style' => 'vertical-align: bottom;'));
         if ($this->listAll) {
             $o_form->addElement('submit', 'listall_submit', _('» List All'), 
-                array('onclick' => "document.search_box['searchString[$this->listId]'].value = '';", 
+                array('onclick' => "$('searchString-$this->listId').value = '';", 
                     'style' => 'vertical-align: bottom;'));
         }
 
@@ -311,7 +312,7 @@ class FF_List {
         }
 
         if ($in_focusSearch) {
-            $this->o_output->o_tpl->append('javascript', '<script>addOnload(function () { document.search_box["searchString[' . $this->listId . ']"].focus(); });</script>');
+            $this->o_output->o_tpl->append('javascript', '<script>Event.observe(window, "load", function () { $("searchString-' . $this->listId . '").focus(); }, false);</script>');
         }
 
         $o_searchWidget =& new FF_Smarty('searchTable');

@@ -218,7 +218,7 @@ class FF_Action_List extends FF_Action_Form {
             $b_highlightRows = false;
             if (!is_null($this->getHighlightedRowUrl())) {
                 $this->o_output->addScriptFile($this->o_registry->getRootFile('highlightRow.js', 'javascript', FASTFRAME_WEBPATH));
-                $this->o_output->o_tpl->append('javascript', '<script>addOnload(function () { initHighlight("listTable"); })</script>');
+                $this->o_output->o_tpl->append('javascript', '<script>Event.observe(window, "load", function () { initHighlight("listTable"); }, false);</script>');
                 $b_highlightRows = true;
             }
 
