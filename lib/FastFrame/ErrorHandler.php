@@ -167,7 +167,14 @@ class FF_ErrorHandler {
         // We'll handle showing errors, thank you very much :)
         ini_set('display_errors', 0);
         // No point having errors passed to us that we aren't catching, hence $s_errorLevel
-        set_error_handler(array(&$this, '_trapError'), $s_errorLevel);
+        if (version_compare(phpversion(), '5.0') === -1) {
+            // PHP4 doesn't take the 2nd arg
+            set_error_handler(array(&$this, '_trapError'));
+        }
+        else {
+            set_error_handler(array(&$this, '_trapError'), $s_errorLevel);
+        }
+
         register_shutdown_function(array(&$this, '__destructor'));
     }
     
