@@ -137,16 +137,37 @@ class FF_ErrorHandler {
             'sourceMessage' => 'Source report from %file% around line %line% (%ctxStart% - %ctxEnd%)',
             'source' => '<div style="margin: 0 5px 5px 5px; background-color: #eee; border: 1px dashed #000;">%source%</div>');
 
+    /**
+     * An array of error signatures
+     * @var array
+     */
+    var $_signatures = array();
+
     // }}}
     // {{{ __constructor()
 
-    function FF_ErrorHandler()
+    /**
+     * Constructs the class, sets up error handling in PHP
+     *
+     * @param $in_reporters array The array of reporters 'type' => array(options)
+     *
+     * @return void
+     */
+    function FF_ErrorHandler($in_reporters)
     {
-        error_reporting(E_ALL);
-        // Trick to fix broken set_error_handler() function in php
-        $GLOBALS['_o_error_reporter'] =& $this; 
-        trapError('_o_error_reporter');
-        set_error_handler('trapError');
+        // Determine the levels we will be reporting
+        $s_errorLevel = 0;
+        foreach ($in_reporters as $s_type => $a_reporter) {
+            $a_reporter['data'] = isset($a_reporter['data']) ? $a_reporter['data'] : null;
+            $s_errorLevel |= $a_reporter['level'];
+            $this->_addReporter($s_type, $a_reporter['level'], $a_reporter['data']);
+        }
+
+        error_reporting($s_errorLevel);
+        // We'll handle showing errors, thank you very much :)
+        ini_set('display_errors', 0);
+        // No point having errors passed to us that we aren't catching, hence $s_errorLevel
+        set_error_handler(array(&$this, '_trapError'), $s_errorLevel);
         register_shutdown_function(array(&$this, '__destructor'));
     }
     
@@ -261,27 +282,6 @@ class FF_ErrorHandler {
     }
 
     // }}}
-    // {{{ addReporter()
-
-    /**
-     * Adds a reporter.
-     *
-     * @param string $in_reporter The reporter name (must be one of the
-     *        valid reporters)
-     * @param int $in_level The debug level at which this reporter is
-     *        active.
-     * @param array $in_data (optional) An array of any needed data for
-     *        the reporter.
-     *
-     * @access public
-     * @return void
-     */
-    function addReporter($in_reporter, $in_level, $in_data = null)
-    {
-        $this->reporters[$in_reporter] = array('level' => $in_level, 'data' => $in_data); 
-    }
-
-    // }}}
     // {{{ addError()
 
     /**
@@ -339,6 +339,73 @@ class FF_ErrorHandler {
                 'file' => $in_file, 'line' => $in_line,
                 'variables' => array($in_name => $in_variable), 'signature' => mt_rand());
         $this->addError($a_error);
+    }
+
+    // }}}
+    // {{{ _trapError()
+
+    function _trapError($in_errno, $in_errstr, $in_errfile, $in_errline, $in_errcontext)
+    {
+        // silenced error (using @)
+        if (error_reporting() == 0) {
+            return;
+        }
+        
+        // Weed out duplicate errors (coming from same line and file)
+        $signature = md5($in_errstr . ':' . $in_errfile . ':' . $in_errline);
+        if (isset($this->signatures[$signature])) {
+            return;
+        }
+        else {
+            $this->signatures[$signature] = true;
+        }
+
+        // Cut out the fat from the variable context (we get back a lot of junk)
+        $variables =& $in_errcontext;
+        $variablesFiltered = array();
+        foreach (array_keys($variables) as $variableName) {
+            // These are server variables most likely
+            if ($variableName == strtoupper($variableName) ||
+                // Private/Super-Global vars
+                $variableName{0} == '_' ||
+                // Passed in vars
+                $variableName == 'argv' || $variableName == 'argc' ||
+                // See if objects should be excluded
+                ($this->excludeObjects && gettype($variables[$variableName]) == 'object') ||
+                // Don't allow instance of errorstack to come through
+                is_a($variables[$variableName], 'FF_ErrorHandler')) {
+                continue;
+            }
+            
+            // Make a copy to preserve the state at time of error
+            $variablesFiltered[$variableName] = $variables[$variableName];
+        }
+
+        $a_error = array('level' => $in_errno, 'message' => $in_errstr,
+            'file' => $in_errfile, 'line' => $in_errline,
+            'variables' => $variablesFiltered, 'signature' => $signature);
+        $this->addError($a_error);
+    }
+
+    // }}}
+    // {{{ _addReporter()
+
+    /**
+     * Adds a reporter.
+     *
+     * @param string $in_reporter The reporter name (must be one of the
+     *        valid reporters)
+     * @param int $in_level The debug level at which this reporter is
+     *        active.
+     * @param array $in_data (optional) An array of any needed data for
+     *        the reporter.
+     *
+     * @access private 
+     * @return void
+     */
+    function _addReporter($in_reporter, $in_level, $in_data = null)
+    {
+        $this->reporters[$in_reporter] = array('level' => $in_level, 'data' => $in_data); 
     }
 
     // }}}
@@ -762,72 +829,4 @@ class FF_ErrorHandler {
 
     // }}}
 }
-
-// {{{ trapError()
-
-function trapError()
-{
-    static $variable, $signatures = array();
-
-    if (!isset($prependString) || !isset($appendString)) {
-        $prependString = ini_get('error_prepend_string');
-        $appendString = ini_get('error_append_string');
-    }
-
-    // error event has been caught
-    if (func_num_args() == 5) {
-        // silenced error (using @)
-        if (error_reporting() == 0) {
-            return;
-        }
-        
-        $args = func_get_args();
-
-        // Weed out duplicate errors (coming from same line and file)
-        $signature = md5($args[1] . ':' . $args[2] . ':' . $args[3]);
-        if (isset($signatures[$signature])) {
-            return;
-        }
-        else {
-            $signatures[$signature] = true;
-        }
-
-        // Cut out the fat from the variable context (we get back a lot of junk)
-        $variables =& $args[4];
-        $variablesFiltered = array();
-        $excludeObjects = $GLOBALS[$variable]->excludeObjects;
-        foreach (array_keys($variables) as $variableName) {
-            // These are server variables most likely
-            if ($variableName == strtoupper($variableName) ||
-                // Private/Super-Global vars
-                $variableName{0} == '_' ||
-                // Passed in vars
-                $variableName == 'argv' || $variableName == 'argc' ||
-                // See if objects should be excluded
-                ($GLOBALS[$variable]->excludeObjects && gettype($variables[$variableName]) == 'object') ||
-                // Don't allow instance of errorstack to come through
-                is_a($variables[$variableName], 'FF_ErrorHandler')) {
-                continue;
-            }
-            
-            // Make a copy to preserve the state at time of error
-            $variablesFiltered[$variableName] = $variables[$variableName];
-        }
-
-        $a_error = array('level' => $args[0],
-            'message' => $prependString . $args[1] . $appendString,
-            'file' => $args[2], 'line' => $args[3],
-            'variables' => $variablesFiltered, 'signature' => $signature);
-        $GLOBALS[$variable]->addError($a_error);
-    }
-    // If only one arg this is the initialization of this function
-    elseif (func_num_args() == 1) {
-        $variable = func_get_arg(0);
-    }
-    else {
-        return $variable;
-    }
-}
-
-// }}}
 ?>

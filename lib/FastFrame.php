@@ -194,24 +194,30 @@ class FastFrame {
     // }}}
 }
 
-    // {{{ clone()
+// {{{ PHP4 compat
+if (!defined('E_STRICT')) {
+    define('E_STRICT', 2048);
+}
 
-    /**
-     * For PHP4 compatibility
-     *
-     * @param object $obj The object to clone
-     *
-     * @return object The cloned object
-     */
-    if (version_compare(phpversion(), '5.0') === -1) {
-        // Needs to be wrapped in eval as clone is a keyword in PHP5
-        eval('
-            function clone($obj)
-            {
-                return $obj;
-            }
-        ');
-    }
-   
-    // }}} 
+// {{{ clone()
+
+/**
+ * For cloning objects
+ *
+ * @param object $obj The object to clone
+ *
+ * @return object The cloned object
+ */
+if (version_compare(phpversion(), '5.0') === -1) {
+    // Needs to be wrapped in eval as clone is a keyword in PHP5
+    eval('
+        function clone($obj)
+        {
+            return $obj;
+        }
+    ');
+}
+
+// }}} 
+// }}}
 ?>
