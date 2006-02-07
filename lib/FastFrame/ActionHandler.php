@@ -564,7 +564,7 @@ class FF_ActionHandler {
         PEAR::setErrorHandling(PEAR_ERROR_TRIGGER, E_USER_NOTICE); 
         // Don't re-initialize the error handler
         if (!isset($GLOBALS['o_error'])) {
-            $o_error =& new FF_ErrorHandler($this->o_registry->getConfigParam('error/reporters', array()));
+            $o_error = new FF_ErrorHandler($this->o_registry->getConfigParam('error/reporters', array()));
             $GLOBALS['o_error'] =& $o_error;
             $o_error->setDateFormat('[Y-m-d H:i:s]');
             $o_error->setExcludeObjects(false);

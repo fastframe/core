@@ -147,16 +147,17 @@ class FF_CLI {
         $o_registry->pushApp($in_app);
         if (!isset($GLOBALS['o_error'])) {
             PEAR::setErrorHandling(PEAR_ERROR_TRIGGER, E_USER_NOTICE); 
-            $o_error =& new FF_ErrorHandler();
+            if ($this->_console) {
+                $a_reporter = array('stdout' => array('level' => E_VERY_ALL));
+            }
+            else {
+                $a_reporter = array('console' => array('level' => E_VERY_ALL));
+            }
+
+            $o_error = new FF_ErrorHandler($a_reporter);
             $GLOBALS['o_error'] =& $o_error;
             $o_error->setDateFormat('[Y-m-d H:i:s]');
             $o_error->setExcludeObjects(false);
-            if ($this->_console) {
-                $o_error->addReporter('stdout', E_VERY_ALL, array());
-            }
-            else {
-                $o_error->addReporter('console', E_VERY_ALL, array());
-            }
         }
     }
 

@@ -215,7 +215,6 @@ class FF_List {
         $a_listVars = $this->getAllListVariables();
         $o_form =& new HTML_QuickForm('search_box', 'POST', FastFrame::selfURL(), '_self');
         $o_renderer =& new HTML_QuickForm_Renderer_QuickHtml();
-        $o_form->setConstants(array_merge($this->persistentData, $a_listVars));
         $a_searchFields = array();
         foreach ($this->getSearchableFields() as $a_val) {
             $a_searchFields[$a_val['search']] = $a_val['name'];
@@ -288,13 +287,13 @@ class FF_List {
             $o_form->addElement('hidden', $s_key, $s_val);
         }
 
-        $a_defaults = array();
+        $a_constants = array_merge($this->persistentData, $a_listVars);
         foreach ($this->extraSearchElements as $a_element) {
             $o_form->addElement('select', $a_element[1], null, $a_element[2], $a_element[4]);
-            $a_defaults[$a_element[1]] = $a_element[3];
+            $a_constants[$a_element[1]] = $a_element[3];
         }
 
-        $o_form->setDefaults($a_defaults);
+        $o_form->setConstants($a_constants);
         $o_form->accept($o_renderer);
         if ($s_pagination === false) {
             $s_pagination = $o_renderer->elementToHtml("pageOffset[$this->listId]");
