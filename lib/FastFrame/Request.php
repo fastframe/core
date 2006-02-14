@@ -171,7 +171,7 @@ class FF_Request {
     function stripslashesDeep($in_var)
     {
         if (is_array($in_var)) {
-            array_walk($in_var, array('FF_Request', 'stripslashesDeep'));
+            $in_var = array_map(array('FF_Request', 'stripslashesDeep'), $in_var);
         }
         else {
             // Stripslashes makes false turn to empty
