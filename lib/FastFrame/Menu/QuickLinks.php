@@ -102,7 +102,8 @@ class FF_Menu_QuickLinks extends FF_Menu_StaticList {
      */
     function _isMenuCached()
     {
-        if (!file_exists(($pth_file = $this->o_fileCache->getPath($this->cacheFile)))) {
+        list($s_subdir, $s_name) = explode('/', $this->cacheFile);
+        if (!file_exists(($pth_file = $this->o_fileCache->getPath(array('subdir' => $s_subdir, 'name' => $s_name))))) {
             return false;
         }
         else {

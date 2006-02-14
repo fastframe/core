@@ -58,28 +58,37 @@ class FastFrame {
      */
     function url($in_url, $in_vars = array(), $in_full = false, $in_ssl = false)
     {
+        static $s_webRoot, $b_useSSL, $s_hostname, $b_sessAppend, $s_argSep;
+        // This avoids hundreds of useless function calls
+        if (!isset($s_webRoot)) {
+            $o_registry =& FF_Registry::singleton();
+            $s_webRoot = $o_registry->getConfigParam('webserver/web_root');
+            $b_useSSL = $o_registry->getConfigParam('webserver/use_ssl');
+            $s_hostname = $o_registry->getConfigParam('webserver/hostname');
+            $b_sessAppend = $o_registry->getConfigParam('session/append');
+            $s_argSep = ini_get('arg_separator.output');
+        }
+
         if (strpos($in_url, 'javascript:') === 0) {
             return $in_url;
         }
 
-        $o_registry =& FF_Registry::singleton();
         // If the link does not have the webpath, then add it.
         if (strpos($in_url, '/') !== 0 && !preg_match(':^https?\://:', $in_url)) {
-            $in_url = $o_registry->getConfigParam('webserver/web_root') . '/' . $in_url;
+            $in_url = $s_webRoot . '/' . $in_url;
         }
 
         // See if we need to make this a full query string.
         // If using ssl then force all urls to be https.
-        $b_ssl = ($in_ssl || $o_registry->getConfigParam('webserver/use_ssl'));
+        $b_ssl = ($in_ssl || $b_useSSL);
         if (($in_full || $b_ssl) && !preg_match(':^https?\://:', $in_url)) {
-            $in_url = ($b_ssl ? 'https' : 'http') .  '://' . 
-                $o_registry->getConfigParam('webserver/hostname') . $in_url;
+            $in_url = ($b_ssl ? 'https' : 'http') .  '://' . $s_hostname . $in_url;
         }
 
         // Add the session to the array list if it is configured to do so
         $s_sessName = session_name();
         if (!isset($in_vars[$s_sessName]) &&
-            (!isset($_COOKIE[$s_sessName]) || $o_registry->getConfigParam('session/append'))) {
+            (!isset($_COOKIE[$s_sessName]) || $b_sessAppend)) {
             // don't lock the user out with an empty session id!
             if (!FastFrame::isEmpty(session_id())) {
                 $in_vars[$s_sessName] = session_id();
@@ -98,9 +107,9 @@ class FastFrame {
             $in_vars[$k] = urlencode($k) . '=' . urlencode($v);
         }
 
-        $queryString = implode(ini_get('arg_separator.output'), $in_vars);
+        $queryString = implode($s_argSep, $in_vars);
         if (!empty($queryString)) {
-            $in_url .= (strpos($in_url, '?') === false) ? '?' : ini_get('arg_separator.output');
+            $in_url .= (strpos($in_url, '?') === false) ? '?' : $s_argSep;
             $in_url .= $queryString;
         }
 

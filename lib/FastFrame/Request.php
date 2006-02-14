@@ -84,6 +84,16 @@ class FF_Request {
      */
     function getParam($in_varName, $in_type = 'gpc', $in_default = null)
     {
+        static $b_init;
+        if (!isset($b_init)) {
+            $b_init = true;
+            if (get_magic_quotes_gpc()) {
+                $_POST = FF_Request::stripslashesDeep($_POST);
+                $_GET = FF_Request::stripslashesDeep($_GET);
+                $_COOKIE = FF_Request::stripslashesDeep($_COOKIE);
+            }
+        }
+
         $tmp_len = strlen($in_type);
         $tmp_vars = FF_Request::_getRequestVars();
         $s_varName = FF_Request::_getVarName($in_varName);
@@ -96,12 +106,7 @@ class FF_Request {
             }
         }
 
-        if (isset($s_data)) {
-            return FF_Request::_disableMagicQuotes($s_data);
-        }
-        else {
-            return $in_default;
-        }
+        return isset($s_data) ? $s_data : $in_default;
     }
 
     // }}}
@@ -153,36 +158,25 @@ class FF_Request {
     }
 
     // }}}
-    // {{{ _disableMagicQuotes()
+    // {{{ stripslashesDeep()
 
     /**
-     * If magic_quotes_gpc is in use, strip the slashes
-     *
-     * Some servers have strings automatically escaped when submitted from a form.
-     * Here will strip any that exist on a non-array
+     * Strips the slashes, including deep arrays
      *
      * @param  mixed $in_var The string or array to un-quote, if necessary.
      *
-     * @access public
-     * @return mixed variable minus any magic quotes.
+     * @access public 
+     * @return mixed variable minus any slashes
      */
-    function _disableMagicQuotes(&$in_var)
+    function stripslashesDeep($in_var)
     {
-        static $b_magicQuotesEnabled;
-
-        if (!isset($b_magicQuotesEnabled)) {
-            $b_magicQuotesEnabled = get_magic_quotes_gpc();
+        if (is_array($in_var)) {
+            array_walk($in_var, array('FF_Request', 'stripslashesDeep'));
         }
-
-        if ($b_magicQuotesEnabled) {
-            if (is_array($in_var)) {
-                array_walk($in_var, array('FF_Request', '_disableMagicQuotes'));
-            }
-            else {
-                // Stripslashes makes false turn to empty
-                if (!is_bool($in_var)) {
-                    $in_var = stripslashes($in_var);
-                }
+        else {
+            // Stripslashes makes false turn to empty
+            if (!is_bool($in_var)) {
+                $in_var = stripslashes($in_var);
             }
         }
 

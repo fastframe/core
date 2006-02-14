@@ -220,7 +220,8 @@ class FF_Menu {
      */
     function _isMenuCached()
     {
-        if (!file_exists(($pth_file = $this->o_fileCache->getPath($this->cacheFile)))) {
+        list($s_subdir, $s_name) = explode('/', $this->cacheFile);
+        if (!file_exists(($pth_file = $this->o_fileCache->getPath(array('subdir' => $s_subdir, 'name' => $s_name))))) {
             return false;
         }
         else {
@@ -265,7 +266,8 @@ class FF_Menu {
         $o_registry =& FF_Registry::singleton();
         $o_output =& FF_Output::singleton();
         ob_start();
-        require_once $this->o_fileCache->getPath($this->cacheFile);
+        list($s_subdir, $s_name) = explode('/', $this->cacheFile);
+        require_once $this->o_fileCache->getPath(array('subdir' => $s_subdir, 'name' => $s_name));
         $s_data = ob_get_contents();
         ob_end_clean();
         return $s_data;

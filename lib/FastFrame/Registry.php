@@ -326,17 +326,17 @@ class FF_Registry {
     function getFile($in_file, $in_type = FASTFRAME_FILEPATH)
     {
         $a_pathParts = array();
-        // App should always be FASTFRAME_DEFAULT_APP because this method can be called
-        // from getConfigParam() and we don't want an infinite loop
+        // Given the number of times this is called and that it can be
+        // called from getConfigParam() we access the config array directly
         switch ($in_type) {
             case FASTFRAME_WEBPATH:
-                $a_pathParts = array($this->getConfigParam('webserver/web_root', '', FASTFRAME_DEFAULT_APP));
+                $a_pathParts = array($this->config[FASTFRAME_DEFAULT_APP]['webserver']['web_root']);
                 break;
             case FASTFRAME_FILEPATH:
-                $a_pathParts = array($this->getConfigParam('webserver/file_root', '', FASTFRAME_DEFAULT_APP));
+                $a_pathParts = array($this->config[FASTFRAME_DEFAULT_APP]['webserver']['file_root']);
                 break;
             case FASTFRAME_DATAPATH:
-                $a_pathParts = array($this->getConfigParam('webserver/data_root', '', FASTFRAME_DEFAULT_APP));
+                $a_pathParts = array($this->config[FASTFRAME_DEFAULT_APP]['webserver']['data_root']);
                 break;
             default:
                 break;

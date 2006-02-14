@@ -82,19 +82,21 @@ class FF_FileCache {
      * Saves a file to cache.
      *
      * @param string $in_data The file data
-     * @param string $in_filePath The subpath an filename (i.e.
-     *        css/gecko.css)
+     * @param array $in_fileParts Array of data about how to save the
+     *        file. 'name' (required name of file), 'subdir' (optional
+     *        sub dir to put it in, 'id' (optional object id that these
+     *        files are associated with) 
      * @param bool $in_useApp (optional) Save it into the current app
      *        dir?
      *
      * @access public
      * @return object A success object
      */
-    function save($in_data, $in_filePath, $in_useApp = false)
+    function save($in_data, $in_fileParts, $in_useApp = false)
     {
         $o_result = new FF_Result();
-        $this->checkDir($in_filePath, $in_useApp);
-        $s_path = $this->getPath($in_filePath, $in_useApp);
+        $this->checkDir($in_fileParts, $in_useApp);
+        $s_path = $this->getPath($in_fileParts, $in_useApp);
         require_once 'File.php';
         $tmp_result = File::write($s_path, $in_data, FILE_MODE_WRITE);
         if (PEAR::isError($tmp_result)) {
@@ -114,19 +116,20 @@ class FF_FileCache {
      * sure it is a valid upload file and within the size limits.
      *
      * @param array $in_uploadData The data about the file from $_FILES
-     * @param string $in_filePath The subpath an filename (i.e.
-     *        12.jpg)
-     * @param int $in_maxSize The max size of the file.  Pass 0 for no
-     *        max size.
-     *  @param array $in_validTypes (optional) An array of valid file
-     *         types.
-     * @param bool $in_useApp (optional) Save it into the current app
-     *        dir?
+     * @param array $in_fileParts Array of data about how to save the
+     *              file. 'name' (optoinal name of file if different
+     *              than uploaded name), 'subdir' (optional sub dir
+     *              to put it in, 'id' (optional object id that these
+     *              files are associated with)
+     * @param int $in_maxSize (optional) The max size of the file.  Pass
+     *            0 for no max size.
+     *  @param array $in_validTypes (optional) An array of valid file types.
+     * @param bool $in_useApp (optional) Save it into the current app dir?
      *
      * @access public
      * @return object A success object
      */
-    function saveUploadedFile($in_uploadData, $in_filePath, $in_maxSize, $in_validTypes = array(), $in_useApp = false)
+    function saveUploadedFile($in_uploadData, $in_fileParts, $in_maxSize = 0, $in_validTypes = array(), $in_useApp = false)
     {
         $o_result = new FF_Result();
         // See if a file was sent
@@ -164,8 +167,12 @@ class FF_FileCache {
             return $o_result;
         }
 
-        $this->checkDir($in_filePath, $in_useApp);
-        if (!move_uploaded_file($in_uploadData['tmp_name'], $this->getPath($in_filePath, $in_useApp))) {
+        if (!isset($in_fileParts['name'])) {
+            $in_fileParts['name'] = $in_uploadData['name'];
+        }
+
+        $this->checkDir($in_fileParts, $in_useApp);
+        if (!move_uploaded_file($in_uploadData['tmp_name'], $this->getPath($in_fileParts, $in_useApp))) {
             $o_result->addMessage(_('Could not save the uploaded file.'));
             $o_result->setSuccess(false);
             return $o_result;
@@ -181,19 +188,20 @@ class FF_FileCache {
      * Makes the files in the cache directory viewable by web browsers.
      * By default access is denied to the files.
      *
-     * @param string $in_filePath The subpath an filename (i.e.
-     *        css/gecko.css)
+     * @param array $in_fileParts Array of data about how to save the
+     *        file. 'subdir' (requied sub dir to put it in), 'id'
+     *        (optional object id that these files are associated with)
      * @param bool $in_useApp (optional) Save it into the current app
      *        dir?
      *
      * @access public
      * @return void
      */
-    function makeViewableFromWeb($in_filePath, $in_useApp = false)
+    function makeViewableFromWeb($in_fileParts, $in_useApp = false)
     {
-        $a_parts = pathinfo($in_filePath);
-        if (!$this->exists($a_parts['dirname'] . '/.htaccess', $in_useApp)) {
-            $o_reult =& $this->save('Allow from all', $a_parts['dirname'] . '/.htaccess', $in_useApp);
+        $in_fileParts['name'] = '.htaccess';
+        if (!$this->exists($in_fileParts, $in_useApp)) {
+            $o_reult =& $this->save('Allow from all', $in_fileParts, $in_useApp);
         }
     }
 
@@ -203,43 +211,44 @@ class FF_FileCache {
     /**
      * Checks if a cache file exists
      *
-     * @param string $in_filePath The subpath an filename (i.e.
-     *        css/gecko.css)
+     * @param array $in_fileParts Array of data about how to save the
+     *        file. 'name' (required name of file), 'subdir' (optional
+     *        sub dir to put it in, 'id' (optional object id that these
+     *        files are associated with) 
      * @param bool $in_useApp (optional) Check in the current app dir?
      *
      * @access public
      * @return bool True if it exists, false otherwise
      */
-    function exists($in_filePath, $in_useApp = false)
+    function exists($in_fileParts, $in_useApp = false)
     {
+        $s_path = $this->getPath($in_fileParts, $in_useApp);
         // If it's a directory then don't test existence
-        if (substr($in_filePath, -1) == '/') {
+        if (is_dir($s_path)) {
             return false;
         }
 
-        return file_exists($this->getPath($in_filePath, $in_useApp));
+        return file_exists($s_path);
     }
 
     // }}}
-    // {{{ getFilesByPrefix()
+    // {{{ getFilesForObject()
 
     /**
-     * Returns all the files with the specified prefix.
+     * Returns all the files with the specified object.
      *
-     * @param string $in_prefix The file prefix
-     * @param string $in_filePath The subpath an filename (i.e.
-     *        css/gecko.css)
-     * @param bool $in_useApp (optional) Check in the current app dir?
+     * @param string $in_id The object id
+     * @param string $in_filePath The subdir (i.e. ticket_files/)
      *
      * @access public
      * @return array The array of file names 
      */
-    function getFilesByPrefix($in_prefix, $in_filePath, $in_useApp = false)
+    function getFilesForObject($in_id, $in_filePath)
     {
         $a_files = array();
-        if ($handle = @opendir($this->getPath($in_filePath, $in_useApp))) {
+        if ($handle = @opendir($this->getPath(array('subdir' => $in_filePath, 'id' => $in_id), true))) {
             while (false !== ($file = readdir($handle))) {
-                if ($file != '.' && $file != '..' && strpos($file, $in_prefix) === 0) {
+                if ($file != '.' && $file != '..') {
                     $a_files[] = $file;
                 }
             }
@@ -256,16 +265,26 @@ class FF_FileCache {
     /**
      * Remove an uploaded file.
      *
-     * @param string $in_filePath The subpath an filename (i.e.
-     *        css/gecko.css)
+     * @param array $in_fileParts Array of data about how to save the
+     *        file. 'name' (required name of file), 'subdir' (optional
+     *        sub dir to put it in, 'id' (optional object id that these
+     *        files are associated with) 
      * @param bool $in_useApp (optional) Look in the current app dir?
      *
      * @access public
      * @return void
      */
-    function remove($in_filePath, $in_useApp = false)
+    function remove($in_fileParts, $in_useApp = false)
     {
-        @unlink($this->getPath($in_filePath, $in_useApp));
+        $s_path = $this->getPath($in_fileParts, $in_useApp); 
+        @unlink($s_path);
+        // See if the id directory is now empty
+        if (isset($in_fileParts['id']) && isset($in_fileParts['subdir'])) {
+            $a_files = $this->getFilesForObject($in_fileParts['id'], $in_fileParts['subdir']);
+            if (!count($a_files)) {
+                @rmdir(dirname($s_path));
+            }
+        }
     }
 
     // }}}
@@ -274,8 +293,10 @@ class FF_FileCache {
     /**
      * Gets the path to the cache file
      *
-     * @param string $in_filePath The subpath an filename (i.e.
-     *        css/gecko.css)
+     * @param array $in_fileParts Array of data about how to save the
+     *        file. 'name' (required name of file), 'subdir' (optional
+     *        sub dir to put it in, 'id' (optional object id that these
+     *        files are associated with) 
      * @param bool $in_useApp (optional) Check in the current app dir?
      * @param int $in_type (optional) What type of path to build, based
      *        on the constants (default is FASTFRAME_FILEPATH)
@@ -283,10 +304,14 @@ class FF_FileCache {
      * @access public
      * @return string The path to the cache file
      */
-    function getPath($in_filePath, $in_useApp = false, $in_type = FASTFRAME_FILEPATH)
+    function getPath($in_fileParts, $in_useApp = false, $in_type = FASTFRAME_FILEPATH)
     {
         $s_app = $in_useApp ? $this->o_registry->getCurrentApp() . '/' : '';
-        return $this->o_registry->getRootFile($s_app . $in_filePath, 'data', $in_type);
+        $s_path = '';
+        $s_path .= isset($in_fileParts['subdir']) ? ($in_fileParts['subdir'] . '/') : '';
+        $s_path .= isset($in_fileParts['id']) ? ($in_fileParts['id'] . '/') : '';
+        $s_path .= $in_fileParts['name'];
+        return $this->o_registry->getRootFile($s_app . $s_path, 'data', $in_type);
     }
 
     // }}}
@@ -295,19 +320,21 @@ class FF_FileCache {
     /**
      * Checks to make sure the directory is created for the cache file
      *
-     * @param string $in_filePath The subpath an filename (i.e.
-     *        css/gecko.css)
+     * @param array $in_fileParts Array of data about how to save the
+     *        file. 'name' (required name of file), 'subdir' (optional
+     *        sub dir to put it in, 'id' (optional object id that these
+     *        files are associated with) 
      * @param bool $in_useApp (optional) Check inthe current app dir?
      *
      * @access public
      * @return void
      */
-    function checkDir($in_filePath, $in_useApp = false)
+    function checkDir($in_fileParts, $in_useApp = false)
     {
-        $a_parts = pathinfo($this->getPath($in_filePath, $in_useApp));
-        if (!is_dir($a_parts['dirname'])) {
+        $s_dir = dirname($this->getPath($in_fileParts, $in_useApp));
+        if (!is_dir($s_dir)) {
             require_once 'System.php';
-            if (!@System::mkdir("-p {$a_parts['dirname']}"))  {
+            if (!@System::mkdir("-p $s_dir"))  {
                 trigger_error('Could not write to the FastFrame data directory.', E_USER_ERROR);
             }
         }

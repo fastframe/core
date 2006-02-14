@@ -59,7 +59,8 @@ class FF_Menu_DOM extends FF_Menu {
             ));
             ' . $this->_generateMenuVars() . '
             </script>';
-            $this->o_fileCache->save($s_domMenu, $this->cacheFile);
+            list($s_subdir, $s_name) = explode('/', $this->cacheFile);
+            $this->o_fileCache->save($s_domMenu, array('subdir' => $s_subdir, 'name' => $s_name));
         }
 
         $s_domMenu = $this->_getCachedMenu();

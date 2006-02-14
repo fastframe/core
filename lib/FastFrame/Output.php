@@ -251,11 +251,11 @@ class FF_Output {
 
         // Determine the css file based on the browser
         $s_cssFileName = str_replace('.tpl', '', $in_styleFile) . '-' . $s_browser . '.css';
-        $s_cssCacheFile = 'css/' . $in_theme . '/' . $s_cssFileName;
+        $a_cssCacheFile = array('subdir' => 'css', 'id' => $in_theme, 'name' => $s_cssFileName);
 
         // Make the CSS file if needed
-        if (!$o_fileCache->exists($s_cssCacheFile) || 
-            filemtime($s_cssTemplateFile) > filemtime($o_fileCache->getPath($s_cssCacheFile))) {
+        if (!$o_fileCache->exists($a_cssCacheFile) || 
+            filemtime($s_cssTemplateFile) > filemtime($o_fileCache->getPath($a_cssCacheFile))) {
             $o_cssWidget =& new FF_Smarty($s_cssTemplateFile); 
             // We already know the template is out of date
             $o_cssWidget->force_compile = true;
@@ -265,17 +265,17 @@ class FF_Output {
             $o_cssWidget->assign(array('is_' . $s_browser => true,
                     'THEME_DIR' => $this->o_registry->rootPathToWebPath($in_themeDir),
                     'ROOT_GRAPHICS_DIR' => $this->o_registry->getRootFile('', 'graphics', FASTFRAME_WEBPATH)));
-            $o_result =& $o_fileCache->save($o_cssWidget->fetch(), $s_cssCacheFile);
+            $o_result =& $o_fileCache->save($o_cssWidget->fetch(), $a_cssCacheFile);
             if (!$o_result->isSuccess()) {
                 foreach ($o_result->getMessages() as $s_message) {
                     trigger_error($s_message, E_USER_ERROR);
                 }
             }
 
-            $o_fileCache->makeViewableFromWeb($s_cssCacheFile);
+            $o_fileCache->makeViewableFromWeb($a_cssCacheFile);
         }
 
-        $s_cssURL = $o_fileCache->getPath($s_cssCacheFile, false, FASTFRAME_WEBPATH);
+        $s_cssURL = $o_fileCache->getPath($a_cssCacheFile, false, FASTFRAME_WEBPATH);
         // register the CSS file 
         $this->o_tpl->append('headers',
                 // put the filemtime on so that they only grab the new file when it is recreated
