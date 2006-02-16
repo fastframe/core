@@ -50,13 +50,28 @@ class FF_Request {
      */
     function setParam($in_varName, $in_val, $in_type)
     {
-        $tmp_len = strlen($in_type);
-        $tmp_vars = FF_Request::_getRequestVars();
-        $s_varName = FF_Request::_getVarName($in_varName);
+        $a_vars = array('c' => '$_COOKIE', 
+                        'p' => '$_POST', 
+                        'g' => '$_GET', 
+                        's' => '$_SESSION', 
+                        'f' => '$_FILES');
         // Set the variable in each requested type
-        for ($i = 0; $i < $tmp_len; $i++) {
-            $tmp_var = $tmp_vars[$in_type{$i}] . $s_varName;
-            eval($tmp_var . ' = $in_val;');
+        for ($i = 0; $i < strlen($in_type); $i++) {
+            // Switch's aren't great, but variable variables of superglobals don't work in functions
+            switch ($in_type{$i}) {
+                case 'g':
+                    $_GET[$in_varName] = $in_val;
+                break;
+                case 'p':
+                    $_POST[$in_varName] = $in_val;
+                break;
+                case 's':
+                    $_SESSION[$in_varName] = $in_val;
+                break;
+                case 'c':
+                    $_COOKIE[$in_varName] = $in_val;
+                break;
+            }
         }
     }
 
@@ -94,19 +109,38 @@ class FF_Request {
             }
         }
 
-        $tmp_len = strlen($in_type);
-        $tmp_vars = FF_Request::_getRequestVars();
-        $s_varName = FF_Request::_getVarName($in_varName);
         // Get the variable from the first variable type in which it is present
-        for ($i = 0; $i < $tmp_len; $i++) {
-            $tmp_var = $tmp_vars[$in_type{$i}] . $s_varName;
-            if (eval('return isset(' . $tmp_var . ');')) {
-                $s_data = eval('return ' . $tmp_var . ';');
+        for ($i = 0; $i < strlen($in_type); $i++) {
+            switch($in_type{$i}) {
+                case 'g':
+                    if (isset($_GET[$in_varName])) {
+                        return $_GET[$in_varName];
+                    }
+                break;
+                case 'p':
+                    if (isset($_POST[$in_varName])) {
+                        return $_POST[$in_varName];
+                    }
+                break;
+                case 's':
+                    if (isset($_SESSION[$in_varName])) {
+                        return $_SESSION[$in_varName];
+                    }
+                break;
+                case 'c':
+                    if (isset($_COOKIE[$in_varName])) {
+                        return $_COOKIE[$in_varName];
+                    }
+                break;
+                case 'f':
+                    if (isset($_FILES[$in_varName])) {
+                        return $_FILES[$in_varName];
+                    }
                 break;
             }
         }
 
-        return isset($s_data) ? $s_data : $in_default;
+        return $in_default;
     }
 
     // }}}
@@ -181,55 +215,6 @@ class FF_Request {
         }
 
         return $in_var;
-    }
-
-    // }}}
-    // {{{ _getRequestVars()
-
-    /**
-     * Gets an array of the request variables
-     *
-     * @access private
-     * @return array An array of the request variables (key is the
-     *         abbreviation for the var)
-     */
-    function _getRequestVars()
-    {
-        return $requestVars = array(
-            'c' => '$_COOKIE', 
-            'p' => '$_POST', 
-            'g' => '$_GET', 
-            's' => '$_SESSION', 
-            'f' => '$_FILES');
-    }
-
-    // }}}
-    // {{{ _getVarName()
-
-    /**
-     * Gets the appropriate variable name for accessing an element from
-     * one of the request arrays.  Supports nested array variables.
-     *
-     * @param string $in_varName The name of the variable.
-     *
-     * @access private
-     * @return string The new variable name.
-     */
-    function _getVarName($in_varName)
-    {
-        // Can't have single quotes in variable since we put them in if needed
-        $s_varName = str_replace('\'', '', $in_varName);
-
-        // If the variable is an array then create the correct key (i.e. foo['bar'])
-        if ($tmp_pos = strpos($s_varName, '[')) {
-            $s_varName = '[\'' . substr($s_varName, 0, $tmp_pos) . '\']' . 
-                str_replace(array('[', ']'), array('[\'', '\']'), substr($s_varName, $tmp_pos));
-        }
-        else {
-            $s_varName = '[\'' . $s_varName . '\']';
-        }
-
-        return $s_varName;
     }
 
     // }}}

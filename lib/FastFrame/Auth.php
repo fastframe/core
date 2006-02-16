@@ -129,18 +129,18 @@ class FF_Auth {
     function checkAuth($in_full = false)
     {
         if (!$in_full) {
-            return FF_Request::getParam('__auth__[\'registered\']', 's', false);
+            return (isset($_SESSION['__auth__']['registered']) && $_SESSION['__auth__']['registered'] == true);
         }
 
         $o_registry =& FF_Registry::singleton();
-        if (FF_Request::getParam('__auth__', 's', false) != false) {
-            if (FF_Request::getParam('__auth__[\'browser\']', 's', false) != @$_SERVER['HTTP_USER_AGENT']) {
+        if (isset($_SESSION['__auth__'])) {
+            if ($_SESSION['__auth__']['browser'] != @$_SERVER['HTTP_USER_AGENT']) {
                 FF_Auth::_setStatus(FASTFRAME_AUTH_BROWSER);
                 return false;
             }
-            elseif (FF_Request::getParam('__auth__[\'idle\']', 's', false) &&
+            elseif (isset($_SESSION['__auth__']['idle']) &&
                     ($idle = $o_registry->getConfigParam('session/idle')) > 0 && 
-                    (FF_Request::getParam('__auth__[\'idle\']', 's') + $idle) < time()) {
+                    ($_SESSION['__auth__']['idle'] + $idle) < time()) {
                 FF_Auth::_setStatus(FASTFRAME_AUTH_IDLED);
                 return false;
             }
@@ -149,7 +149,7 @@ class FF_Auth {
                 FF_Auth::_setStatus(FASTFRAME_AUTH_BAD_APP);
                 return false;
             }
-            elseif (FF_Request::getParam('__auth__[\'registered\']', 's', false)) {
+            elseif (isset($_SESSION['__auth__']['registered']) && $_SESSION['__auth__']['registered'] == true) {
                 FF_Auth::_setStatus(FASTFRAME_AUTH_OK);
                 FF_Auth::_updateIdle();
             }
@@ -211,15 +211,15 @@ class FF_Auth {
      */
     function setAuth($in_username, $in_credentials = array())
     {
-        FF_Request::setParam('__auth__', array(
+        $in_credentials['username'] = $in_username;
+        $_SESSION['__auth__'] = array(
             'registered' => true,
             'status'     => FASTFRAME_AUTH_OK,
             'username'   => $in_username,
             'browser'    => isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : null,
             'timestamp'  => time(),
-            'idle'       => time()), 's');
-        $in_credentials['username'] = $in_username;
-        FF_Request::setParam('__auth__[\'credentials\']', $in_credentials, 's');
+            'idle'       => time(),
+            'credentials'=> $in_credentials);
         
         // set the anchor for this browser
         $o_registry =& FF_Registry::singleton();
@@ -242,7 +242,7 @@ class FF_Auth {
      */
     function getStatus()
     {
-        return FF_Request::getParam('__auth__[\'status\']', 's', FASTFRAME_AUTH_NO_LOGIN);
+        return isset($_SESSION['__auth__']['status']) ? $_SESSION['__auth__']['status'] : FASTFRAME_AUTH_NO_LOGIN;
     }
 
     // }}}
@@ -259,7 +259,7 @@ class FF_Auth {
      */
     function setCredential($in_credential, $in_value)
     {
-        FF_Request::setParam('__auth__[\'credentials\'][\'' . $in_credential . '\']', $in_value, 's');
+        $_SESSION['__auth__']['credentials'][$in_credential] = $in_value;
     }
 
     // }}}
@@ -275,7 +275,8 @@ class FF_Auth {
      */
     function getCredential($in_credential)
     {
-        return FF_Request::getParam('__auth__[\'credentials\'][\'' . $in_credential . '\']', 's');
+        return isset($_SESSION['__auth__']['credentials'][$in_credential]) ? 
+            $_SESSION['__auth__']['credentials'][$in_credential] : false;
     }
 
     // }}}
@@ -290,7 +291,7 @@ class FF_Auth {
     function logout()
     {
         $o_result = new FF_Result();
-        $s_status = FF_Request::getParam('__auth__[\'status\']', 's');
+        $s_status = FF_Auth::getStatus();
         switch ($s_status) {
             case FASTFRAME_AUTH_BROWSER:
                 $o_result->addMessage(_('Your browser has changed since the beginning of your session. To protect your security, you must login again.'));
@@ -465,7 +466,7 @@ class FF_Auth {
      */
     function _getSessionAnchor()
     {
-        return @md5(FF_Request::getParam('__auth__[\'timestamp\']', 's') . @$_SERVER['HTTP_USER_AGENT']);
+        return @md5($_SESSION['__auth__']['timestamp'] . @$_SERVER['HTTP_USER_AGENT']);
     }
 
     // }}}
@@ -479,7 +480,7 @@ class FF_Auth {
      */
     function _setStatus($in_status)
     {
-        FF_Request::setParam('__auth__[\'status\']', $in_status, 's');
+        $_SESSION['__auth__']['status'] = $in_status;
     }
 
     // }}}
@@ -487,8 +488,7 @@ class FF_Auth {
 
     function _updateIdle() 
     {
-        // update the timestamp for the idle time
-        FF_Request::setParam('__auth__[\'idle\']', time(), 's');
+        $_SESSION['__auth__']['idle'] = time();
     }
 
     // }}}

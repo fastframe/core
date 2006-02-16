@@ -174,14 +174,15 @@ class FF_List {
         // These variables can change the number of results returned,
         // and thus could leave the user on an invalid page.  So, if we
         // are on a list page and they have changed we set the page to 1.
-        if (FF_Request::getParam("searchString[$this->listId]", 'gp', false) !== false &&
-            (FF_Request::getParam("searchString[$this->listId]", 'gp') !=
-                FF_Request::getParam("searchString[$this->listId]", 's') ||
-             FF_Request::getParam("searchField[$this->listId]", 'gp') !=
-                FF_Request::getParam("searchField[$this->listId]", 's') ||
-             FF_Request::getParam("displayLimit[$this->listId]", 'gp') !=
-                FF_Request::getParam("displayLimit[$this->listId]", 's'))) {
-            FF_Request::setParam("pageOffset[$this->listId]", 1, 'gp');
+        $a_searchString = FF_Request::getParam('searchString', 'gp', array());
+        $a_searchField = FF_Request::getParam('searchField', 'gp', array());
+        $a_displayLimit = FF_Request::getParam('displayLimit', 'gp', array());
+        if (isset($a_searchString[$this->listId]) &&
+            ($a_searchString[$this->listId] != $_SESSION['searchString'][$this->listId] ||
+             $a_searchField[$this->listId] != $_SESSION['searchField'][$this->listId] ||
+             $a_displayLimit[$this->listId] != $_SESSION['displayLimit'][$this->listId])) {
+            $_POST['pageOffset'][$this->listId] = 1;
+            $_GET['pageOffset'][$this->listId] = 1;
         }
 
         // Set all the fields with their default values
@@ -646,13 +647,15 @@ class FF_List {
      */
     function setDisplayLimit($in_limit)
     {
-        $this->displayLimit = (int) abs(FF_Request::getParam("displayLimit[$this->listId]", 'gps', $in_limit));
+        $tmp_vars = FF_Request::getParam('displayLimit', 'gps', array());
+        $s_val = isset($tmp_vars[$this->listId]) ? $tmp_vars[$this->listId] : $in_limit;
+        $this->displayLimit = (int) abs($s_val);
         // If it's somehow set to 0 (i.e. not passed into the constructor) then make it a default number
         if (!$this->displayLimit) {
             $this->displayLimit = 20;
         }
 
-        FF_Request::setParam('displayLimit[\'' . $this->listId . '\']', $this->displayLimit, 's');
+        $_SESSION['displayLimit'][$this->listId] = $this->displayLimit;
     }
 
     // }}}
@@ -684,13 +687,15 @@ class FF_List {
     function setPageOffset($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->pageOffset = (int) abs(FF_Request::getParam("pageOffset[$this->listId]", 'gps', 1));
+            $tmp_vars = FF_Request::getParam('pageOffset', 'gps', array());
+            $s_val = isset($tmp_vars[$this->listId]) ? $tmp_vars[$this->listId] : 1;
+            $this->pageOffset = (int) abs($s_val);
         }
         else {
             $this->pageOffset = (int) $in_value;
         }
 
-        FF_Request::setParam('pageOffset[\'' . $this->listId . '\']', $this->pageOffset, 's');
+        $_SESSION['pageOffset'][$this->listId] = $this->pageOffset;
     }
 
     // }}}
@@ -742,10 +747,12 @@ class FF_List {
             $this->sortOrder = $in_sort;
         }
         else {
-            $this->sortOrder = (int) FF_Request::getParam("sortOrder[$this->listId]", 'gps', $in_sort);
+            $tmp_vars = FF_Request::getParam('sortOrder', 'gps', array());
+            $s_val = isset($tmp_vars[$this->listId]) ? $tmp_vars[$this->listId] : $in_sort;
+            $this->sortOrder = (int) $s_val;
         }
 
-        FF_Request::setParam('sortOrder[\'' . $this->listId . '\']', $this->sortOrder, 's');
+        $_SESSION['sortOrder'][$this->listId] = $this->sortOrder;
     }
 
     // }}}
@@ -781,10 +788,11 @@ class FF_List {
             $this->sortField = $in_field;
         }
         else {
-            $this->sortField = FF_Request::getParam("sortField[$this->listId]", 'gps', $in_field);
+            $tmp_vars = FF_Request::getParam('sortField', 'gps', array());
+            $this->sortField = isset($tmp_vars[$this->listId]) ? $tmp_vars[$this->listId] : $in_field;
         }
 
-        FF_Request::setParam('sortField[\'' . $this->listId . '\']', $this->sortField, 's');
+        $_SESSION['sortField'][$this->listId] = $this->sortField;
     }
 
     // }}}
@@ -816,13 +824,14 @@ class FF_List {
     function setSearchString($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->searchString = FF_Request::getParam("searchString[$this->listId]", 'gps');
+            $tmp_vars = FF_Request::getParam('searchString', 'gps', array());
+            $this->searchString = isset($tmp_vars[$this->listId]) ? $tmp_vars[$this->listId] : '';
         }
         else {
             $this->searchString = $in_value;
         }
 
-        FF_Request::setParam('searchString[\'' . $this->listId . '\']', $this->searchString, 's');
+        $_SESSION['searchString'][$this->listId] = $this->searchString;
     }
 
     // }}}
@@ -854,13 +863,14 @@ class FF_List {
     function setSearchField($in_value = null)
     {
         if (is_null($in_value)) {
-            $this->searchField = FF_Request::getParam("searchField[$this->listId]", 'gps', $this->allFieldsKey);
+            $tmp_vars = FF_Request::getParam('searchField', 'gps', array());
+            $this->searchField= isset($tmp_vars[$this->listId]) ? $tmp_vars[$this->listId] : $this->allFieldsKey;
         }
         else {
             $this->searchField = $in_value;
         }
 
-        FF_Request::setParam('searchField[\'' . $this->listId . '\']', $this->searchField, 's');
+        $_SESSION['searchField'][$this->listId] = $this->searchField;
     }
 
     // }}}
