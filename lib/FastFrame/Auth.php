@@ -134,7 +134,8 @@ class FF_Auth {
 
         $o_registry =& FF_Registry::singleton();
         if (isset($_SESSION['__auth__'])) {
-            if ($_SESSION['__auth__']['browser'] != @$_SERVER['HTTP_USER_AGENT']) {
+            if (isset($_SESSION['__auth__']['browser']) && 
+                $_SESSION['__auth__']['browser'] != @$_SERVER['HTTP_USER_AGENT']) {
                 FF_Auth::_setStatus(FASTFRAME_AUTH_BROWSER);
                 return false;
             }

@@ -178,9 +178,9 @@ class FF_List {
         $a_searchField = FF_Request::getParam('searchField', 'gp', array());
         $a_displayLimit = FF_Request::getParam('displayLimit', 'gp', array());
         if (isset($a_searchString[$this->listId]) &&
-            ($a_searchString[$this->listId] != $_SESSION['searchString'][$this->listId] ||
-             $a_searchField[$this->listId] != $_SESSION['searchField'][$this->listId] ||
-             $a_displayLimit[$this->listId] != $_SESSION['displayLimit'][$this->listId])) {
+            (@$a_searchString[$this->listId] != @$_SESSION['searchString'][$this->listId] ||
+             @$a_searchField[$this->listId] != @$_SESSION['searchField'][$this->listId] ||
+             @$a_displayLimit[$this->listId] != @$_SESSION['displayLimit'][$this->listId])) {
             $_POST['pageOffset'][$this->listId] = 1;
             $_GET['pageOffset'][$this->listId] = 1;
         }
