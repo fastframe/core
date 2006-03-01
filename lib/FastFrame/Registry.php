@@ -125,15 +125,11 @@ class FF_Registry {
             umask($umask);
         }
 
-        // Set other common defaults like templates and graphics
         // All apps to be used must be included in the apps.php file
         foreach (array_keys($this->apps) as $s_name) {
             // Don't carry around disabled apps
             if (isset($this->apps[$s_name]['status']) && $this->apps[$s_name]['status'] == 'disabled') {
                 unset($this->apps[$s_name]);
-            }
-            else {
-                $this->apps[$s_name] = array_merge($this->servicePaths, $this->apps[$s_name]);
             }
         } 
     }
@@ -383,7 +379,10 @@ class FF_Registry {
         if (FastFrame::isEmpty($in_service)) {
             $s_service = '%app%';
         }
-        elseif (is_null($s_service = $this->getAppParam('app_' . $in_service))) {
+        elseif (isset($this->servicePaths['app_' . $in_service])) {
+            $s_service = $this->servicePaths['app_' . $in_service];
+        }
+        else {
             trigger_error("The app service 'app_$in_service' could not be found.", E_USER_ERROR); 
         }
 
@@ -392,7 +391,7 @@ class FF_Registry {
         // Use the app name as the apps directory unless the user has 
         // overriden it in apps.php
         $s_appDir = str_replace('%app%', $this->getAppParam('app_dir', $s_app, $s_app), $s_service);
-        return $this->getFile(array($this->getAppParam('root_apps'), $s_appDir, $in_filename), $in_type);
+        return $this->getFile(array($this->servicePaths['root_apps'], $s_appDir, $in_filename), $in_type);
     }
 
     // }}}
@@ -416,11 +415,11 @@ class FF_Registry {
      */
     function getRootFile($in_filename, $in_service = '', $in_type = FASTFRAME_FILEPATH)
     {
-        if (!empty($in_service) && is_null($in_service = $this->getAppParam('root_' . $in_service))) {
+        if (!empty($in_service) && !isset($this->servicePaths['root_' . $in_service])) {
             trigger_error("The service root_$in_service could not be found", E_USER_ERROR); 
         }
 
-        return $this->getFile(array($in_service, $in_filename), $in_type);
+        return $this->getFile(array($this->servicePaths['root_' . $in_service], $in_filename), $in_type);
     }
 
     // }}}
