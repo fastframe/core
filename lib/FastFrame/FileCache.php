@@ -321,7 +321,7 @@ class FF_FileCache {
      * Checks to make sure the directory is created for the cache file
      *
      * @param array $in_fileParts Array of data about how to save the
-     *        file. 'name' (required name of file), 'subdir' (optional
+     *        file. 'name' (optional name of file), 'subdir' (optional
      *        sub dir to put it in, 'id' (optional object id that these
      *        files are associated with) 
      * @param bool $in_useApp (optional) Check inthe current app dir?
@@ -331,7 +331,15 @@ class FF_FileCache {
      */
     function checkDir($in_fileParts, $in_useApp = false)
     {
-        $s_dir = dirname($this->getPath($in_fileParts, $in_useApp));
+        if (!isset($in_fileParts['name'])) {
+            $in_fileParts['name'] = $in_fileParts['subdir'];
+            unset($in_fileParts['subdir']);
+            $s_dir = $this->getPath($in_fileParts, $in_useApp);
+        }
+        else {
+            $s_dir = dirname($this->getPath($in_fileParts, $in_useApp));
+        }
+
         if (!is_dir($s_dir)) {
             require_once 'System.php';
             if (!@System::mkdir("-p $s_dir"))  {
