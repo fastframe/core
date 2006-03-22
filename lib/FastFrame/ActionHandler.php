@@ -27,10 +27,10 @@ require_once dirname(__FILE__) . '/ErrorHandler.php';
 require_once dirname(__FILE__) . '/../FastFrame.php';
 require_once dirname(__FILE__) . '/Request.php';
 require_once dirname(__FILE__) . '/Registry.php';
-require_once dirname(__FILE__) . '/Output.php';
 require_once dirname(__FILE__) . '/Auth.php';
 require_once dirname(__FILE__) . '/Perms.php';
 require_once dirname(__FILE__) . '/Result.php';
+require_once dirname(__FILE__) . '/Output.php';
 
 // }}}
 // {{{ constants
@@ -240,26 +240,21 @@ class FF_ActionHandler {
             $this->checkAuth();
             $this->moduleConfig->checkPerms();
             $pth_actionFile = $this->availableActions[$this->actionId][0];
-            if (file_exists($pth_actionFile)) {
-                require_once $pth_actionFile;
-                $o_action =& new $this->availableActions[$this->actionId][1]($this->o_model);
-                $o_nextAction = $o_action->run();
-                if ($o_nextAction->isLastAction()) {
-                    $hitLastAction = true;
-                }
-                else {
-                    $this->setActionId($o_nextAction->getNextActionId());
-                    if (!is_null($o_nextAction->getNextAppId())) {
-                        $this->setAppId($o_nextAction->getNextAppId());
-                    }
-
-                    if (!is_null($o_nextAction->getNextModuleId())) {
-                        $this->setModuleId($o_nextAction->getNextModuleId());
-                    }
-                }
+            require_once $pth_actionFile;
+            $o_action =& new $this->availableActions[$this->actionId][1]($this->o_model);
+            $o_nextAction = $o_action->run();
+            if ($o_nextAction->isLastAction()) {
+                $hitLastAction = true;
             }
             else {
-                trigger_error('The class file ' . basename($pth_actionFile) . ' for action ' . $this->actionId . ' does not exist', E_USER_ERROR);
+                $this->setActionId($o_nextAction->getNextActionId());
+                if (!is_null($o_nextAction->getNextAppId())) {
+                    $this->setAppId($o_nextAction->getNextAppId());
+                }
+
+                if (!is_null($o_nextAction->getNextModuleId())) {
+                    $this->setModuleId($o_nextAction->getNextModuleId());
+                }
             }
         }
     }

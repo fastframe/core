@@ -100,7 +100,7 @@ class FF_Output_Table {
     function FF_Output_Table($in_type)
     {
         $this->type = $in_type;
-        $this->o_output =& FF_Output::singleton();
+        $this->o_output =& FF_Output::factory();
     }
 
     // }}}

@@ -93,6 +93,7 @@ class FF_Registry {
         // names of the services inside an app (%app% is the basename of the app)
         'app_libs'        => '%app%/lib',
         'app_graphics'    => '%app%/graphics',
+        'app_javascript'  => '%app%/js',
         'app_language'    => '%app%/locale',
         'app_config'      => '%app%/config');
 

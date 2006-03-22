@@ -168,7 +168,7 @@ class FF_Smarty extends Smarty {
             return;
         }
 
-        $o_output =& FF_Output::singleton();
+        $o_output =& FF_Output::factory();
         $this->theme = is_null($this->theme) ? $o_output->theme : $this->theme;
         if (substr($this->widget, -4) == '.tpl') {
             $pth_tpl = dirname($this->widget); 

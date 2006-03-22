@@ -169,7 +169,7 @@ class FF_List {
      */
     function FF_List($in_listId, $in_sortField = null, $in_sortOrder = null, $in_displayLimit = null)
     {
-        $this->o_output =& FF_Output::singleton();
+        $this->o_output =& FF_Output::factory();
         $this->listId = $in_listId;
         // These variables can change the number of results returned,
         // and thus could leave the user on an invalid page.  So, if we

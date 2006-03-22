@@ -158,6 +158,11 @@ class FF_ErrorHandler {
         // Determine the levels we will be reporting
         $s_errorLevel = 0;
         foreach ($in_reporters as $s_type => $a_reporter) {
+            // AJAX requests shouldn't get html errors
+            if (IS_AJAX && ($s_type == 'console' || $s_type == 'browser')) {
+                $s_type = 'stdout';
+            }
+
             $a_reporter['data'] = isset($a_reporter['data']) ? $a_reporter['data'] : null;
             $s_errorLevel |= $a_reporter['level'];
             $this->_addReporter($s_type, $a_reporter['level'], $a_reporter['data']);

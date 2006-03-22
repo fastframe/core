@@ -153,7 +153,7 @@ class FF_Menu {
     function FF_Menu($in_type)
     {
         $this->o_registry =& FF_Registry::singleton();
-        $this->o_output =& FF_Output::singleton();
+        $this->o_output =& FF_Output::factory();
         $this->o_fileCache =& FF_FileCache::singleton();
         $this->menuType = $in_type;
         $this->_setCacheFile();
@@ -264,7 +264,7 @@ class FF_Menu {
         require_once dirname(__FILE__) . '/Perms.php';
         $o_perms =& FF_Perms::factory();
         $o_registry =& FF_Registry::singleton();
-        $o_output =& FF_Output::singleton();
+        $o_output =& FF_Output::factory();
         ob_start();
         list($s_subdir, $s_name) = explode('/', $this->cacheFile);
         require_once $this->o_fileCache->getPath(array('subdir' => $s_subdir, 'name' => $s_name));
