@@ -109,6 +109,7 @@ class FF_CLI {
      */
     function FF_CLI($in_app = 'fastframe')
     {
+        define('IS_AJAX', false);
         $this->_console = $this->runningFromCLI();
 
         if ($this->_console) {
