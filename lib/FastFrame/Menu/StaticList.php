@@ -69,6 +69,20 @@ class FF_Menu_StaticList extends FF_Menu {
         $s_menu = $this->_getCachedMenu();
         // Remove empty lists
         $s_menu = preg_replace('|<ul( id="' . $this->ulId . '")?>\s+</ul>|', '', $s_menu);
+        // Make the CSS menu work in IE.
+        if (Net_UserAgent_Detect::isIE()) {
+            $s_menu .= '
+            <script language="JavaScript" type="text/javascript">
+            var e = document.getElementsByTagName("li");
+            for (var i=0; i<e.length; i++) {
+                if (e[i].className == "parent") {
+                    e[i].onmouseover = function() { this.className += " over"; }
+                    e[i].onmouseout = function() { this.className= this.className.replace(" over", ""); }
+                }
+            }
+            </script>';
+        }
+
         // Turn on menu
         if (!FastFrame::isEmpty($s_menu)) {
             $this->o_output->o_tpl->append($this->tmplVar, $s_menu);

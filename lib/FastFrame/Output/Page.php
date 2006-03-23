@@ -507,7 +507,6 @@ class FF_Output_Page extends FF_Output {
             // Render the main menu
             $o_menu =& FF_Menu::factory($this->menuType);
             $o_menu->renderMenu();
-
             // Render the QuickLinks menu
             $o_menu =& FF_Menu::factory('QuickLinks');
             $o_menu->renderMenu();
