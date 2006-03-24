@@ -76,8 +76,8 @@ class FF_Menu_StaticList extends FF_Menu {
             var e = document.getElementsByTagName("li");
             for (var i=0; i<e.length; i++) {
                 if (e[i].className == "parent") {
-                    e[i].onmouseover = function() { this.className += " over"; }
-                    e[i].onmouseout = function() { this.className= this.className.replace(" over", ""); }
+                    e[i].onmouseover = function() { this.className += " hover"; }
+                    e[i].onmouseout = function() { this.className= this.className.replace(" hover", ""); }
                 }
             }
             </script>';

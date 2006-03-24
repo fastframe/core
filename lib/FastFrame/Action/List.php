@@ -165,9 +165,13 @@ class FF_Action_List extends FF_Action_Form {
     {
         $s_numCols = count($this->o_list->getColumnData());
         $o_tableWidget =& new FF_Smarty('multiColumnTable');
+        $s_id = 'listTable';
+        if (!is_null($this->getHighlightedRowUrl())) {
+            $s_id = 'listTableHighlight';
+        }
+
         $o_tableWidget->assign(array('has_table_header' => true, 'has_field_row' => true,
-                    // Needed for the highlight row javascript
-                    'S_table' => 'id="listTable"',
+                    'S_table' => 'id="' . $s_id . '"',
                     'T_table_header' => $this->getTableHeaderText(),
                     'S_table_columns' => $s_numCols)); 
         foreach ($this->o_list->generateSortFields() as $s_cell) {
@@ -217,8 +221,6 @@ class FF_Action_List extends FF_Action_Form {
             $i = 0;
             $b_highlightRows = false;
             if (!is_null($this->getHighlightedRowUrl())) {
-                $this->o_output->addScriptFile($this->o_registry->getRootFile('highlightRow.js', 'javascript', FASTFRAME_WEBPATH));
-                $this->o_output->o_tpl->append('javascript', '<script>Event.observe(window, "load", function () { initHighlight("listTable"); }, false);</script>');
                 $b_highlightRows = true;
             }
 
@@ -242,11 +244,13 @@ class FF_Action_List extends FF_Action_Form {
 
                     $b_safeData = isset($tmp_fields['dataIsSafe']) ? $tmp_fields['dataIsSafe'] : false;
                     $s_attr = isset($tmp_fields['attr']) ? $tmp_fields['attr'] : '';
+                    $s_class = '';
                     $tmp_fields['args'] = isset($tmp_fields['args']) ? $tmp_fields['args'] : array();
                     // Cells with buttons have  special attributes
                     foreach ($a_buttonCells as $s_method ) {
                         if ($tmp_fields['method'] == $s_method ) {
-                            $s_attr = 'id="optionCell" style="white-space: nowrap; width: 1%;"';
+                            $s_attr = 'style="white-space: nowrap; width: 1%;"';
+                            $s_class = 'optionCell';
                             $tmp_fields['object'] =& $this;
                             $b_safeData = true;
                             break;
@@ -265,7 +269,7 @@ class FF_Action_List extends FF_Action_Form {
                                 $b_safeData);
                     }
 
-                    $a_cells[] = array('T_table_content_cell' => $tmp_displayData, 'S_table_content_cell' => $s_attr);
+                    $a_cells[] = array('T_table_content_cell' => $tmp_displayData, 'S_table_content_cell' => $s_attr, 'S_class' => $s_class);
                 }
 
                 $s_class = $this->o_output->toggleRow($i++);
