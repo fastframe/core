@@ -235,7 +235,7 @@ class FF_Action_List extends FF_Action_Form {
             $a_map = $this->getFieldMap();
             while ($this->o_listModeler->loadNextModel()) {
                 $tmp_extraJs = $b_highlightRows ? 
-                    ' onclick="window.location.href=\'' . $this->getHighlightedRowUrl() . '\';"' : '';
+                    ' id="' . $this->getHighlightedRowUrl() . '"' : '';
                 $a_cells = array();
                 foreach ($a_map as $tmp_fields) {
                     if (!empty($tmp_fields['notable'])) {
