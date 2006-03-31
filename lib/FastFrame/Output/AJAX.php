@@ -43,6 +43,12 @@ class FF_Output_AJAX extends FF_Output {
      */
     var $xml = '';
 
+    /**
+     * An array of nodes that are converted to XML
+     * @var array
+     */
+    var $_nodes = array();
+
     // }}}
     // {{{ display()
 
@@ -54,10 +60,29 @@ class FF_Output_AJAX extends FF_Output {
      */
     function display()
     {
-        print $this->_renderMessages();
+        $this->xml .= $this->arrayToXML($this->_nodes);
+        $this->_renderMessages();
         header('Content-Type: text/xml');
         print '<?xml version="1.0" encoding="ISO-8859-1"?>';
+        print '<ajax>';
         print $this->xml;
+        print '</ajax>';
+    }
+
+    // }}}
+    // {{{ addNode()
+
+    /**
+     * Adds an XML node to the output XML
+     *
+     * @param string $in_key The element key
+     * @param mixed $in_value The element value.  Can be string or array
+     *
+     * @return void
+     */
+    function addNode($in_key, $in_value)
+    {
+        $this->_nodes[$in_key] = $in_value;
     }
 
     // }}}
@@ -72,10 +97,10 @@ class FF_Output_AJAX extends FF_Output {
      * @param string $in_nodeName (optional) The node name for integer arrays
      * @param int $in_level (optional) The indent level
      */
-    function arrayToXML($in_array, $in_topNode = 'array', $in_nodeName = 'el', $in_level = 1) 
+    function arrayToXML($in_array, $in_topNode = null, $in_nodeName = 'el', $in_level = 1) 
     {
         $s_xml = '';
-        if ($in_level == 1) {
+        if ($in_level == 1 && !is_null($in_topNode)) {
             $s_xml .= "<$in_topNode>";
         }
 
@@ -111,7 +136,7 @@ class FF_Output_AJAX extends FF_Output {
             } 
         }
 
-        if ($in_level == 1) {
+        if ($in_level == 1 && !is_null($in_topNode)) {
             $s_xml .= "</$in_topNode>";
         }
 
