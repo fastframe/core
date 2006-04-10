@@ -395,7 +395,7 @@ class FF_Auth {
             }
 
             // Use a common session name for all apps
-            session_name(urlencode($o_registry->getConfigParam('session/name'))); 
+            session_name('FF_SESSID');
             // Don't transparently track session ID, since we handle it.
             // Can't ini_set session.use_trans_sid, so we just empty what it searches for
             ini_set('url_rewriter.tags', 0);

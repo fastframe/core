@@ -182,6 +182,9 @@ class FF_Output_Page extends FF_Output {
                     'LANG' => getenv('LANG')));
         $this->_renderPageType();
         $this->_renderMenus();
+        // Needed for some of the AJAX stuff
+        $o_actionHandler =& FF_ActionHandler::singleton();
+        $this->o_tpl->append('javascript', '<script>Event.observe(window, "load", function() { FastFrame.userId="' . FF_Auth::getCredential('userId') . '"; FastFrame.app="' . $o_actionHandler->getAppId() . '"; FastFrame.module="' . $o_actionHandler->getModuleId() . '"; });</script>');
     }
 
     // }}}

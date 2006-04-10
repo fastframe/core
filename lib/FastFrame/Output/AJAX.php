@@ -41,7 +41,7 @@ class FF_Output_AJAX extends FF_Output {
      * The xml that we print out
      * @var string
      */
-    var $xml = '';
+    var $_xml = '';
 
     /**
      * An array of nodes that are converted to XML
@@ -60,12 +60,20 @@ class FF_Output_AJAX extends FF_Output {
      */
     function display()
     {
-        $this->xml .= $this->arrayToXML($this->_nodes);
         $this->_renderMessages();
+        foreach ($this->_nodes as $s_key => $val) {
+            if (is_array($val) && count($val) == 1) {
+                $this->_xml .= $this->arrayToXML(current($val), $s_key, key($val));
+            }
+            else {
+                $this->_xml .= $this->arrayToXML(array($s_key => $val));
+            }
+        }
+
         header('Content-Type: text/xml');
         print '<?xml version="1.0" encoding="ISO-8859-1"?>';
         print '<ajax>';
-        print $this->xml;
+        print $this->_xml;
         print '</ajax>';
     }
 
@@ -77,12 +85,20 @@ class FF_Output_AJAX extends FF_Output {
      *
      * @param string $in_key The element key
      * @param mixed $in_value The element value.  Can be string or array
+     * @param string $in_nodeName (optional) If $in_value is a
+     *               numeric array you need to set this value which will
+     *               replace the integer when the array is converted to XML
      *
      * @return void
      */
-    function addNode($in_key, $in_value)
+    function addNode($in_key, $in_value, $in_nodeName = null)
     {
-        $this->_nodes[$in_key] = $in_value;
+        if (is_null($in_nodeName)) {
+            $this->_nodes[$in_key] = $in_value;
+        }
+        else {
+            $this->_nodes[$in_key] = array($in_nodeName => $in_value);
+        }
     }
 
     // }}}
@@ -183,7 +199,7 @@ class FF_Output_AJAX extends FF_Output {
             $a_messages[] = array('txt' => $a_message[0], 'type' => $a_message[1]);
         }
 
-        $this->xml .= $this->arrayToXML($a_messages, 'msgs', 'msg');
+        $this->addNode('msgs', $a_messages, 'msg');
     }
 
     // }}}

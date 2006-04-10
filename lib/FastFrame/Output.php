@@ -396,7 +396,7 @@ class FF_Output {
      *               have to do with the image, included what type
      *               of image tag this is.  The options are as follows
      *               width, height, type, style, onclick, id,
-     *               onlyUrl, fullPath, title, name, app (if the image is
+     *               onlyUrl, fullPath, title, class, , name, app (if the image is
      *               in a specific application), 'theme' (if we should
      *               check the theme dir for the image also)
      *
@@ -460,6 +460,7 @@ class FF_Output {
             $s_tag .= isset($in_options['onclick']) ? ' onclick="' . $in_options['onclick'] . '"' : '';
             $s_tag .= isset($in_options['id']) ? " id=\"{$in_options['id']}\"" : '';
             $s_tag .= isset($in_options['title']) ? " title=\"{$in_options['title']}\" alt=\"{$in_options['title']}\"" : '';
+            $s_tag .= isset($in_options['class']) ? " class=\"{$in_options['class']}\"" : '';
             $s_tag .= isset($in_options['name']) ? " name=\"{$in_options['name']}\"" : '';
             $s_tag .= isset($in_options['width']) ? " width=\"{$in_options['width']}\"" : '';
             $s_tag .= isset($in_options['height']) ? " height=\"{$in_options['height']}\"" : '';
