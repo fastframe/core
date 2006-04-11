@@ -126,7 +126,7 @@ class FF_Output {
      * @param  string $in_text content for the link tag
      * @param  array  $in_options A number of options that have to do with the a tag.  The 
      *                            options are as follows:
-     *                            status, title, class, target, onclick, style, confirm, 
+     *                            status, title, class, target, onclick, style, confirm, id,
      *                            getAccessKey (attempts to get an accesskey for the link)
      *
      * @access public
@@ -135,7 +135,7 @@ class FF_Output {
     function link($in_url, $in_text, $in_options = array())
     {
         $a_options = array('title' => '', 'caption' => '', 'status' => '',
-                'confirm' => '', 'onclick' => '', 'class' => '',
+                'confirm' => '', 'onclick' => '', 'class' => '', 'id' => '',
                 'style' => '', 'target' => '', 'getAccessKey' => false);
 
         $a_options = array_merge($a_options, $in_options);
@@ -180,6 +180,7 @@ class FF_Output {
         $s_tag .= !empty($a_options['title']) ? ' title="' . $a_options['title'] . '"' : '';
         $s_tag .= !empty($a_options['class']) ? ' class="' . $a_options['class'] . '"' : '';
         $s_tag .= !empty($a_options['style']) ? ' style="' . $a_options['style'] . '"' : '';
+        $s_tag .= !empty($a_options['id']) ? ' id="' . $a_options['id'] . '"' : '';
         $s_tag .= !empty($a_options['target']) ? ' target="' . $a_options['target'] . '"' : '';
         $s_tag .= '>';
         $s_tag .= $this->highlightAccessKey($in_text, $s_ak);

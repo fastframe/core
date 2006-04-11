@@ -77,7 +77,7 @@ class FF_Action_Form extends FF_Action {
      * The form name
      * @var string
      */
-    var $formName = 'generic_form';
+    var $formName = 'primary_form';
 
     /**
      * The action id for when the form is submitted
