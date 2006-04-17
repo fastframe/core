@@ -607,7 +607,7 @@ class FF_ActionHandler {
      */
     function _checkBrowser()
     {
-        if (!IS_AJAX && !Net_UserAgent_Detect::getBrowser(array('ie6up', 'opera5up', 'gecko', 'konq', 'safari'))) {
+        if (!IS_AJAX && Net_UserAgent_Detect::getBrowser(array('ie5', 'ie5_5', 'ns4', 'firefox0.x', 'opera6', 'opera7'))) {
             header('Location: notsupported.php');
             exit;
         }
