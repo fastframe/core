@@ -23,6 +23,7 @@
 // {{{ requires
 
 require_once 'PEAR.php';
+require_once 'Net/UserAgent/Detect.php';
 require_once dirname(__FILE__) . '/ErrorHandler.php';
 require_once dirname(__FILE__) . '/../FastFrame.php';
 require_once dirname(__FILE__) . '/Request.php';
@@ -31,9 +32,6 @@ require_once dirname(__FILE__) . '/Auth.php';
 require_once dirname(__FILE__) . '/Perms.php';
 require_once dirname(__FILE__) . '/Result.php';
 require_once dirname(__FILE__) . '/Output.php';
-if (!IS_AJAX) {
-    require_once 'Net/UserAgent/Detect.php';
-}
 
 // }}}
 // {{{ constants
