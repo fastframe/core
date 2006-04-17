@@ -26,7 +26,6 @@
 
 require_once dirname(__FILE__) . '/../Smarty.php';
 require_once dirname(__FILE__) . '/../FileCache.php';
-require_once 'Net/UserAgent/Detect.php';
 
 // }}}
 // {{{ class FF_Output_Page
