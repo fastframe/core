@@ -205,14 +205,9 @@ class FF_Output_Page extends FF_Output {
     {
         $o_fileCache =& FF_FileCache::singleton();
         $s_cssTemplateFile = $in_themeDir . '/' . $in_styleFile;
-        $s_browser = Net_UserAgent_Detect::getBrowser(array('ie', 'gecko'));
-        // All other browsers get treated as gecko
-        if (is_null($s_browser)) {
-            $s_browser = 'gecko';
-        }
 
         // Determine the css file based on the browser
-        $s_cssFileName = str_replace('.tpl', '', $in_styleFile) . '-' . $s_browser . '.css';
+        $s_cssFileName = str_replace('.tpl', '', $in_styleFile) . '.css';
         $a_cssCacheFile = array('subdir' => 'css', 'id' => $in_theme, 'name' => $s_cssFileName);
 
         // Make the CSS file if needed
@@ -224,7 +219,7 @@ class FF_Output_Page extends FF_Output {
             // Use delimiters that work in css files
             $o_cssWidget->left_delimiter = '{{';
             $o_cssWidget->right_delimiter = '}}';
-            $o_cssWidget->assign(array('is_' . $s_browser => true,
+            $o_cssWidget->assign(array(
                     'THEME_DIR' => $this->o_registry->rootPathToWebPath($in_themeDir),
                     'ROOT_GRAPHICS_DIR' => $this->o_registry->getRootFile('', 'graphics', FASTFRAME_WEBPATH)));
             $o_result =& $o_fileCache->save($o_cssWidget->fetch(), $a_cssCacheFile);

@@ -201,6 +201,24 @@ class FastFrame {
     }
 
     // }}}
+    // {{{ checkBrowser()
+
+    /**
+     * Makes sure the user is using a supported browser.
+     *
+     * @access public
+     * @return void Redirects user if they aren't supported.
+     */
+    function checkBrowser()
+    {
+        require_once 'Net/UserAgent/Detect.php';
+        if (!IS_AJAX && Net_UserAgent_Detect::getBrowser(array('belowie6', 'belowns6', 'firefox0.x', 'belowopera8'))) {
+            header('Location: notsupported.php');
+            exit;
+        }
+    }
+
+    // }}}
 }
 
 // {{{ PHP4 compat

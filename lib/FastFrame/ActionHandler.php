@@ -23,7 +23,6 @@
 // {{{ requires
 
 require_once 'PEAR.php';
-require_once 'Net/UserAgent/Detect.php';
 require_once dirname(__FILE__) . '/ErrorHandler.php';
 require_once dirname(__FILE__) . '/../FastFrame.php';
 require_once dirname(__FILE__) . '/Request.php';
@@ -174,7 +173,6 @@ class FF_ActionHandler {
         // Always set the locale to a guaranteed language first so that a custom language
         // (i.e. en_BIP) will work
         FF_Locale::setLang('en_US');
-        $this->_checkBrowser();
 
         if (FF_Request::getParam('actionId', 'g') == ACTION_HOME &&
             is_array($a_init = FF_Auth::getCredential('initPage'))) {
@@ -591,23 +589,6 @@ class FF_ActionHandler {
             if ($this->getActionId() != ACTION_MYPROFILE && $this->getActionId() != ACTION_EDIT_SUBMIT) {
                 FastFrame::redirect(FastFrame::url('index.php', array('app' => 'profile', 'actionId' => ACTION_MYPROFILE)));
             }
-        }
-    }
-
-    // }}}
-    // {{{ _checkBrowser()
-
-    /**
-     * Makes sure the user is using a supported browser.
-     *
-     * @access private
-     * @return void Redirects user if they aren't supported.
-     */
-    function _checkBrowser()
-    {
-        if (!IS_AJAX && Net_UserAgent_Detect::getBrowser(array('ie5', 'ie5_5', 'ns4', 'firefox0.x', 'opera6', 'opera7'))) {
-            header('Location: notsupported.php');
-            exit;
         }
     }
 
