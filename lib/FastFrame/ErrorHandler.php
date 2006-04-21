@@ -171,8 +171,9 @@ class FF_ErrorHandler {
         error_reporting($s_errorLevel);
         // No point having errors passed to us that we aren't catching, hence $s_errorLevel
         if (version_compare(phpversion(), '5.0') === -1) {
-            // PHP4 doesn't take the 2nd arg
-            set_error_handler(array(&$this, '_trapError'));
+            // PHP4 doesn't take the 2nd arg, and until 4.3 it doesn't support caling a method with an array
+            php4_trapError($this);
+            set_error_handler('php4_trapError');
         }
         else {
             set_error_handler(array(&$this, '_trapError'), $s_errorLevel);
@@ -839,4 +840,23 @@ class FF_ErrorHandler {
 
     // }}}
 }
+
+// {{{ php4_trapError()
+
+function php4_trapError() {
+    static $obj;
+    if (func_num_args() == 1) {
+        $obj = func_get_arg(0);
+    }
+    else {
+        $a = func_get_arg(0);
+        $b = func_get_arg(1);
+        $c = func_get_arg(2);
+        $d = func_get_arg(3);
+        $e = func_get_arg(4);
+        $obj->_trapError($a, $b, $c, $d, $e);
+    }
+}
+
+// }}}
 ?>
