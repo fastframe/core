@@ -396,6 +396,7 @@ class FF_FileCache {
                 'avi' => 'video/x-ms-wm',
                 'bmp' => 'image/bmp',
                 'cs' => 'application/x-csh',
+                'csv' => 'text/plain',
                 'css' => 'text/css',
                 'dv' => 'video/x-dv',
                 'doc' => 'application/msword',

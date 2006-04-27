@@ -35,7 +35,7 @@
 
 // }}}
 class FF_Util {
-    // {{{ int     bytesToHuman()
+    // {{{ bytesToHuman()
 
     /**
      * Converts a number of bytes into a human readable
@@ -84,7 +84,7 @@ class FF_Util {
     }
 
     // }}}
-    // {{{ string  getRandomString()
+    // {{{ getRandomString()
 
     /**
      * Generates a random string
@@ -106,7 +106,7 @@ class FF_Util {
     }
     
     // }}}
-    // {{{ array   createNumericOptionList()
+    // {{{ createNumericOptionList()
 
     /**
      * Creates a numeric array based on a start and end value
@@ -130,7 +130,7 @@ class FF_Util {
     }
 
     // }}}
-    // {{{ array   createMonthOptionList()
+    // {{{ createMonthOptionList()
 
     /**
      * Creates an of months based on the current locale setting
@@ -147,6 +147,92 @@ class FF_Util {
         }
 
         return $select;
+    }
+
+    // }}}
+    // {{{ formatRelativeDate()
+
+    /**
+     * Formats a timestamp to a relative date (time elapsed from now),
+     * but we also enclose the date in a span so that if they hover over
+     * it the actual date comes up.
+     *
+     * @param int $in_timestamp The timestamp
+     * @param bool $in_showShortDate (optional) Show a short date next
+     *        to the relative date (i.e. Apr 19 (1 day ago))?  Otherwise
+     *        we just show the relative date.
+     *
+     * @return string The formatted date
+     */
+    function formatRelativeDate($in_timestamp, $in_showShortDate = true)
+    {
+        if (time() > $in_timestamp) {
+            $s_diff = time() - $in_timestamp;
+            $s_lang = _('ago');
+        }
+        else {
+            $s_diff = $in_timestamp - time();
+            $s_lang = _('from now');
+        }
+
+        if ($s_diff < 60) {
+            $s_date = date('h:ia', $in_timestamp);
+            $s_reldate = $s_diff == 1 ? sprintf(_('%s sec %s'), $s_diff, $s_lang) :
+                sprintf(_('%s secs %s'), $s_diff, $s_lang);
+        }
+        elseif ($s_diff < 3600) {
+            $s_date = date('h:ia', $in_timestamp);
+            $s_num = round($s_diff / 60);
+            $s_reldate = $s_num == 1 ? sprintf(_('%s min %s'), $s_num, $s_lang) :
+                sprintf(_('%s mins %s'), $s_num, $s_lang);
+        }
+        elseif ($s_diff < 86400) {
+            $s_date = date('h:ia', $in_timestamp);
+            $s_num = round($s_diff / 3600);
+            $s_reldate = $s_num == 1 ? sprintf(_('%s hr %s'), $s_num, $s_lang) :
+                sprintf(_('%s hrs %s'), $s_num, $s_lang);
+        }
+        elseif ($s_diff < 2419200) {
+            $s_date = date('M jS', $in_timestamp);
+            $s_num = round($s_diff / 86400);
+            $s_reldate = $s_num == 1 ? sprintf(_('%s day %s'), $s_num, $s_lang) :
+                sprintf(_('%s days %s'), $s_num, $s_lang);
+        }
+        elseif ($s_diff < 31536000) {
+            $s_date = date('M jS', $in_timestamp);
+            $s_num = round($s_diff / 2419200);
+            $s_reldate = $s_num == 1 ? sprintf(_('%s month %s'), $s_num, $s_lang) :
+                sprintf(_('%s months %s'), $s_num, $s_lang);
+        }
+        else {
+            $s_date = date('m/d/y h:ia', $in_timestamp);
+            $s_reldate = null;
+        }
+
+        if (!empty($s_reldate)) {
+            $s_date = $in_showShortDate ? "$s_date ($s_reldate)" : $s_reldate;
+            return '<span title="' . date('m/d/y h:ia', $in_timestamp) . '">' . $s_date . '</span>';
+        }
+        else {
+            return $s_date;
+        }
+    }
+
+    // }}}
+    // {{{ truncateString()
+
+    /**
+     * Truncates a string to the specified length and adds ... if it is longer than length
+     * 
+     * @param string $in_str The string
+     * @param int $in_len The length
+     *
+     * @access public
+     * @return string The truncated string
+     */
+    function truncateString($in_str, $in_len)
+    {
+        return strlen($in_str) > $in_len ? substr($in_str, 0, $in_len) . '...' : $in_str;
     }
 
     // }}}
