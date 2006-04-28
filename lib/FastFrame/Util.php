@@ -176,33 +176,34 @@ class FF_Util {
         }
 
         if ($s_diff < 60) {
-            $s_date = date('h:ia', $in_timestamp);
+            $s_date = date('g:ia', $in_timestamp);
             $s_reldate = $s_diff == 1 ? sprintf(_('%s sec %s'), $s_diff, $s_lang) :
                 sprintf(_('%s secs %s'), $s_diff, $s_lang);
         }
         elseif ($s_diff < 3600) {
-            $s_date = date('h:ia', $in_timestamp);
-            $s_num = round($s_diff / 60);
+            $s_date = date('g:ia', $in_timestamp);
+            // Round to half
+            $s_num = round(($s_diff / 60) * 2) / 2;
             $s_reldate = $s_num == 1 ? sprintf(_('%s min %s'), $s_num, $s_lang) :
-                sprintf(_('%s mins %s'), $s_num, $s_lang);
+                sprintf(_('%s mins %s'), str_replace('.5', '&#189;', $s_num), $s_lang);
         }
         elseif ($s_diff < 86400) {
-            $s_date = date('h:ia', $in_timestamp);
-            $s_num = round($s_diff / 3600);
+            $s_date = date('g:ia', $in_timestamp);
+            $s_num = round(($s_diff / 3600) * 2) / 2;
             $s_reldate = $s_num == 1 ? sprintf(_('%s hr %s'), $s_num, $s_lang) :
-                sprintf(_('%s hrs %s'), $s_num, $s_lang);
+                sprintf(_('%s hrs %s'), str_replace('.5', '&#189;', $s_num), $s_lang);
         }
         elseif ($s_diff < 2419200) {
             $s_date = date('M jS', $in_timestamp);
-            $s_num = round($s_diff / 86400);
+            $s_num = round(($s_diff / 86400) * 2) / 2;
             $s_reldate = $s_num == 1 ? sprintf(_('%s day %s'), $s_num, $s_lang) :
-                sprintf(_('%s days %s'), $s_num, $s_lang);
+                sprintf(_('%s days %s'), str_replace('.5', '&#189;', $s_num), $s_lang);
         }
         elseif ($s_diff < 31536000) {
             $s_date = date('M jS', $in_timestamp);
-            $s_num = round($s_diff / 2419200);
+            $s_num = round(($s_diff / 2419200) * 2) / 2;
             $s_reldate = $s_num == 1 ? sprintf(_('%s month %s'), $s_num, $s_lang) :
-                sprintf(_('%s months %s'), $s_num, $s_lang);
+                sprintf(_('%s months %s'), str_replace('.5', '&#189;', $s_num), $s_lang);
         }
         else {
             $s_date = date('m/d/y h:ia', $in_timestamp);
