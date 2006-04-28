@@ -182,13 +182,13 @@ class FF_Util {
         }
         elseif ($s_diff < 3600) {
             $s_date = date('g:ia', $in_timestamp);
-            // Round to half
-            $s_num = round(($s_diff / 60) * 2) / 2;
+            $s_num = round($s_diff / 60);
             $s_reldate = $s_num == 1 ? sprintf(_('%s min %s'), $s_num, $s_lang) :
-                sprintf(_('%s mins %s'), str_replace('.5', '&#189;', $s_num), $s_lang);
+                sprintf(_('%s mins %s'), $s_num, $s_lang);
         }
         elseif ($s_diff < 86400) {
             $s_date = date('g:ia', $in_timestamp);
+            // Round to half
             $s_num = round(($s_diff / 3600) * 2) / 2;
             $s_reldate = $s_num == 1 ? sprintf(_('%s hr %s'), $s_num, $s_lang) :
                 sprintf(_('%s hrs %s'), str_replace('.5', '&#189;', $s_num), $s_lang);
