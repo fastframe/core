@@ -345,10 +345,6 @@ class FF_Output_Page extends FF_Output {
             $s_title = "$s_title &#187; $s_page";
         }
 
-        if (!FastFrame::isEmpty(($s_siteName = $this->o_registry->getConfigParam('display/site_name')))) {
-            $s_title = "$s_siteName &#187; $s_title";
-        }
-
         return $s_title;
     }
 
