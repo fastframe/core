@@ -185,7 +185,7 @@ class FF_Output {
         $s_tag .= '>';
         $s_tag .= $this->highlightAccessKey($in_text, $s_ak);
         if (!empty($a_options['caption'])) {
-            $s_tag .= '<span><div class="tt_caption">' . $a_options['caption'] . '</div><div class="tt_text">' . $s_title . '</div></span>';
+            $s_tag .= '<div class="tt_wrapper"><div class="tt_caption">' . $a_options['caption'] . '</div><div class="tt_text">' . $s_title . '</div></div>';
         }
             
         $s_tag .= '</a>';

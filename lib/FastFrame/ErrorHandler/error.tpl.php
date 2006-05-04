@@ -20,4 +20,4 @@ function showErrors()
     return false;
 }
 </script>
-<div style="position: fixed; right: 5px; bottom: 5px;"><img src="./graphics/general/core.gif" style="cursor: pointer; cursor: hand;" onclick="return showErrors();" title="Error Reporter" alt="Error Reporter" /></div>
+<img src="./graphics/general/core.gif" style="position: fixed; bottom: 5px; right: 5px; cursor: pointer;" onclick="return showErrors();" title="Error Reporter" />

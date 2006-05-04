@@ -174,8 +174,8 @@ class FF_Output_Page extends FF_Output {
         }
 
         $this->o_tpl->assign(array(
-                    'COPYWRITE' => 'Copywrite &#169; 2002-2003 The CodeJanitor Group',
-                    'CONTENT_ENCODING' => $this->o_registry->getConfigParam('general/charset', 'ISO-8559-1'),
+                    'COPYWRITE' => 'Copywrite &#169; 2002-2006 The CodeJanitor Group',
+                    'CONTENT_ENCODING' => $this->o_registry->getConfigParam('language/charset', 'ISO-8859-1'),
                     'U_SHORTCUT_ICON' => $this->o_registry->getConfigParam('general/favicon'),
                     'PAGE_TITLE' => $this->getPageTitle(),
                     'LANG' => getenv('LANG')));
@@ -261,7 +261,7 @@ class FF_Output_Page extends FF_Output {
         if (!isset($a_files[$in_file])) {
             $a_files[$in_file] = 1;
             $this->o_tpl->append('javascript',
-                    '<script language="JavaScript" type="text/javascript" src="' . $in_file . '"></script>');
+                    '<script type="text/javascript" src="' . $in_file . '"></script>');
         }
     }
 
