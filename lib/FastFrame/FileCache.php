@@ -362,7 +362,7 @@ class FF_FileCache {
      */
     function isWebViewable($in_name)
     {
-        $a_allowedTypes = array('image/bmp', 'image/png', 'image/jpeg', 'image/png', 
+        $a_allowedTypes = array('image/bmp', 'image/png', 'image/jpeg', 'image/gif', 
                                 'application/pdf', 
                                 'text/css', 'text/plain', 'text/html', 'text/xml');
         return in_array($this->getContentType($in_name), $a_allowedTypes);
