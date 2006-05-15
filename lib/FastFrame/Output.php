@@ -202,34 +202,30 @@ class FF_Output {
      * @param string $in_text The text for the link
      * @param array $in_urlParams URL parameters to pass to the selfURL() method
      * @param array $in_options (optional) Additional options.  Availabe options are
-                    menubar, status, width, height, class, title
+                    menubar, width, height, class, title
      *
      * @access public
      * @return string The link to the popup page
      */
     function popupLink($in_name, $in_text, $in_urlParams, $in_options = array())
     {
-        $in_options['menubar'] = (isset($in_options['menubar']) && $in_options['menubar']) ? 'yes' : 'no';
         $in_options['class'] = isset($in_options['class']) ? $in_options['class'] : '';
         $in_options['title'] = isset($in_options['title']) ? $in_options['title'] : $in_text;
         $in_options['caption'] = isset($in_options['caption']) ? $in_options['caption'] : '';
-        $in_options['status'] = isset($in_options['status']) ? $in_options['status'] : '';
-        $in_options['width'] = isset($in_options['width']) ? $in_options['width'] : 650;
-        $in_options['height'] = isset($in_options['height']) ? $in_options['height'] : 500;
+
+        $tmp_js = '';
+        $tmp_js .= isset($in_options['width']) ? "width: {$in_options['width']}," : '';
+        $tmp_js .= isset($in_options['height']) ? "height: {$in_options['height']}," : '';
+        $tmp_js .= (isset($in_options['menubar']) && $in_options['menubar']) ? "menubar: 'yes'," : '';
+        if (strlen($tmp_js)) {
+            $tmp_js = substr($tmp_js, 0, -1);
+        }
  
         $s_url = FastFrame::selfURL($in_urlParams);
-        $s_js = $in_name . ' = window.open(this.href,' . 
-                '\'' . $in_name . '\',' .
-                '\'toolbar=no,location=no,status=yes,menubar=' . $in_options['menubar'] . 
-                ',scrollbars=yes,resizable,alwaysRaised,dependent,titlebar=no' . 
-                ',width=' . $in_options['width'] . ',height=' . $in_options['height'] . 
-                ',left=50,screenX=50,top=50,screenY=50\'); ' .
-                $in_name . '.focus(); return false;';
-
+        $s_js = "FastFrame.popup(this.href,'$in_name',{" . $tmp_js . "}); return false;";
         $link = $this->link($s_url, $in_text, 
                 array('onclick' => $s_js, 'title' => $in_options['title'], 
                     'class' => $in_options['class'], 'caption' => $in_options['caption']));
-        $link .= '<script>var ' . $in_name . ' = null;</script>';
         return $link;
     }
 
