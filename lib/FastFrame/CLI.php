@@ -112,7 +112,7 @@ class FF_CLI {
         $this->_console = $this->runningFromCLI();
 
         if ($this->_console) {
-            define('IS_AJAX', false);
+            @define('IS_AJAX', false);
             $this->init();
             $this->_newline = "\n";
             $this->_indent  = '    ';
