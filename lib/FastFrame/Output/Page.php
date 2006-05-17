@@ -321,7 +321,7 @@ class FF_Output_Page extends FF_Output {
         switch ($this->pageType) {
             case 'popup':
                 // a minimal page
-                $this->setMenuType('none');
+                $this->menuType = 'none';
                 $this->o_tpl->append('css', 'div#leftCol { display: none; } div#middleCol { margin: 0; padding: 0; }');
             break;
             case 'normal':
