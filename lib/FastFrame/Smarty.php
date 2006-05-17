@@ -169,7 +169,7 @@ class FF_Smarty extends Smarty {
         }
 
         $o_output =& FF_Output::factory();
-        $this->theme = is_null($this->theme) ? $o_output->theme : $this->theme;
+        $this->theme = is_null($this->theme) ? $o_output->getTheme() : $this->theme;
         if (substr($this->widget, -4) == '.tpl') {
             $pth_tpl = dirname($this->widget); 
             $pth_tplCompile = $o_output->o_registry->getRootFile('templates/' . $this->theme, 'cache');

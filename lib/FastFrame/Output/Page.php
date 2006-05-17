@@ -22,12 +22,6 @@
 // +----------------------------------------------------------------------+
 
 // }}}
-// {{{ requires 
-
-require_once dirname(__FILE__) . '/../Smarty.php';
-require_once dirname(__FILE__) . '/../FileCache.php';
-
-// }}}
 // {{{ class FF_Output_Page
 
 /**
@@ -55,30 +49,6 @@ class FF_Output_Page extends FF_Output {
      */
     var $pageName;
 
-    /**
-     * The menu type used. 
-     * @var string
-     */
-    var $menuType;
-
-    /**
-     * The page type.  Allows for easy creation of different types of pages
-     * @var string
-     */
-    var $pageType = 'normal';
-
-    /**
-     * The theme setting
-     * @var string
-     */
-    var $theme;
-
-    /**
-     * The theme directory
-     * @var string
-     */
-    var $themeDir;
-
     // }}}
     // {{{ constructor
 
@@ -90,7 +60,7 @@ class FF_Output_Page extends FF_Output {
      */
     function FF_Output_Page()
     {
-        $this->o_registry =& FF_Registry::singleton();
+        parent::FF_Output();
         // Set up master template
         $this->o_tpl =& new FF_Smarty('overall');
         $this->setDefaults();
@@ -266,68 +236,6 @@ class FF_Output_Page extends FF_Output {
     }
 
     // }}}
-    // {{{ processCellData()
-
-    /**
-     * Fixes cell data to be web-friendly.
-     *
-     * Takes cell data, and if it is empty returns &nbsp;, otherwise
-     * it sanitizes the cell data.  Fixes bug where some
-     * browsers (such as IE) will not render borders in cells with no
-     * data.
-     *
-     * @param string $in_data The cell data
-     * @param bool $in_safe (optional) If the data is known to be safe
-     *        then we won't htmlspecialchar it.
-     *
-     * @access public
-     * @return string Either &nbsp; if it is empty, otherwise the data
-     */
-    function processCellData($in_data, $in_safe = false)
-    {
-        return ($in_data == '' || $in_data === false) ? '&nbsp;' : ($in_safe ? $in_data : htmlspecialchars($in_data));
-    }
-
-    // }}}
-    // {{{ setDefaults()
-
-    /**
-     * Determines the default theme and menu.
-     *
-     * @access public
-     * @return void
-     */
-    function setDefaults()
-    {
-        $this->setMenuType('StaticList');
-        // Set popup type 
-        if (FF_Request::getParam('isPopup', 'gp', false)) {
-            $this->setPageType('popup');
-        }
-
-        $s_theme = FF_Auth::getCredential('theme');
-        $s_theme = empty($s_theme) ? $this->o_registry->getConfigParam('display/default_theme') : $s_theme;
-        $this->setTheme($s_theme);
-    }
-
-    // }}}
-    // {{{ setPageType()
-
-    /**
-     * Sets the page type which changes the look of the change by touching certain blocks,
-     * changing styles, etc.
-     *
-     * @param string $in_type The page type.  Currently: normal, popup, smallTable
-     *
-     * @access public
-     * @return void
-     */
-    function setPageType($in_type)
-    {
-        $this->pageType = $in_type;
-    }
-
-    // }}}
     // {{{ getPageTitle()
 
     /**
@@ -362,60 +270,6 @@ class FF_Output_Page extends FF_Output {
     function setPageName($in_name)
     {
         $this->pageName = $in_name;
-    }
-
-    // }}}
-    // {{{ setMenuType()
-
-    /**
-     * Sets the menu type, which can be any of the valid extensions of the Menu class
-     *
-     * @param string $in_type The menu type
-     *
-     * @access public
-     * @return void 
-     */
-    function setMenuType($in_type)
-    {
-        $this->menuType = $in_type;
-    }
-
-    // }}}
-    // {{{ setTheme()
-
-    /**
-     * Sets the theme, including it's directory.
-     *
-     * @param string $in_theme The theme
-     *
-     * @access public
-     * @return void
-     */
-    function setTheme($in_theme)
-    {
-        // See if theme is a full path (if theme is in app directory it can be)
-        if ($this->_isAbsolute($in_theme)) {
-            $this->themeDir = $in_theme;
-            $this->theme = basename($in_theme);
-        }
-        else {
-            $this->theme = $in_theme;
-            $this->themeDir = $this->o_registry->getRootFile($this->theme, 'themes');
-        }
-    }
-
-    // }}}
-    // {{{ getTheme()
-
-    /**
-     * Gets currently loaded theme.
-     *
-     * @access public
-     * @return string The current theme.
-     */
-    function getTheme()
-    {
-        return $this->theme;
     }
 
     // }}}

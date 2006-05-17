@@ -22,6 +22,12 @@
 // +----------------------------------------------------------------------+
 
 // }}}
+// {{{ requires
+
+require_once dirname(__FILE__) . '/Smarty.php';
+require_once dirname(__FILE__) . '/FileCache.php';
+
+// }}}
 // {{{ constants
 
 /**
@@ -63,6 +69,38 @@ class FF_Output {
      */
     var $messages = array();
 
+    /**
+     * The theme setting
+     * @var string
+     */
+    var $theme;
+
+    /**
+     * The theme directory
+     * @var string
+     */
+    var $themeDir;
+
+    /**
+     * The menu type used. 
+     * @var string
+     */
+    var $menuType;
+
+    /**
+     * The page type.  Allows for easy creation of different types of pages
+     * @var string
+     */
+    var $pageType = 'normal';
+
+    // }}}
+    // {{{ constructor
+
+    function FF_Output()
+    {
+        $this->o_registry =& FF_Registry::singleton();
+    }
+
     // }}}
     // {{{ factory()
 
@@ -100,6 +138,66 @@ class FF_Output {
         }
 
         return $a_instances[$s_class];
+    }
+
+    // }}}
+    // {{{ setDefaults()
+
+    /**
+     * Determines the default theme and menu.
+     *
+     * @access public
+     * @return void
+     */
+    function setDefaults()
+    {
+        $this->menuType = 'StaticList';
+        // Set popup type 
+        if (FF_Request::getParam('isPopup', 'gp', false)) {
+            $this->pageType = 'popup';
+        }
+
+        $s_theme = FF_Auth::getCredential('theme');
+        $s_theme = empty($s_theme) ? $this->o_registry->getConfigParam('display/default_theme') : $s_theme;
+        $this->setTheme($s_theme);
+    }
+
+    // }}}
+    // {{{ setTheme()
+
+    /**
+     * Sets the theme, including it's directory.
+     *
+     * @param string $in_theme The theme
+     *
+     * @access public
+     * @return void
+     */
+    function setTheme($in_theme)
+    {
+        // See if theme is a full path (if theme is in app directory it can be)
+        if ($this->_isAbsolute($in_theme)) {
+            $this->themeDir = $in_theme;
+            $this->theme = basename($in_theme);
+        }
+        else {
+            $this->theme = $in_theme;
+            $this->themeDir = $this->o_registry->getRootFile($this->theme, 'themes');
+        }
+    }
+
+    // }}}
+    // {{{ getTheme()
+
+    /**
+     * Gets currently loaded theme.
+     *
+     * @access public
+     * @return string The current theme.
+     */
+    function getTheme()
+    {
+        return $this->theme;
     }
 
     // }}}
@@ -466,6 +564,29 @@ class FF_Output {
 
             return $s_tag;
         }
+    }
+
+    // }}}
+    // {{{ processCellData()
+
+    /**
+     * Fixes cell data to be web-friendly.
+     *
+     * Takes cell data, and if it is empty returns &nbsp;, otherwise
+     * it sanitizes the cell data.  Fixes bug where some
+     * browsers (such as IE) will not render borders in cells with no
+     * data.
+     *
+     * @param string $in_data The cell data
+     * @param bool $in_safe (optional) If the data is known to be safe
+     *        then we won't htmlspecialchar it.
+     *
+     * @access public
+     * @return string Either &nbsp; if it is empty, otherwise the data
+     */
+    function processCellData($in_data, $in_safe = false)
+    {
+        return ($in_data == '' || $in_data === false) ? '&nbsp;' : ($in_safe ? $in_data : htmlspecialchars($in_data));
     }
 
     // }}}

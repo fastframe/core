@@ -175,10 +175,13 @@ class FF_Util {
             $s_lang = _('from now');
         }
 
-        if ($s_diff < 60) {
+        if ($s_diff < 10) {
             $s_date = date('g:ia', $in_timestamp);
-            $s_reldate = $s_diff == 1 ? sprintf(_('%s sec %s'), $s_diff, $s_lang) :
-                sprintf(_('%s secs %s'), $s_diff, $s_lang);
+            $s_reldate = _('right now');
+        }
+        elseif ($s_diff < 60) {
+            $s_date = date('g:ia', $in_timestamp);
+            $s_reldate = sprintf(_('%s secs %s'), $s_diff, $s_lang);
         }
         elseif ($s_diff < 3600) {
             $s_date = date('g:ia', $in_timestamp);
