@@ -320,7 +320,7 @@ class FF_Output_Page extends FF_Output {
             case 'popup':
                 // a minimal page
                 $this->menuType = 'none';
-                $this->o_tpl->append('css', 'div#leftCol { display: none; } div#middleCol { margin: 0; padding: 0; }');
+                $this->o_tpl->append('css', 'div#leftCol { display: none; } div#middleCol { margin: 0; padding: 0; } td.messageWrap { padding-left: 0; }');
             break;
             case 'normal':
                 if ($s_header = $this->_getHeaderText()) {
