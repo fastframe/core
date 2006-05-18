@@ -204,9 +204,7 @@ class FF_Output_Page extends FF_Output {
 
         $s_cssURL = $o_fileCache->getPath($a_cssCacheFile, false, FASTFRAME_WEBPATH);
         // register the CSS file 
-        $this->o_tpl->append('headers',
-                // put the filemtime on so that they only grab the new file when it is recreated
-                '<style type="text/css" media="' . $in_media . '">@import url("' . $s_cssURL . '");</style>');
+        $this->o_tpl->append('headers', '<link rel="stylesheet" type="text/css" media="' . $in_media . '" href="' . $s_cssURL . '" />');
     }
 
     // }}}
