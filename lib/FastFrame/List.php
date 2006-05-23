@@ -186,13 +186,21 @@ class FF_List {
         }
 
         // Set all the fields with their default values
-        $this->setSortField($in_sortField);
-        $this->setSortOrder($in_sortOrder);
         $this->setSearchString();
         $this->setSearchField();
         $this->setSearchBoxType();
         $this->setPageOffset();
-        $this->setDisplayLimit($in_displayLimit);
+        if (!is_null($in_sortField)) {
+            $this->setSortField($in_sortField);
+        }
+
+        if (!is_null($in_sortOrder)) {
+            $this->setSortOrder($in_sortOrder);
+        }
+
+        if (!is_null($in_displayLimit)) {
+            $this->setDisplayLimit($in_displayLimit);
+        }
     }
 
     // }}}
