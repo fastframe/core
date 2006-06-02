@@ -298,8 +298,15 @@ class FF_List {
 
         $a_constants = array_merge($this->persistentData, $a_listVars);
         foreach ($this->extraSearchElements as $a_element) {
-            $o_form->addElement('select', $a_element[1], null, $a_element[2], $a_element[4]);
-            $a_constants[$a_element[1]] = $a_element[3];
+            if ($a_element[0] == 'checkbox') {
+                // Need the advanced checkbox so that it we know when they uncheck it
+                $o_form->addElement('advcheckbox', $a_element[2], null, $a_element[1], $a_element[4], array(0, 1));
+            }
+            else {
+                $o_form->addElement('select', $a_element[2], null, $a_element[5], $a_element[4]);
+            }
+
+            $a_constants[$a_element[2]] = $a_element[3];
         }
 
         $o_form->setConstants($a_constants);
@@ -366,8 +373,9 @@ class FF_List {
         if (count($this->extraSearchElements) > 0) {
             $o_searchWidget->assign('has_extra_elements', true);
             foreach ($this->extraSearchElements as $a_element) {
+                $tmp_desc = $a_element[0] == 'checkbox' ? '' : $a_element[1];
                 $o_searchWidget->append('extraElements', 
-                        array('T_desc' => $a_element[0], 'T_element' => $o_renderer->elementToHtml($a_element[1])));
+                        array('T_desc' => $tmp_desc, 'T_element' => $o_renderer->elementToHtml($a_element[2])));
             }
         }
 
@@ -496,11 +504,11 @@ class FF_List {
      * Adds a select list to the search box.
      *
      * @param string $in_desc The description for the select 
-     * @param string $in_name The select name
+     * @param string $in_name The name of the element
      * @param array $in_options The array of options
      * @param string $in_default (optional) The default option
      * @param array $in_params (optional) An array of parameters for the
-     *        select list
+     *        addElement function
      *
      * @access public
      * @return void
@@ -508,8 +516,28 @@ class FF_List {
     function addSearchSelect($in_desc, $in_name, $in_options, $in_default = null, $in_params = array('style' => 'vertical-align: middle;', 'onchange' => 'this.form.submit();')) 
     {
         FF_Request::setParam($in_name, FF_Request::getParam($in_name, 'gps', $in_default), 's');
-        $this->extraSearchElements[] = array($in_desc, $in_name, $in_options,
-                FF_Request::getParam($in_name, 's'), $in_params);
+        $this->extraSearchElements[] = array('select', $in_desc, $in_name,
+                FF_Request::getParam($in_name, 's'), $in_params, $in_options);
+    }
+
+    // }}}
+    // {{{ addSearchCheckbox()
+
+    /**
+     * Adds a checkbox to the search form.
+     *
+     * @param string $in_desc The description for the checkbox
+     * @param string $in_name The element name
+     * @param bool $in_default (optional) The default option (checked or no)
+     * @param array $in_params (optional) An array of parameters for the
+     *        addElement function
+     *
+     * @return void
+     */
+    function addSearchCheckbox($in_desc, $in_name, $in_default = false, $in_params = array('onclick' => 'this.form.submit();'))
+    {
+        FF_Request::setParam($in_name, FF_Request::getParam($in_name, 'gps', $in_default), 's');
+        $this->extraSearchElements[] = array('checkbox', $in_desc, $in_name, FF_Request::getParam($in_name, 's'), $in_params);
     }
 
     // }}}

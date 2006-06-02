@@ -163,6 +163,14 @@ class FF_Output {
     }
 
     // }}}
+    // {{{ setPageType()
+
+    function setPageType($in_type)
+    {
+        $this->pageType = $in_type;
+    }
+
+    // }}}
     // {{{ setTheme()
 
     /**

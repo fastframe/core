@@ -369,6 +369,23 @@ class FF_FileCache {
     }
 
     // }}}
+    // {{{ isWebPlayable()
+
+    /**
+     * Determines if the filetype can be played in a web browser
+     *
+     * @param string $in_name The file name
+     *
+     * @access public
+     * @return bool True if it can, false otherwise
+     */
+    function isWebPlayable($in_name)
+    {
+        $a_allowedTypes = array('audio/mp3', 'audio/x-realaudio', 'audio/x-pn-realaudio', 'audio/wav');
+        return in_array($this->getContentType($in_name), $a_allowedTypes);
+    }
+
+    // }}}
     // {{{ getContentType()
 
     /**
