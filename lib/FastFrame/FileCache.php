@@ -381,7 +381,7 @@ class FF_FileCache {
      */
     function isWebPlayable($in_name)
     {
-        $a_allowedTypes = array('audio/mp3', 'audio/x-realaudio', 'audio/x-pn-realaudio', 'audio/wav');
+        $a_allowedTypes = array('audio/mp3', 'audio/x-realaudio', 'audio/x-pn-realaudio', 'audio/wav', 'audio/x-gsm');
         return in_array($this->getContentType($in_name), $a_allowedTypes);
     }
 
@@ -420,6 +420,7 @@ class FF_FileCache {
                 'dif' => 'video/x-dv',
                 'eps' => 'application/postscript',
                 'gif' => 'image/gif',
+                'gsm' => 'audio/x-gsm',
                 'gtar' => 'application/x-gtar',
                 'gz' => 'application/g-zip',
                 'gzip' => 'application/g-zip',
