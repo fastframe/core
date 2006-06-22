@@ -447,11 +447,11 @@ class FF_Action_List extends FF_Action_Form {
      * Returns the default display limit for the list page 
      *
      * @access public
-     * @return int The display limit 
+     * @return int The display limit
      */
     function getDefaultDisplayLimit()
     {
-        return FF_Request::getParam('defDispLimit', 's');
+        return FF_Request::getParam('defDispLimit', 's', 15);
     }
 
     // }}}
