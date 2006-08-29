@@ -197,6 +197,11 @@ class FF_SystemTest {
                 'name' => 'PEAR DB_NestedSet',
                 'errorMsg' => _('You do not have the PEAR DB_NestedSet module installed.  It is required for the checkout application.'),
                 'successMsg' => _('You have the PEAR DB_NestedSet module.')),
+            'pear_image_graph' => array(
+                'method' => '_checkPEARImageGraph',
+                'name' => 'PEAR Image_Graph',
+                'errorMsg' => _('You do not have the PEAR Image_Graph module installed.  It is required for using the checkout application.'),
+                'successMsg' => _('You have the PEAR Image_Graph module.')),
             'pear_mail' => array(
                 'method' => '_checkPEARMail',
                 'name' => 'PEAR Mail',
@@ -358,6 +363,21 @@ class FF_SystemTest {
     {
         @include_once 'DB/NestedSet.php';
         return class_exists('DB_NestedSet');
+    }
+
+    // }}}
+    // {{{ _checkPEARImageGraph()
+
+    /**
+     * Tests to see if the PEAR Image_Graph module is loaded.
+     *
+     * @access private
+     * @return bool True if it succeeds, false otherwise
+     */
+    function _checkPEARImageGraph()
+    {
+        @include_once 'Image/Graph.php';
+        return class_exists('Image_Graph');
     }
 
     // }}}
