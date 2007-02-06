@@ -604,7 +604,29 @@ class FF_ErrorHandler {
 
                 $a_trace['function'] = '<span style="color: #0000cc;">' . $a_trace['function'] . '</span>';
                 $a_trace['function'] .= '<span style="color: #006600;">(</span>';
-                $a_trace['function'] .= isset($a_trace['args']) ? '<span style="color: #cc0000;">' . implode('</span>, <span style="color: #cc0000;">', $a_trace['args']) . '</span>' : '';
+                
+                if (isset($a_trace['args'])) {
+                        $args = '<span style="color: #cc0000;">';
+                        foreach ($a_trace['args'] as $arg) { 
+                            $args .= '<span style="color: #cc0000;">';  
+                            if (is_object($arg)) {
+                                $args .= '(object) ' . get_class($arg); 
+                            } elseif (is_array($arg)) {
+                                $args .= '(Array) ' . implode(',', $arg);
+                            } else {
+                                $args .= $arg;                   
+                            }                   
+                            $args .= '</span>, ';               
+                        }               
+
+                        if (substr($args, -2) == ', ') {                    
+                            $args = substr($args, 0, -2);                
+                        }               
+
+                        $args .= '</span>';               
+                        $a_trace['function'] .= $args;           
+                    }
+                
                 $a_trace['function'] .= '<span style="color: #006600;">)</span>';
 
                 $a_replace = array('%num%' => $k + 1, '%func%' => $a_trace['function'], 
