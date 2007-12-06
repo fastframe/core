@@ -145,7 +145,7 @@ class FF_Menu_StaticList extends FF_Menu {
             $s_node .= $tmp_link;
         }
         else {
-            $s_node .= "<a href=\"#\">{$in_data['icon']}<?php echo _('{$in_data['contents']}'); ?></a>";
+            $s_node .= "{$in_data['icon']}<?php echo _('{$in_data['contents']}'); ?>";
         }
 
         // Recurse sub-elements
