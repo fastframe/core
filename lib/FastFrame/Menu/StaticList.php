@@ -26,10 +26,10 @@
  * The FF_Menu_StaticList:: class generates the cached html for a static html menu of
  * hierarchichal menu items.
  *
- * @version Revision: 1.0 
+ * @version Revision: 1.0
  * @author  Jason Rust <jason@rustyparts.com>
  * @access  public
- * @package Menu 
+ * @package Menu
  */
 
 // }}}
@@ -61,7 +61,7 @@ class FF_Menu_StaticList extends FF_Menu {
     {
         if (!$this->_isMenuCached()) {
             $this->_importMenuVars();
-            $s_menu = $this->_generateStaticMenu(); 
+            $s_menu = $this->_generateStaticMenu();
             list($s_subdir, $s_name) = explode('/', $this->cacheFile);
             $this->o_fileCache->save($s_menu, array('subdir' => $s_subdir, 'name' => $s_name));
         }
@@ -93,14 +93,14 @@ class FF_Menu_StaticList extends FF_Menu {
     // {{{ _generateStaticMenu()
 
     /**
-     * Generates the HTML for the static menu. 
+     * Generates the HTML for the static menu.
      *
      * @access private
      * @return string The HTML for the menu.
      */
     function _generateStaticMenu()
     {
-        $s_html = '<ul id="' . $this->ulId . '">'; 
+        $s_html = '<ul id="' . $this->ulId . '">';
         foreach ($this->menuVariables as $a_topLevelData) {
             foreach ($a_topLevelData['vars'] as $a_data) {
                 $s_node = $this->_getMenuNode($a_data, 0);
@@ -125,7 +125,7 @@ class FF_Menu_StaticList extends FF_Menu {
      *
      * @see menu.php
      * @access private
-     * @return string The html for this specific node 
+     * @return string The html for this specific node
      */
     function _getMenuNode($in_data, $in_level)
     {
@@ -134,7 +134,7 @@ class FF_Menu_StaticList extends FF_Menu {
             $s_lastLevel = 0;
         }
 
-        $tmp_nl = $this->debug ? "\n" : ' '; 
+        $tmp_nl = $this->debug ? "\n" : ' ';
         $in_data = $this->_formatMenuNodeData($in_data, true);
         // Create html for this node
         $s_node = '<li>';
@@ -143,6 +143,9 @@ class FF_Menu_StaticList extends FF_Menu {
             $tmp_link = preg_replace('/title=".*?"/', 'title="<?php echo _(\'' . $in_data['statusText'] . '\'); ?>"', $tmp_link);
             $tmp_link = preg_replace('/">.*?<\/a>/', '">' . $in_data['icon'] . '<?php echo _(\'' . $in_data['contents'] . '\'); ?></a>', $tmp_link);
             $s_node .= $tmp_link;
+        }
+        elseif (isset($in_data[0])) {
+            $s_node .= "<a href=\"#\">{$in_data['icon']}<?php echo _('{$in_data['contents']}'); ?></a>";
         }
         else {
             $s_node .= "{$in_data['icon']}<?php echo _('{$in_data['contents']}'); ?>";
