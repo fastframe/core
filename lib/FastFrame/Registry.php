@@ -43,9 +43,9 @@ define('FASTFRAME_DEFAULT_APP', 'fastframe');
 /**
  * The FastFrame Registry class provides the innerworkings necessary for
  * transitioning between different applications, getting file paths,
- * and keeping track of configuration information 
+ * and keeping track of configuration information
  *
- * @version Revision: 2.0 
+ * @version Revision: 2.0
  * @author  The Horde Team <http://www.horde.org/>
  * @author  Dan Allen <dan@mojavelinux.com>
  * @author  Jason Rust <jrust@codejanitor.com>
@@ -132,7 +132,7 @@ class FF_Registry {
             if (isset($this->apps[$s_name]['status']) && $this->apps[$s_name]['status'] == 'disabled') {
                 unset($this->apps[$s_name]);
             }
-        } 
+        }
     }
 
     // }}}
@@ -189,7 +189,7 @@ class FF_Registry {
             }
             else {
                 // Look up which profile to use for the config files
-                $s_configFile = isset($this->apps[$in_app]['profile']) ? 
+                $s_configFile = isset($this->apps[$in_app]['profile']) ?
                     $this->apps[$in_app]['profile'] . '/conf.php' : 'conf.php';
                 $s_appDir = isset($this->apps[$in_app]['app_dir']) ?  $this->apps[$in_app]['app_dir'] : $in_app;
                 $s_file = $this->getAppFile($s_configFile, $s_appDir, 'config');
@@ -209,7 +209,7 @@ class FF_Registry {
     // {{{ setLocale()
 
     /**
-     * Sets up the locale information. 
+     * Sets up the locale information.
      *
      * @param string $in_app (optional) The application name
      *
@@ -243,7 +243,7 @@ class FF_Registry {
      * configuration settings, the previous settings are updated by the new applications
      * settings.
      *
-     * @param string $in_app Application name 
+     * @param string $in_app Application name
      * @param bool $in_locale (optional) Set the app's locale info?
      *
      * @access public
@@ -299,7 +299,7 @@ class FF_Registry {
      *
      * @access public
      * @return string The most recent application name.  null is returned if no app has been
-     * pushed 
+     * pushed
      */
     function getCurrentApp()
     {
@@ -338,7 +338,7 @@ class FF_Registry {
             default:
                 break;
         }
-        
+
         if (is_array($in_file)) {
             $a_pathParts = array_merge($a_pathParts, $in_file);
         }
@@ -351,7 +351,7 @@ class FF_Registry {
         if ($in_type == FASTFRAME_WEBPATH) {
             $s_path = str_replace('//', '/', $s_path);
         }
-        
+
         return $s_path;
     }
 
@@ -376,7 +376,7 @@ class FF_Registry {
      */
     function getAppFile($in_filename, $in_app = null, $in_service = '', $in_type = FASTFRAME_FILEPATH)
     {
-        // this is how we handle the root path to the app 
+        // this is how we handle the root path to the app
         if (FastFrame::isEmpty($in_service)) {
             $s_service = '%app%';
         }
@@ -384,12 +384,12 @@ class FF_Registry {
             $s_service = $this->servicePaths['app_' . $in_service];
         }
         else {
-            trigger_error("The app service 'app_$in_service' could not be found.", E_USER_ERROR); 
+            trigger_error("The app service 'app_$in_service' could not be found.", E_USER_ERROR);
         }
 
         $s_app = !is_null($in_app) ? $in_app : $this->getCurrentApp();
 
-        // Use the app name as the apps directory unless the user has 
+        // Use the app name as the apps directory unless the user has
         // overriden it in apps.php
         $s_appDir = str_replace('%app%', $this->getAppParam('app_dir', $s_app, $s_app), $s_service);
         return $this->getFile(array($this->servicePaths['root_apps'], $s_appDir, $in_filename), $in_type);
@@ -417,10 +417,14 @@ class FF_Registry {
     function getRootFile($in_filename, $in_service = '', $in_type = FASTFRAME_FILEPATH)
     {
         if (!empty($in_service) && !isset($this->servicePaths['root_' . $in_service])) {
-            trigger_error("The service root_$in_service could not be found", E_USER_ERROR); 
+            trigger_error("The service root_$in_service could not be found", E_USER_ERROR);
         }
 
-        return $this->getFile(array($this->servicePaths['root_' . $in_service], $in_filename), $in_type);
+        $pth_service = '';
+        if ($in_service) {
+            $pth_service = $this->servicePaths['root_' . $in_service];
+        }
+        return $this->getFile(array($pth_service, $in_filename), $in_type);
     }
 
     // }}}
@@ -453,30 +457,30 @@ class FF_Registry {
      * exists then look in the fastframe configuration and see if it is there.  If the variable
      * is found in neither place then it returns the default.
      *
-     * @param  string $in_paramPath The path of the configuration parameter (e.g. general/language) 
+     * @param  string $in_paramPath The path of the configuration parameter (e.g. general/language)
      * @param  string $in_default (optional) Default value to give if param is not present
-     * @param  string $in_app (optional) Override the current app 
+     * @param  string $in_app (optional) Override the current app
      *
      * @access public
      * @return string value of the variable or null
      */
-    function getConfigParam($in_paramPath, $in_default = null, $in_app = null) 
+    function getConfigParam($in_paramPath, $in_default = null, $in_app = null)
     {
         $in_app = is_null($in_app) ? $this->getCurrentApp() : $in_app;
-        // Import the config for this app if it has not yet beeen imported 
+        // Import the config for this app if it has not yet beeen imported
         if (!isset($this->config[$in_app])) {
             $this->importConfig($in_app);
         }
 
         list($tmp1, $tmp2) = explode('/', $in_paramPath);
         if ($tmp2 == '*') {
-            return isset($this->config[$in_app][$tmp1]) ? 
+            return isset($this->config[$in_app][$tmp1]) ?
                 $this->config[$in_app][$tmp1] :
                 (isset($this->config[FASTFRAME_DEFAULT_APP][$tmp1]) ?
                  $this->config[FASTFRAME_DEFAULT_APP][$tmp1] : $in_default);
         }
         else {
-            return isset($this->config[$in_app][$tmp1][$tmp2]) ? 
+            return isset($this->config[$in_app][$tmp1][$tmp2]) ?
                 $this->config[$in_app][$tmp1][$tmp2] :
                 (isset($this->config[FASTFRAME_DEFAULT_APP][$tmp1][$tmp2]) ?
                  $this->config[FASTFRAME_DEFAULT_APP][$tmp1][$tmp2] : $in_default);

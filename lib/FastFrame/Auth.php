@@ -49,7 +49,7 @@ require_once dirname(__FILE__) . '/Registry.php';
  * one session for this application per browser, whereas in the query string multiple are
  * possible.  But we still want this browser to be responsible for this session.
  *
- * @version Revision: 2.0 
+ * @version Revision: 2.0
  * @author  The Horde Team <http://www.horde.org/>
  * @author  Jason Rust <jrust@codejanitor.com>
  * @author  Dan Allen <dan@mojavelinux.com>
@@ -70,7 +70,7 @@ class FF_Auth {
      * @access public
      * @return object A result object
      */
-    function authenticate($in_username, $in_password) 
+    function authenticate($in_username, $in_password)
     {
         $o_registry =& FF_Registry::singleton();
         $s_authType = $o_registry->getConfigParam('auth/method');
@@ -134,13 +134,13 @@ class FF_Auth {
 
         $o_registry =& FF_Registry::singleton();
         if (isset($_SESSION['__auth__'])) {
-            if (isset($_SESSION['__auth__']['browser']) && 
+            if (isset($_SESSION['__auth__']['browser']) &&
                 $_SESSION['__auth__']['browser'] != @$_SERVER['HTTP_USER_AGENT']) {
                 FF_Auth::_setStatus(FASTFRAME_AUTH_BROWSER);
                 return false;
             }
             elseif (isset($_SESSION['__auth__']['idle']) &&
-                    ($idle = $o_registry->getConfigParam('session/idle')) > 0 && 
+                    ($idle = $o_registry->getConfigParam('session/idle')) > 0 &&
                     ($_SESSION['__auth__']['idle'] + $idle) < time()) {
                 FF_Auth::_setStatus(FASTFRAME_AUTH_IDLED);
                 return false;
@@ -170,7 +170,7 @@ class FF_Auth {
             return false;
         }
 
-        /** 
+        /**
          * If they don't have this cookie it means they either they
          * deleted it, they sent the link to someone, or worse ;)
          */
@@ -221,7 +221,7 @@ class FF_Auth {
             'timestamp'  => time(),
             'idle'       => time(),
             'credentials'=> $in_credentials);
-        
+
         // set the anchor for this browser
         $o_registry =& FF_Registry::singleton();
         FF_Request::setCookies(array(FF_Auth::_getSessionAnchor() => 1), 0,
@@ -269,14 +269,14 @@ class FF_Auth {
     /**
      * Get a credential from the stack of user properties
      *
-     * Return the credential of the user such as the username 
+     * Return the credential of the user such as the username
      *
      * @access public
      * @return mixed credential value if exists or false if not logged in or no such credential
      */
     function getCredential($in_credential)
     {
-        return isset($_SESSION['__auth__']['credentials'][$in_credential]) ? 
+        return isset($_SESSION['__auth__']['credentials'][$in_credential]) ?
             $_SESSION['__auth__']['credentials'][$in_credential] : false;
     }
 
@@ -316,7 +316,7 @@ class FF_Auth {
          * to redirect them to a safe logout page, but not clear the
          * session, since that would end the session for the real user.
          */
-        if ($s_status != FASTFRAME_AUTH_NO_ANCHOR && 
+        if ($s_status != FASTFRAME_AUTH_NO_ANCHOR &&
             $s_status != FASTFRAME_AUTH_BROWSER) {
             FF_Auth::destroySession();
         }
@@ -373,13 +373,13 @@ class FF_Auth {
      * This function determines if a session has been started and if not, starts
      * the session, using the value from the registry for the name of the session.
      *
-     * @access public 
+     * @access public
      * @return void
      */
     function startSession()
     {
         static $isStarted;
-        
+
         if (!isset($isStarted)) {
             $o_registry =& FF_Registry::singleton();
             // Don't use cookies to do the session if it will be appended to the URL
@@ -395,11 +395,13 @@ class FF_Auth {
             }
 
             // Use a common session name for all apps
-            session_name('FF_SESSID');
+            $s_sessionName = $o_registry->getConfigParam('session/name', 'FF_SESSID');
+            session_name($s_sessionName);
+
             // Don't transparently track session ID, since we handle it.
             // Can't ini_set session.use_trans_sid, so we just empty what it searches for
             ini_set('url_rewriter.tags', 0);
-            // set the caching 
+            // set the caching
             session_cache_limiter($o_registry->getConfigParam('session/cache', 'nocache'));
             $isStarted = true;
         }
@@ -487,7 +489,7 @@ class FF_Auth {
     // }}}
     // {{{ _updateIdle()
 
-    function _updateIdle() 
+    function _updateIdle()
     {
         $_SESSION['__auth__']['idle'] = time();
     }
@@ -498,7 +500,7 @@ class FF_Auth {
 // {{{ session_regenerate_id()
 
 if (!function_exists('session_regenerate_id')) {
-    function session_regenerate_id() { 
+    function session_regenerate_id() {
         session_id(md5(uniqid(mt_rand(), true)));
     }
 }
