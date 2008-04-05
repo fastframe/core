@@ -164,12 +164,12 @@ class FF_Output_Page extends FF_Output {
      * necessary), and then registers it in the template.
      *
      * @param string $in_theme The theme to make the CSS for
-     * @param string $in_themeDir The theme directory 
+     * @param string $in_themeDir The theme directory
      * @param string $in_styleFile (optional) The style file
      * @param string $in_media (optional) The media type
      *
      * @access public
-     * @return void 
+     * @return void
      */
     function renderCSS($in_theme, $in_themeDir, $in_styleFile = 'style.tpl', $in_media = 'screen')
     {
@@ -181,9 +181,9 @@ class FF_Output_Page extends FF_Output {
         $a_cssCacheFile = array('subdir' => 'css', 'id' => $in_theme, 'name' => $s_cssFileName);
 
         // Make the CSS file if needed
-        if (!$o_fileCache->exists($a_cssCacheFile) || 
+        if (!$o_fileCache->exists($a_cssCacheFile) ||
             filemtime($s_cssTemplateFile) > filemtime($o_fileCache->getPath($a_cssCacheFile))) {
-            $o_cssWidget =& new FF_Smarty($s_cssTemplateFile); 
+            $o_cssWidget =& new FF_Smarty($s_cssTemplateFile);
             // We already know the template is out of date
             $o_cssWidget->force_compile = true;
             // Use delimiters that work in css files
@@ -203,7 +203,7 @@ class FF_Output_Page extends FF_Output {
         }
 
         $s_cssURL = $o_fileCache->getPath($a_cssCacheFile, false, FASTFRAME_WEBPATH);
-        // register the CSS file 
+        // register the CSS file
         $this->o_tpl->append('headers', '<link rel="stylesheet" type="text/css" media="' . $in_media . '" href="' . $s_cssURL . '" />');
     }
 
@@ -263,7 +263,7 @@ class FF_Output_Page extends FF_Output {
      * @param string $in_name A descriptive page name
      *
      * @access public
-     * @return void 
+     * @return void
      */
     function setPageName($in_name)
     {
@@ -284,6 +284,58 @@ class FF_Output_Page extends FF_Output {
     function toggleRow($in_count)
     {
         return $in_count % 2 ? 'secondaryRow' : 'primaryRow';
+    }
+
+    // }}}
+    // {{{ addCalendarFiles()
+
+    /**
+     * Adds the Dynarch JavaScript Calendar files to the header output.
+     *
+     * @param  bool   $in_useStripped (optional) Whether or not to use the
+     *                                stripped version of the DYNARCH JS calendar.
+     *                                Default is true.
+     * @param  string $in_setupFile   (optional) The setup file for this calendar.
+     *                                The default is to use fastframe_setup.js
+     *                                which is designed to be used with
+     *                                HTML_QuickForm_date. The DYNARCH
+     *                                calendar-setup.js is also included. This
+     *                                ignores the $in_useStripped parameter.
+     *                                NOTE: do not include the trailing .js
+     * @access public
+     * @return void
+     */
+    function addCalendarFiles($in_useStripped = true, $in_setupFilename = null)
+    {
+        $s_stripped      = $in_useStripped ? '_stripped' : '';
+        $s_setupFilename = $in_setupFilename ? $in_setupFilename : 'fastframe-setup';
+
+        $this->addScriptFile($this->o_registry->getRootFile(
+            "calendar/calendar{$s_stripped}.js", 'javascript', FASTFRAME_WEBPATH));
+        $this->addScriptFile($this->o_registry->getRootFile(
+            "calendar/$s_setupFilename.js", 'javascript', FASTFRAME_WEBPATH));
+
+        // XXX: Is there a better of checking this and converting it properly?
+        $s_lang = FF_Locale::selectLang();
+        if (preg_match('/utf-?8/i', $s_lang)) {
+            $s_lang = preg_replace('/^([^_]+)_.*$/', '\1', $s_lang) . '-utf8';
+        }
+        else {
+            $s_lang = preg_replace('/^([^_]+)_.*$/', '\1', $s_lang);
+        }
+
+        // default to english if there is not language file
+        $pth_langFile = $this->o_registry->getRootFile(
+                            "calendar/lang/calendar-$s_lang.js", 'javascript');
+        if (!file_exists($pth_langFile)) {
+            $pth_langFile = $this->o_registry->getRootFile(
+                                "calendar/lang/calendar-en.js", 'javascript');
+        }
+        $this->addScriptFile($this->o_registry->rootPathToWebPath($pth_langFile));
+        $this->renderCSS('widgets',
+                         $this->o_registry->getRootFile('widgets', 'themes'),
+                         'calendar.tpl',
+                         'screen');
     }
 
     // }}}
@@ -309,10 +361,10 @@ class FF_Output_Page extends FF_Output {
 
     /**
      * Renders the page type.  Performs any necessary touches or assignments of data based
-     * on the page type. 
+     * on the page type.
      *
-     * @access private 
-     * @return void 
+     * @access private
+     * @return void
      */
     function _renderPageType()
     {
@@ -365,7 +417,7 @@ class FF_Output_Page extends FF_Output {
      * Gets the header text for the page
      *
      * @access private
-     * @return mixed False if ther is no header or header text 
+     * @return mixed False if ther is no header or header text
      */
     function _getHeaderText()
     {
@@ -396,7 +448,7 @@ class FF_Output_Page extends FF_Output {
             $s_footer = false;
         }
         else {
-            $s_footer = str_replace('%version%', $this->o_registry->getConfigParam('version/primary', 
+            $s_footer = str_replace('%version%', $this->o_registry->getConfigParam('version/primary',
                         null, FASTFRAME_DEFAULT_APP), $s_footer);
             $a_microtime = explode(' ', microtime());
             define('FASTFRAME_END_TIME', $a_microtime[1] . substr($a_microtime[0], 1));
