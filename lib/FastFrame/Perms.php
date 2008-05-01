@@ -109,31 +109,33 @@ class FF_Perms {
      * @access public
      * @return object The newly created concrete Perms instance
      */
-    function &factory()
+    function &factory($in_userId = null)
     {
         static $a_instances;
         settype($a_instances, 'array');
 
         $o_registry =& FF_Registry::singleton();
         $s_type = $o_registry->getConfigParam('perms/source');
-        $s_userId = FF_Auth::getCredential('userId');
-        if (!isset($a_instances[$s_type]) || !isset($a_instances[$s_type][$s_userId])) {
+        if (!$in_userId) {
+            $in_userId = FF_Auth::getCredential('userId');
+        }
+        if (!isset($a_instances[$s_type]) || !isset($a_instances[$s_type][$in_userId])) {
             // the dummy type is just an instance of this class whose methods will
             // allow all users to do everything 
             if ($s_type == 'dummy') { 
-                $a_instances[$s_type][$s_userId] =& new FF_Perms($s_userId);
+                $a_instances[$s_type][$in_userId] =& new FF_Perms($in_userId);
             } 
             // use the model class from the permissions app to tell us info about perms
             elseif ($s_type == 'permissions_app') {
                 require_once $o_registry->getAppFile('Model/Perms.php', 'permissions', 'libs');
-                $a_instances[$s_type][$s_userId] =& new FF_Perms_PermissionsApp($s_userId);
+                $a_instances[$s_type][$in_userId] =& new FF_Perms_PermissionsApp($in_userId);
             } 
             else {
                 trigger_error('Invalid permissions source was defined in the config file.', E_USER_ERROR); 
             }
         }
 
-        return $a_instances[$s_type][$s_userId];
+        return $a_instances[$s_type][$in_userId];
     }
 
     // }}}
