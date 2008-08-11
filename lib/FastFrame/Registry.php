@@ -178,8 +178,18 @@ class FF_Registry {
     {
         // :NOTE: All fatal errors generated in this method should not be logged
         // since the log method calls getConfigParam() which could cause an infinite loop
+        $s_errorOnInvalidApp = ($in_app == FASTFRAME_DEFAULT_APP) ?
+            true :
+            $this->getConfigParam('general/error_on_invalid_app', true, FASTFRAME_DEFAULT_APP);
         if (!isset($this->apps[$in_app])) {
-            trigger_error("The application $in_app is not a defined application.  Check your apps.php file.", E_USER_ERROR);
+            if ($s_errorOnInvalidApp) {
+                trigger_error("The application $in_app is not a defined application.  Check your apps.php file.", E_USER_ERROR);
+            }
+            else {
+                $s_initialApp = $this->getConfigParam('general/initial_app', null, FASTFRAME_DEFAULT_APP);
+                FastFrame::redirect('index.php?app=' . $s_initialApp);
+                exit(0);
+            }
         }
 
         // Now load the configuration for this specific app
