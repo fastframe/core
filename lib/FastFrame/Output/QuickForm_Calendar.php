@@ -262,7 +262,7 @@ class HTML_QuickForm_datecalendar extends HTML_QuickForm_date
             $a_options[] = "showTime: true";
 
             // 24 hour time format (default is false, unless H is detected)
-            if ((isset($this->_options['time24']) && $this->_options['time24']) ||
+            if ((isset($this->_options['use24hr']) && $this->_options['use24hr']) ||
                 false !== strpos($this->_options['format'], 'H'))
             {
                 $a_options[] = 'time24: true';

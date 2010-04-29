@@ -1,5 +1,5 @@
 <?php
-/** $Id: ldap.php 30 2009-11-24 22:45:17Z david.lundgren $ */
+/** $Id: ldap.php 41 2009-12-18 03:55:43Z dlundgren $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -68,6 +68,12 @@ class FF_AuthSource_ldap extends FF_AuthSource {
     var $password;
 
     /**
+     * The groups that the user may be a part of to login with this resource.
+     * @var array
+     */
+    var $groups;
+
+    /**
      * The capabilities of the auth source so we know what it can do.
      * @var array
      */
@@ -100,6 +106,7 @@ class FF_AuthSource_ldap extends FF_AuthSource {
         $this->uid = $in_params['uid'];
         $this->binddn = isset($in_params['binddn']) ? $in_params['binddn'] : '';
         $this->password = isset($in_params['password']) ? $in_params['password'] : '';
+        $this->groups = isset($in_params['groups']) ? $in_params['groups'] : array();
     }
 
     // }}}
@@ -130,6 +137,12 @@ class FF_AuthSource_ldap extends FF_AuthSource {
         $bind = @ldap_bind($this->ldap, $s_dn, $in_password);
         if ($bind != false) {
             $this->o_result->setSuccess(true);
+        }
+
+        // Check the users groups if set        
+        if (count($this->groups) && $this->o_result->isSuccess()) {
+            $group = $this->_checkUserGroups($in_username, $this->groups);
+            $this->o_result->setSuccess($group);
         }
 
         @ldap_close($this->ldap);
@@ -193,6 +206,37 @@ class FF_AuthSource_ldap extends FF_AuthSource {
         }
 
         return true;
+    }
+
+    // }}}
+    // {{{ _checkUserGroupsByDN
+    
+    function _checkUserGroups($in_username, $in_groups)
+    {
+        if (!$this->ldap) {
+            $this->_connect();
+        }
+        $search = @ldap_search($this->ldap, $this->basedn,
+                               $this->uid . '=' . $in_username,
+                               array('memberOf'));
+        
+        if ($search === false) {
+            return false;
+        }
+        
+        $entry = ldap_first_entry($this->ldap, $search);
+        $attrs = ldap_get_attributes($this->ldap, $entry);
+        if (!isset($attrs['memberOf']) && $attrs['memberOf']['count'] < 0) {
+            return false;
+        }
+        
+        foreach($this->groups as $s_group) {
+            if (in_array($s_group, $attrs['memberOf'])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // }}}
