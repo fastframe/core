@@ -129,9 +129,7 @@ class FF_Auth {
     function checkAuth($in_full = false)
     {
         if (!$in_full) {
-            if (isset($_SESSION['__auth__']['registered']) && $_SESSION['__auth__']['registered'] == true) {
-                return true;
-            }
+            return (isset($_SESSION['__auth__']['registered']) && $_SESSION['__auth__']['registered'] == true);
         }
 
         $o_registry =& FF_Registry::singleton();
