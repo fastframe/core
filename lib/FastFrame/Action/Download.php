@@ -64,7 +64,7 @@ class FF_Action_Download extends FF_Action {
 
         if (!$o_fileCache->exists($a_parts, FF_Request::getParam('useApp', 'g', false))) {
             $this->o_output->setMessage(_('The specified file could not be found.'), FASTFRAME_ERROR_MESSAGE, true);
-            $this->o_nextAction->setActionId(ACTION_PROBLEM);
+            $this->o_nextAction->setNextActionId(ACTION_PROBLEM);
             return $this->o_nextAction;
         }
 
