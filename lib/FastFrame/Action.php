@@ -89,6 +89,11 @@ class FF_Action {
      */
     function FF_Action(&$in_model)
     {
+        self::__construct(&$in_model);
+    }
+
+    function __construct(&$in_model)
+    {
         $o_actionHandler =& FF_ActionHandler::singleton();
         $this->o_output =& FF_Output::factory();
         $this->currentActionId = $o_actionHandler->getActionId();

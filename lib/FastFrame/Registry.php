@@ -498,6 +498,38 @@ class FF_Registry {
     }
 
     // }}}
+    // {{{ getParentApp()
+
+    /**
+     * Gets the profiles parent application
+     *
+     * @param string $in_app The app to get the parent app_dir for.
+     *
+     * @access public
+     * @return string The parent application directory
+     */
+    function getParentApp($in_app)
+    {
+            return ($this->isProfile($in_app) ? $this->apps[$in_app]['app_dir'] : $in_app);
+    }
+
+    // }}}
+    // {{{ isProfile()
+
+    /**
+     * Determines whether or not the specified app is a profile of a base app.
+     *
+     * @param string $in_app The app to check
+     *
+     * @access public 
+     * @return boolean True if the app is a profile, false otherwise
+     */
+    function isProfile($in_app)
+    {
+        return (!empty($this->apps[$in_app]['profile']) ? true : false);
+    }
+
+    // }}}
     // {{{ getApps()
 
     /**

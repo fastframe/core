@@ -122,5 +122,36 @@ class FF_Validate {
     }
 
     // }}}
+    // {{{ validateFormToken
+
+    /**
+     * Validates the token submitted by the form. Clears the token from the form
+     * tokens if it exists as the form will generate a new token.
+     *
+     * @access private
+     * @return void
+     */
+    function validateFormToken()
+    {
+        $s_app = FF_Registry::singleton()->getCurrentApp();
+        $s_token = FF_Request::getParam('token', 'p', null);
+        $b_isValid = true;
+        if (empty($s_token) || empty($_SESSION['ff_form_tokens'][$s_token])) {
+            $b_isValid = false;
+        }
+        else {
+            if ($_SESSION['ff_form_tokens'][$s_token]['app'] != $s_app) {
+                $b_isValid = false;
+            }
+            unset($_SESSION['ff_form_tokens'][$s_token]);
+        }
+
+        if (!$b_isValid) {
+            $this->o_result->addMessage(_('Invalid form data submitted.'));
+            $this->o_result->setSuccess(false);
+        }
+    }
+    
+    // }}}
 }
 ?>

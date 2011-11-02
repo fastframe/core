@@ -110,9 +110,15 @@ class FF_Action_Form extends FF_Action {
      */
     function FF_Action_Form(&$in_model)
     {
-        FF_Action::FF_Action($in_model);
+        self::__construct($in_model);
+    }
+
+    function __construct(&$in_model)
+    {
+        parent::__construct(&$in_model);
+        $this->clearExpiredFormTokens();
         $this->o_form =& new HTML_QuickForm($this->formName, $this->formMethod, $this->getFormAction(), $this->formTarget);
-        $this->o_renderer =& new HTML_QuickForm_Renderer_QuickHtml();
+        $this->o_renderer =& new HTML_QuickForm_Renderer_QuickHtml();        
     }
 
     // }}}
@@ -150,6 +156,30 @@ class FF_Action_Form extends FF_Action {
         $o_tableWidget =& $o_table->getWidgetObject();
         $this->o_output->o_tpl->append('content_middle', $this->o_renderer->toHtml($o_tableWidget->fetch()));
         return $this->o_nextAction;
+    }
+
+    // }}}
+    // {{{ clearExpiredFormTokens()
+
+    /**
+     * Clears all tokens that are expired, regardless of the app that the form
+     * was generated in. Default expiration time is 10 minutes.
+     *
+     * @access protected
+     * @return void
+     */
+    function clearExpiredFormTokens()
+    {
+        $s_expirationDelay = $this->o_registry->getConfigParam('forms/form_token_expiration', 300);
+        $s_expiration = time() - $s_expirationDelay;
+        if (empty($_SESSION['ff_form_tokens'])) {
+            return;
+        }
+        foreach($_SESSION['ff_form_tokens'] as $s_token => $a_token) {
+            if ($s_expiration > $a_token['time']) {
+                unset($_SESSION['ff_form_tokens'][$s_token]);
+            }
+        }
     }
 
     // }}}
@@ -376,7 +406,7 @@ class FF_Action_Form extends FF_Action {
         return array(
                    'actionId' => $this->formActionId,
                    'objectId' => FF_Request::getParam('objectId', 'pg'), 
-                   'submitbutton' => '» ' . $this->getTableHeaderText(),
+                   'submitbutton' => html_entity_decode('&raquo;') . ' ' . $this->getTableHeaderText(),
                );
     }
 
@@ -393,6 +423,29 @@ class FF_Action_Form extends FF_Action {
     function getFormDefaults()
     {
         return array();
+    }
+
+    // }}}
+    // {{{ getFormToken()
+
+    /**
+     * Generates a form token and stores it in the session. The time and app are
+     * also stored.
+     *
+     * @access protected
+     * @return string The token that was stored in the session.
+     */
+    function getFormToken()
+    {
+        $s_token = md5(uniqid(rand(), true));
+        if (empty($_SESSION['ff_form_tokens'])) {
+            $_SESSION['ff_form_tokens'] = array();
+        }
+        $_SESSION['ff_form_tokens'][$s_token] = array(
+            'time' => time(),
+            'app'  => $this->o_registry->getCurrentApp()
+        };
+        return $s_token;
     }
 
     // }}}
