@@ -108,11 +108,6 @@ class FF_Action_Form extends FF_Action {
      * @access public
      * @return void
      */
-    function FF_Action_Form(&$in_model)
-    {
-        self::__construct($in_model);
-    }
-
     function __construct(&$in_model)
     {
         parent::__construct(&$in_model);
@@ -444,7 +439,7 @@ class FF_Action_Form extends FF_Action {
         $_SESSION['ff_form_tokens'][$s_token] = array(
             'time' => time(),
             'app'  => $this->o_registry->getCurrentApp()
-        };
+        );
         return $s_token;
     }
 
