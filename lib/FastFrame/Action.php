@@ -87,11 +87,6 @@ class FF_Action {
      * @access public
      * @return void
      */
-    function FF_Action(&$in_model)
-    {
-        self::__construct(&$in_model);
-    }
-
     function __construct(&$in_model)
     {
         $o_actionHandler =& FF_ActionHandler::singleton();
