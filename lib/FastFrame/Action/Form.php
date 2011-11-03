@@ -439,7 +439,7 @@ class FF_Action_Form extends FF_Action {
         }
         $_SESSION['ff_form_tokens'][$s_token] = array(
             'time' => time(),
-            'app'  => $this->o_registry->getCurrentApp()
+            'app'  => $this->o_registry->getCurrentApp(),
         );
         return $s_token;
     }

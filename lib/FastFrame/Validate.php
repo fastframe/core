@@ -67,6 +67,12 @@ class FF_Validate {
      */
     var $additionalData = array();
 
+    /**
+     * Whether or not the form token was valid or invalid.
+     * @var bool
+     */
+    var $invalidFormToken = false;
+
     // }}}
     // {{{ constructor
 
@@ -135,23 +141,37 @@ class FF_Validate {
     {
         $s_app = FF_Registry::singleton()->getCurrentApp();
         $s_token = FF_Request::getParam('token', 'p', null);
-        $b_isValid = true;
+
         if (empty($s_token) || empty($_SESSION['ff_form_tokens'][$s_token])) {
-            $b_isValid = false;
+            $this->invalidFormToken = true;
         }
         else {
             if ($_SESSION['ff_form_tokens'][$s_token]['app'] != $s_app) {
-                $b_isValid = false;
+                $this->invalidFormToken = true;
             }
             unset($_SESSION['ff_form_tokens'][$s_token]);
         }
 
-        if (!$b_isValid) {
+        if ($this->invalidFormToken) {
             $this->o_result->addMessage(_('Invalid form data submitted.'));
             $this->o_result->setSuccess(false);
         }
     }
     
+    // }}}
+    // {{{ hasInvalidFormToken
+
+    /**
+     * Returns whether the form token is invalid.
+     *
+     * @access public
+     * @return bool True if the form token was invalid.
+     */
+    function hasInvalidFormToken()
+    {
+        return $this->invalidFormToken;
+    }
+
     // }}}
 }
 ?>
