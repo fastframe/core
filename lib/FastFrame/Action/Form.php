@@ -401,6 +401,7 @@ class FF_Action_Form extends FF_Action {
         return array(
                    'actionId' => $this->formActionId,
                    'objectId' => FF_Request::getParam('objectId', 'pg'), 
+                   'token' => $this->getFormToken(),
                    'submitbutton' => html_entity_decode('&raquo;') . ' ' . $this->getTableHeaderText(),
                );
     }
