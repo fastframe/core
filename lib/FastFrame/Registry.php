@@ -126,6 +126,9 @@ class FF_Registry {
             umask($umask);
         }
 
+        // Set the timezone
+        date_default_timezone_set($this->getConfigParam('general/default_timezone'));
+
         // All apps to be used must be included in the apps.php file
         foreach (array_keys($this->apps) as $s_name) {
             // Don't carry around disabled apps
@@ -521,7 +524,7 @@ class FF_Registry {
      *
      * @param string $in_app The app to check
      *
-     * @access public 
+     * @access public
      * @return boolean True if the app is a profile, false otherwise
      */
     function isProfile($in_app)

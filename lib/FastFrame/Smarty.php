@@ -1,5 +1,5 @@
 <?php
-/** $Id: Smarty.php 30 2009-11-24 22:45:17Z david.lundgren $ */
+/** $Id: Smarty.php 101 2012-08-08 05:22:19Z dlundgren $ */
 // {{{ license
 
 // +----------------------------------------------------------------------+
@@ -20,7 +20,7 @@
 // +----------------------------------------------------------------------+
 
 // }}}
-// {{{ requires 
+// {{{ requires
 
 require_once dirname(__FILE__) . '/../Smarty/Smarty.class.php';
 
@@ -38,7 +38,7 @@ require_once dirname(__FILE__) . '/../Smarty/Smarty.class.php';
 // }}}
 class FF_Smarty extends Smarty {
     // {{{ properties
-    
+
     /**
      * The widget
      * @var string
@@ -71,12 +71,24 @@ class FF_Smarty extends Smarty {
     }
 
     // }}}
+    // {{{ setWidget()
+    /**
+     * Sets the widget to be used.
+     *
+     * @param string $in_widget
+     */
+    function setWidget($in_widget)
+    {
+        $this->widget = $in_widget;
+    }
+
+    // }}}
     // {{{ display()
 
     /**
      * Overrides the display method so that we can determine the
      * template_dir and compile_dir based on the theme and the widget
-     * file. 
+     * file.
      *
      * @param string $cache_id (optional) The cache id
      *
@@ -94,7 +106,7 @@ class FF_Smarty extends Smarty {
     /**
      * Overrides the fetch method so that we can determine the
      * template_dir and compile_dir based on the theme and the widget
-     * file. 
+     * file.
      *
      * @param bool $in_display (optional) Display the template instead
      *        of returning?
@@ -155,7 +167,7 @@ class FF_Smarty extends Smarty {
     /**
      * Determines the compile_dir and template_dir paths based on the
      * widget and the theme.
-     * 
+     *
      * @access private
      * @return void
      */
@@ -171,12 +183,13 @@ class FF_Smarty extends Smarty {
         $o_output =& FF_Output::factory();
         $this->theme = is_null($this->theme) ? $o_output->getTheme() : $this->theme;
         if (substr($this->widget, -4) == '.tpl') {
-            $pth_tpl = dirname($this->widget); 
+            $pth_tpl = dirname($this->widget);
             $pth_tplCompile = $o_output->o_registry->getRootFile('templates/' . $this->theme, 'cache');
         }
         else {
             $this->widget .= '.tpl';
             $pth_tpl = $o_output->themeDir;
+
             // If it doesn't exist in the theme directory, then move up to
             // the widgets directory
             if (!file_exists($pth_tpl . '/' . $this->widget)) {
@@ -194,7 +207,7 @@ class FF_Smarty extends Smarty {
             }
         }
 
-        $this->template_dir = $pth_tpl; 
+        $this->template_dir = $pth_tpl;
         $this->compile_dir = $pth_tplCompile;
         $this->cache_dir = $pth_tplCompile;
     }
