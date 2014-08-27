@@ -92,7 +92,7 @@ class FF_Action {
         $o_actionHandler =& FF_ActionHandler::singleton();
         $this->o_output =& FF_Output::factory();
         $this->currentActionId = $o_actionHandler->getActionId();
-        $this->o_nextAction =& FF_NextAction();
+        $this->o_nextAction = new FF_NextAction();
         $this->o_registry =& FF_Registry::singleton();
         $this->o_perms =& FF_Perms::factory();
         $this->o_model =& $in_model;

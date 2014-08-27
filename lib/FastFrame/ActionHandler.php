@@ -241,7 +241,7 @@ class FF_ActionHandler {
             $this->moduleConfig->checkPerms();
             $pth_actionFile = $this->availableActions[$this->actionId][0];
             require_once $pth_actionFile;
-            $o_action =& $this->availableActions[$this->actionId][1]($this->o_model);
+            $o_action = new $this->availableActions[$this->actionId][1]($this->o_model);
             $o_nextAction = $o_action->run();
             if ($o_nextAction->isLastAction()) {
                 $hitLastAction = true;
@@ -298,7 +298,7 @@ class FF_ActionHandler {
             $pth_config= $this->o_registry->getAppFile("ActionHandler/$this->moduleId.php", $this->appId, 'libs');
             if (file_exists($pth_config)) {
                 require_once $pth_config;
-                $a_configObjects[$s_className] =& $s_className($this);
+                $a_configObjects[$s_className] = new $s_className($this);
             }
             else {
                 trigger_error('The class file ' . basename($pth_config) . ' for module ' . $this->moduleId . ' does not exist', E_USER_ERROR);

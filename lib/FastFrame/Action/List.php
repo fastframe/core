@@ -95,7 +95,7 @@ class FF_Action_List extends FF_Action_Form {
     function initList()
     {
         $o_actionHandler =& FF_ActionHandler::singleton();
-        $this->o_list =& FF_List(
+        $this->o_list = new FF_List(
             // a unique id for this list
             $o_actionHandler->getAppId() . $o_actionHandler->getModuleId() . $this->currentActionId,
             $this->getDefaultSortField(),
@@ -120,7 +120,7 @@ class FF_Action_List extends FF_Action_Form {
     function queryData()
     {
         list($s_filter, $a_filterData) = $this->getFilter();
-        $this->o_listModeler =& FF_ListModeler($this->o_list, $this->o_model, $s_filter, $a_filterData);
+        $this->o_listModeler = new FF_ListModeler($this->o_list, $this->o_model, $s_filter, $a_filterData);
         if (!$this->o_listModeler->performSearch()) {
             $this->o_output->setMessage(_('Unable to query data'), FASTFRAME_ERROR_MESSAGE);
             $this->o_nextAction->setNextActionId(ACTION_PROBLEM);
@@ -164,7 +164,7 @@ class FF_Action_List extends FF_Action_Form {
     function createListTable()
     {
         $s_numCols = count($this->o_list->getColumnData());
-        $o_tableWidget =& FF_Smarty('multiColumnTable');
+        $o_tableWidget = new FF_Smarty('multiColumnTable');
         $s_id = 'listTable';
         if (!is_null($this->getHighlightedRowUrl())) {
             $s_id = 'listTableHighlight';

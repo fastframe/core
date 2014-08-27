@@ -69,7 +69,7 @@ class FF_AuthSource_profile extends FF_AuthSource {
         $o_registry =& FF_Registry::singleton();
         $this->serverName = $o_registry->getConfigParam('data/host');
         require_once $o_registry->getAppFile('Model/Profile.php', 'profile', 'libs');
-        $this->o_model =& FF_Model_Profile();
+        $this->o_model = new FF_Model_Profile();
     }
 
     // }}}

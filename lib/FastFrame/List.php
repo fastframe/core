@@ -222,8 +222,8 @@ class FF_List {
         // {{{ quickform preparation
 
         $a_listVars = $this->getAllListVariables();
-        $o_form =& HTML_QuickForm('search_box', 'POST', FastFrame::selfURL(), '_self');
-        $o_renderer =& HTML_QuickForm_Renderer_QuickHtml();
+        $o_form = new HTML_QuickForm('search_box', 'POST', FastFrame::selfURL(), '_self');
+        $o_renderer = new HTML_QuickForm_Renderer_QuickHtml();
         $a_searchFields = array();
         foreach ($this->getSearchableFields() as $a_val) {
             $a_searchFields[$a_val['search']] = $a_val['name'];
@@ -330,7 +330,7 @@ class FF_List {
             $this->o_output->o_tpl->append('javascript', '<script>Event.observe(window, "load", function () { $("searchString-' . $this->listId . '").focus(); }, false);</script>');
         }
 
-        $o_searchWidget =& FF_Smarty('searchTable');
+        $o_searchWidget = new FF_Smarty('searchTable');
         $o_searchWidget->assign(array('T_search_header' => sprintf(_('Search %s'), $in_pluralText),
                     'is_type_locked' => $this->typeLocked,
                     'T_search_find' => $s_findText,

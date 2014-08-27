@@ -123,12 +123,12 @@ class FF_Perms {
             // the dummy type is just an instance of this class whose methods will
             // allow all users to do everything
             if ($s_type == 'dummy') {
-                $a_instances[$s_type][$in_userId] =& FF_Perms($in_userId);
+                $a_instances[$s_type][$in_userId] = new FF_Perms($in_userId);
             }
             // use the model class from the permissions app to tell us info about perms
             elseif ($s_type == 'permissions_app') {
                 require_once $o_registry->getAppFile('Model/Perms.php', 'permissions', 'libs');
-                $a_instances[$s_type][$in_userId] =& FF_Perms_PermissionsApp($in_userId);
+                $a_instances[$s_type][$in_userId] = new FF_Perms_PermissionsApp($in_userId);
             }
             else {
                 trigger_error('Invalid permissions source was defined in the config file.', E_USER_ERROR);

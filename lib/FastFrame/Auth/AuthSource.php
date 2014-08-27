@@ -103,13 +103,13 @@ class FF_AuthSource {
     {
         $pth_authFile = dirname(__FILE__) . '/' . $in_type . '.php';
         if (!file_exists($pth_authFile)) {
-            $o_auth =& FF_AuthSource($in_name, $in_params);
+            $o_auth = new FF_AuthSource($in_name, $in_params);
             return $o_auth;
         }
 
         require_once $pth_authFile;
         $s_authClass = 'FF_AuthSource_' . $in_type;
-        $o_auth =& $s_authClass($in_name, $in_params);
+        $o_auth = new $s_authClass($in_name, $in_params);
         return $o_auth;
     }
 

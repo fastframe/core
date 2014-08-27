@@ -116,12 +116,12 @@ class FF_Output_Table {
     {
         switch($this->type) {
             case 'multiColumn':
-                $this->o_widget =& FF_Smarty('multiColumnTable');
+                $this->o_widget = new FF_Smarty('multiColumnTable');
                 $this->_renderMultiColumnTable();
                 break;
             case 'twoColumn':
             default:
-                $this->o_widget =& FF_Smarty('twoColumnTable');
+                $this->o_widget = new FF_Smarty('twoColumnTable');
                 $this->_renderTwoColumnTable();
         }
 
