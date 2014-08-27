@@ -28,12 +28,12 @@ require_once dirname(__FILE__) . '/NextAction.php';
 // {{{ class FF_Action
 
 /**
- * The FF_Action:: class is the super class for all actions 
+ * The FF_Action:: class is the super class for all actions
  *
  * @author  Jason Rust <jrust@codejanitor.com>
- * @version Revision: 1.0 
+ * @version Revision: 1.0
  * @access  public
- * @package ActionHandler 
+ * @package ActionHandler
  */
 
 // }}}
@@ -48,7 +48,7 @@ class FF_Action {
 
     /**
      * Output instance
-     * @var object 
+     * @var object
      */
     var $o_output;
 
@@ -59,7 +59,7 @@ class FF_Action {
     var $o_nextAction;
 
     /**
-     * The primary model object 
+     * The primary model object
      * @var object
      */
     var $o_model;
@@ -92,7 +92,7 @@ class FF_Action {
         $o_actionHandler =& FF_ActionHandler::singleton();
         $this->o_output =& FF_Output::factory();
         $this->currentActionId = $o_actionHandler->getActionId();
-        $this->o_nextAction =& new FF_NextAction();
+        $this->o_nextAction =& FF_NextAction();
         $this->o_registry =& FF_Registry::singleton();
         $this->o_perms =& FF_Perms::factory();
         $this->o_model =& $in_model;
@@ -109,7 +109,7 @@ class FF_Action {
      */
     function run()
     {
-        return $this->o_nextAction; 
+        return $this->o_nextAction;
     }
 
     // }}}

@@ -26,7 +26,7 @@
  * An authentication source for the profile application.  Uses it's Model class to get
  * the name of the table fields, so no extra parameters are needed.
  *
- * @version Revision: 1.0 
+ * @version Revision: 1.0
  * @author  Jason Rust <jrust@codejanitor.com>
  * @access  public
  * @package FastFrame
@@ -35,7 +35,7 @@
 // }}}
 class FF_AuthSource_profile extends FF_AuthSource {
     // {{{ properties
-    
+
     /**
      * The profile model object
      * @var object
@@ -58,7 +58,7 @@ class FF_AuthSource_profile extends FF_AuthSource {
      * Initialize the FF_AuthSource_profile class
      *
      * @param string $in_name The name of this auth source
-     * @param array $in_params Any extra parameters. 
+     * @param array $in_params Any extra parameters.
      *
      * @access public
      * @return object FF_AuthSource_profile object
@@ -69,7 +69,7 @@ class FF_AuthSource_profile extends FF_AuthSource {
         $o_registry =& FF_Registry::singleton();
         $this->serverName = $o_registry->getConfigParam('data/host');
         require_once $o_registry->getAppFile('Model/Profile.php', 'profile', 'libs');
-        $this->o_model =& new FF_Model_Profile();
+        $this->o_model =& FF_Model_Profile();
     }
 
     // }}}
@@ -78,7 +78,7 @@ class FF_AuthSource_profile extends FF_AuthSource {
     /**
      * Perform the login procedure.
      *
-     * Authenticates the user name and password against the profile table 
+     * Authenticates the user name and password against the profile table
      *
      * @param string $in_username The username to be authenticated.
      * @param string $in_password The corresponding password.
@@ -104,7 +104,7 @@ class FF_AuthSource_profile extends FF_AuthSource {
     /**
      * Changes the password on the auth source
      *
-     * @param int $in_userId The userId for the user being changed 
+     * @param int $in_userId The userId for the user being changed
      * @param string $in_newPassword The new password
      *
      * @access public
@@ -123,7 +123,7 @@ class FF_AuthSource_profile extends FF_AuthSource {
     /**
      * Changes the username on the auth source
      *
-     * @param int $in_userId The userId for the user being changed 
+     * @param int $in_userId The userId for the user being changed
      * @param string $in_newUserName The new username
      *
      * @access public

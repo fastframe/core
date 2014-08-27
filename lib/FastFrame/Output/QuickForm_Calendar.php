@@ -100,7 +100,7 @@ class HTML_QuickForm_datecalendar extends HTML_QuickForm_date
             unset($a_attr['src']);
             $a_attr['id'] = $s_name;
             $a_attr['onclick'] = 'false;';
-            $o_img =& new HTML_QuickForm_image($s_name,
+            $o_img =& HTML_QuickForm_image($s_name,
                                                $this->_options['image']['src'],
                                                $a_attr);
             $s_button = $o_img->toHtml();
@@ -112,7 +112,7 @@ class HTML_QuickForm_datecalendar extends HTML_QuickForm_date
                           $this->_options['button'] : array();
             $a_attr['id'] = $s_name;
             $a_attr['onclick'] = 'false;';
-            $o_img =& new HTML_QuickForm_button($this->getName() . '_calendar',
+            $o_img =& HTML_QuickForm_button($this->getName() . '_calendar',
                                                '...', $a_attr);
             $s_button = $o_img->toHtml();
         }

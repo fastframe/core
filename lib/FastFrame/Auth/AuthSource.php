@@ -25,10 +25,10 @@
 /**
  * Abstract class describing a source to authenticate against
  *
- * @version Revision: 1.0 
+ * @version Revision: 1.0
  * @author  Greg Gilbert <greg@treke.net>
  * @access  public
- * @package Auth 
+ * @package Auth
  */
 
 // }}}
@@ -64,7 +64,7 @@ class FF_AuthSource {
 
     // }}}
     // {{{ constructor
-    
+
     /**
      * Initialize the AuthSource class
      *
@@ -72,7 +72,7 @@ class FF_AuthSource {
      * @param array $in_params Additional parameters needed for authenticating
      *
      * @access public
-     * @return void 
+     * @return void
      */
     function FF_AuthSource($in_name, $in_params)
     {
@@ -87,9 +87,9 @@ class FF_AuthSource {
     /**
      * Creates an instance of a specific source
      *
-     * When requesting an authentication source, we do not need to know what type of 
-     * object we want, just a source that can authenticate against a preset target. 
-     * If we don't have a source that can authenticate, a source that always fails is 
+     * When requesting an authentication source, we do not need to know what type of
+     * object we want, just a source that can authenticate against a preset target.
+     * If we don't have a source that can authenticate, a source that always fails is
      * returned
      *
      * @param string $in_type The type of auth source to instantiate
@@ -97,19 +97,19 @@ class FF_AuthSource {
      * @param array $in_params Any extra params the auth source needs
      *
      * @access public
-     * @return object Subclass of AuthSource for the specified type, or AuthSource if none is found 
+     * @return object Subclass of AuthSource for the specified type, or AuthSource if none is found
      */
     function &factory($in_type, $in_name, $in_params)
     {
         $pth_authFile = dirname(__FILE__) . '/' . $in_type . '.php';
         if (!file_exists($pth_authFile)) {
-            $o_auth =& new FF_AuthSource($in_name, $in_params);
+            $o_auth =& FF_AuthSource($in_name, $in_params);
             return $o_auth;
         }
 
         require_once $pth_authFile;
         $s_authClass = 'FF_AuthSource_' . $in_type;
-        $o_auth =& new $s_authClass($in_name, $in_params);
+        $o_auth =& $s_authClass($in_name, $in_params);
         return $o_auth;
     }
 
@@ -178,7 +178,7 @@ class FF_AuthSource {
      * @param $in_name The name of the capability
      *
      * @access public
-     * @return bool The capability 
+     * @return bool The capability
      */
     function hasCapability($in_name)
     {
@@ -191,7 +191,7 @@ class FF_AuthSource {
     /**
      * Changes the password on the auth source
      *
-     * @param int $in_userId The userId for the user being changed 
+     * @param int $in_userId The userId for the user being changed
      * @param string $in_newPassword The new password
      *
      * @access public
@@ -208,7 +208,7 @@ class FF_AuthSource {
     /**
      * Changes the username on the auth source
      *
-     * @param int $in_userId The userId for the user being changed 
+     * @param int $in_userId The userId for the user being changed
      * @param string $in_newUserName The new username
      *
      * @access public

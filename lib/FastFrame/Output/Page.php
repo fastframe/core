@@ -62,7 +62,7 @@ class FF_Output_Page extends FF_Output {
     {
         parent::FF_Output();
         // Set up master template
-        $this->o_tpl =& new FF_Smarty('overall');
+        $this->o_tpl =& FF_Smarty('overall');
         $this->setDefaults();
         // Include some common js
         $this->addScriptFile($this->o_registry->getRootFile('prototype.js', 'javascript', FASTFRAME_WEBPATH));
@@ -183,7 +183,7 @@ class FF_Output_Page extends FF_Output {
         // Make the CSS file if needed
         if (!$o_fileCache->exists($a_cssCacheFile) ||
             filemtime($s_cssTemplateFile) > filemtime($o_fileCache->getPath($a_cssCacheFile))) {
-            $o_cssWidget =& new FF_Smarty($s_cssTemplateFile);
+            $o_cssWidget =& FF_Smarty($s_cssTemplateFile);
             // We already know the template is out of date
             $o_cssWidget->force_compile = true;
             // Use delimiters that work in css files

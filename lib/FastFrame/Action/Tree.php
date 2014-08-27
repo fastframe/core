@@ -25,16 +25,16 @@
 require_once dirname(__FILE__) . '/../Action.php';
 
 // }}}
-// {{{ class FF_Action_Tree 
+// {{{ class FF_Action_Tree
 
 /**
  * The FF_Action_Tree:: class handles displaying a tree structure to the user by interfacing
  * with a database schema that supports a tree structure (usually DB_NestedSet)
  *
  * @author  Jason Rust <jrust@codejanitor.com>
- * @version Revision: 1.0 
+ * @version Revision: 1.0
  * @access  public
- * @package Action 
+ * @package Action
  */
 
 // }}}
@@ -60,7 +60,7 @@ class FF_Action_Tree extends FF_Action {
     var $leftField;
 
     /**
-     * The field in the data array that has the right_id 
+     * The field in the data array that has the right_id
      * @var string
      */
     var $rightField;
@@ -85,7 +85,7 @@ class FF_Action_Tree extends FF_Action {
 
     // }}}
     // {{{ run()
-    
+
     /**
      * Registers the problem message with the output class.
      *
@@ -141,10 +141,10 @@ class FF_Action_Tree extends FF_Action {
      */
     function renderContainer($in_tree)
     {
-        $o_tableWidget =& new FF_Smarty('twoColumnTable');
-        $o_tableWidget->assign(array('S_table_columns' => 1, 
+        $o_tableWidget =& FF_Smarty('twoColumnTable');
+        $o_tableWidget->assign(array('S_table_columns' => 1,
                     'T_table_header' => $this->getPageName(), 'has_table_header' => true));
-        $o_tableWidget->append('rows', array('has_content_cell' => true, 
+        $o_tableWidget->append('rows', array('has_content_cell' => true,
                     'T_table_content_cell' => $in_tree));
         $this->o_output->o_tpl->append($this->templateVar, $o_tableWidget->fetch());
     }
@@ -164,7 +164,7 @@ class FF_Action_Tree extends FF_Action {
      * @param string $in_html The html for the tree
      *
      * @access public
-     * @return string The html for the tree 
+     * @return string The html for the tree
      */
     function renderNodes($in_data, $in_level = 0, $in_nodeCounts = array(), $in_html = '')
     {
@@ -194,7 +194,7 @@ class FF_Action_Tree extends FF_Action {
             if ($b_isOpen && $b_hasChildren) {
                 $in_html = $this->renderNodes(
                     $this->getChildren(),
-                    $in_level + 1, 
+                    $in_level + 1,
                     $in_nodeCounts,
                     $in_html
                 );
@@ -213,11 +213,11 @@ class FF_Action_Tree extends FF_Action {
      * @param int $in_level The level the folder is at
      * @param bool $in_hasChildren Does this folder have children?
      * @param bool $in_isOpen Is this folder open?
-     * @param string $in_count What number we are at in the current level 
-     * @param array $in_nodeCounts The total number of nodes for each level 
+     * @param string $in_count What number we are at in the current level
+     * @param array $in_nodeCounts The total number of nodes for each level
      * @param bool $in_lastRoot Is this the last root node?
      *
-     * @access public 
+     * @access public
      * @return void
      */
     function renderNode($in_level, $in_hasChildren, $in_isOpen, $in_count, $in_nodeCounts, $in_lastRoot)
@@ -233,7 +233,7 @@ class FF_Action_Tree extends FF_Action {
                 $s_html .= $this->getIcon('empty');
             }
         }
-        
+
         // determine position in tree
         if ($in_level == 0 && $in_count == 1) {
             $s_position = $in_nodeCounts[$in_level] > 1 ? 'top' : 'single';
@@ -247,17 +247,17 @@ class FF_Action_Tree extends FF_Action {
 
         // add current branch
         $s_branch = $in_hasChildren ? ($in_isOpen ? 'minus' : 'plus') : 'branch';
-        $s_branch .= $s_position; 
+        $s_branch .= $s_position;
         $s_branch = $this->getIcon($s_branch);
         $s_folder = $this->getNodeIcon($in_hasChildren, $in_isOpen) . ' ';
         if ($in_hasChildren) {
             $this->isOpen = $in_isOpen ? 0 : 1;
-            $s_branch = $this->o_output->link(FastFrame::selfURL($this->getBranchUrlParams()), $s_branch, 
+            $s_branch = $this->o_output->link(FastFrame::selfURL($this->getBranchUrlParams()), $s_branch,
                     array('class' => 'img'));
         }
 
         $s_html .= $s_branch;
-        $s_html .= $s_folder; 
+        $s_html .= $s_folder;
         $s_html .= $this->getNodeData();
         $s_html .= '</div>' . "\n";
         return $s_html;
@@ -274,7 +274,7 @@ class FF_Action_Tree extends FF_Action {
      */
     function getBranchUrlParams()
     {
-        return array('nodeId' => $this->o_model->getId(), 'expand' => $this->isOpen, 
+        return array('nodeId' => $this->o_model->getId(), 'expand' => $this->isOpen,
                 'actionId' => $this->currentActionId);
     }
 
@@ -362,7 +362,7 @@ class FF_Action_Tree extends FF_Action {
 
     // }}}
     // {{{ getRootNodes()
-    
+
     /**
      * Returns an array of the root nodes
      *
@@ -378,7 +378,7 @@ class FF_Action_Tree extends FF_Action {
     // {{{ getChildren()
 
     /**
-     * Gets the children of the currently loaded id. 
+     * Gets the children of the currently loaded id.
      *
      * @access public
      * @return array The array of children
@@ -431,7 +431,7 @@ class FF_Action_Tree extends FF_Action {
     // {{{ getPageName()
 
     /**
-     * Returns the page name for this action 
+     * Returns the page name for this action
      *
      * @access public
      * @return string The page name
@@ -472,7 +472,7 @@ class FF_Action_Tree extends FF_Action {
         $s_text .= '</div>';
         return $s_text;
     }
-    
+
     // }}}
 }
 ?>

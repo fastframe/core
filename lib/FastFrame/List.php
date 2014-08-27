@@ -41,7 +41,7 @@ define('SEARCH_BOX_ONLYSEARCH', 4);
  * putting those lists into an HTML page.
  *
  * @author  Jason Rust <jrust@codejanitor.com>
- * @version Revision: 1.0 
+ * @version Revision: 1.0
  * @access  public
  * @package FastFrame
  */
@@ -57,7 +57,7 @@ class FF_List {
     var $o_output;
 
     /**
-     * The column data. 
+     * The column data.
      * @var array
      */
     var $columnData = array();
@@ -69,7 +69,7 @@ class FF_List {
     var $extraSearchElements = array();
 
     /**
-     * The searchable fields. 
+     * The searchable fields.
      * @var array
      */
     var $searchableFields = array();
@@ -78,7 +78,7 @@ class FF_List {
      * The key for searching all fields
      * @var string
      */
-    var $allFieldsKey = '**all**'; 
+    var $allFieldsKey = '**all**';
 
     /**
      * The id of the current list
@@ -87,13 +87,13 @@ class FF_List {
     var $listId;
 
     /**
-     * The total number of matched records in the data set 
+     * The total number of matched records in the data set
      * @var int
      */
     var $matchedRecords = 0;
 
     /**
-     * The current sort field 
+     * The current sort field
      * @var string
      */
     var $sortField;
@@ -105,13 +105,13 @@ class FF_List {
     var $sortOrder;
 
     /**
-     * The current search string 
+     * The current search string
      * @var int
      */
     var $searchString;
 
     /**
-     * The current field being searched 
+     * The current field being searched
      * @var int
      */
     var $searchField;
@@ -123,7 +123,7 @@ class FF_List {
     var $searchBoxType;
 
     /**
-     * The current page offset 
+     * The current page offset
      * @var int
      */
     var $pageOffset;
@@ -147,7 +147,7 @@ class FF_List {
     var $typeLocked = false;
 
     /**
-     * Any persistent data which should be passed as hidden fields (i.e. actionId) 
+     * Any persistent data which should be passed as hidden fields (i.e. actionId)
      * @var array
      */
     var $persistentData = array();
@@ -215,31 +215,31 @@ class FF_List {
      * @param bool $in_focusSearch Focus the search box?
      *
      * @access public
-     * @return string The html for the search table 
+     * @return string The html for the search table
      */
     function renderSearchBox($in_pluralText, $in_focusSearch)
     {
         // {{{ quickform preparation
 
         $a_listVars = $this->getAllListVariables();
-        $o_form =& new HTML_QuickForm('search_box', 'POST', FastFrame::selfURL(), '_self');
-        $o_renderer =& new HTML_QuickForm_Renderer_QuickHtml();
+        $o_form =& HTML_QuickForm('search_box', 'POST', FastFrame::selfURL(), '_self');
+        $o_renderer =& HTML_QuickForm_Renderer_QuickHtml();
         $a_searchFields = array();
         foreach ($this->getSearchableFields() as $a_val) {
             $a_searchFields[$a_val['search']] = $a_val['name'];
         }
-        
-        $s_numListed = min(($this->getMatchedRecords() - $this->getRecordOffset()), 
+
+        $s_numListed = min(($this->getMatchedRecords() - $this->getRecordOffset()),
                 $this->getDisplayLimit(), $this->getMatchedRecords());
 
         // Add form elements which go only on advanced list
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_ADVANCED) {
-            $o_form->addElement('text', "displayLimit[$this->listId]", null, 
+            $o_form->addElement('text', "displayLimit[$this->listId]", null,
                     array('style' => 'vertical-align: middle; width: 15px;', 'size' => 2, 'maxlength' => 3));
-            $o_form->addRule("displayLimit[$this->listId]", _('Limit must be a positive integer'), 
-                    'nonzero', null, 'client', true); 
+            $o_form->addRule("displayLimit[$this->listId]", _('Limit must be a positive integer'),
+                    'nonzero', null, 'client', true);
 
-            $o_form->addElement('select', "searchField[$this->listId]", null, $a_searchFields, 
+            $o_form->addElement('select', "searchField[$this->listId]", null, $a_searchFields,
                     array('style' => 'vertical-align: middle;'));
 
             // Construct the menu ring for jumping to different blocks of table
@@ -254,10 +254,10 @@ class FF_List {
 
                 // You can't change anything when changing pages...doesn't make sense, so
                 // reset the form before going on to the next page
-                $o_form->addElement('select', "pageOffset[$this->listId]", null, $a_pageOptions, 
+                $o_form->addElement('select', "pageOffset[$this->listId]", null, $a_pageOptions,
                         array('style' => 'vertical-align: middle;', 'onchange' => 'var tmp = this.selectedIndex; this.form.reset(); this.options[tmp].selected = true; if (typeof(validate_search_box) != "function" || validate_search_box(this.form)) { this.form.submit(); } else { return false; }'));
                 // Has to be rendered later
-                $s_pagination = false; 
+                $s_pagination = false;
             }
             else {
                 $o_form->addElement('hidden', "pageOffset[$this->listId]");
@@ -275,19 +275,19 @@ class FF_List {
                         $this->getMatchedRecords());
             }
             else {
-                $s_pagination = '0 found'; 
+                $s_pagination = '0 found';
             }
         }
 
-        $o_form->addElement('text', "searchString[$this->listId]", null, 
-                array('size' => 15, 'style' => 'vertical-align: middle;', 
+        $o_form->addElement('text', "searchString[$this->listId]", null,
+                array('size' => 15, 'style' => 'vertical-align: middle;',
                     'onfocus' => 'this.select();', 'id' => "searchString-$this->listId",
                     'accesskey' => $this->o_output->getAccessKey(_('Search for'))));
-        $o_form->addElement('submit', 'query_submit', _('» Search'), 
+        $o_form->addElement('submit', 'query_submit', _('ï¿½ Search'),
                 array('style' => 'vertical-align: bottom;'));
         if ($this->listAll) {
-            $o_form->addElement('submit', 'listall_submit', _('» List All'), 
-                array('onclick' => "$('searchString-$this->listId').value = '';", 
+            $o_form->addElement('submit', 'listall_submit', _('ï¿½ List All'),
+                array('onclick' => "$('searchString-$this->listId').value = '';",
                     'style' => 'vertical-align: bottom;'));
         }
 
@@ -321,7 +321,7 @@ class FF_List {
         $tmp_help = _('Search for items in the list by entering a search term in the box below.  To search between two dates you can enter the dates in the following format: mm/dd/yyyy - mm/dd/yyyy');
         $s_findText = $this->o_output->highlightAccessKey(_('Search terms')) . ' ' .
             $this->o_output->getHelpLink($tmp_help, _('Search Help'));
-        $s_searchSubmit = $o_renderer->elementToHtml('query_submit');  
+        $s_searchSubmit = $o_renderer->elementToHtml('query_submit');
         if ($this->listAll) {
             $s_searchSubmit .= ' ' . $o_renderer->elementToHtml('listall_submit');
         }
@@ -330,8 +330,8 @@ class FF_List {
             $this->o_output->o_tpl->append('javascript', '<script>Event.observe(window, "load", function () { $("searchString-' . $this->listId . '").focus(); }, false);</script>');
         }
 
-        $o_searchWidget =& new FF_Smarty('searchTable');
-        $o_searchWidget->assign(array('T_search_header' => sprintf(_('Search %s'), $in_pluralText), 
+        $o_searchWidget =& FF_Smarty('searchTable');
+        $o_searchWidget->assign(array('T_search_header' => sprintf(_('Search %s'), $in_pluralText),
                     'is_type_locked' => $this->typeLocked,
                     'T_search_find' => $s_findText,
                     'T_search_terms' => $o_renderer->elementToHtml("searchString[$this->listId]"),
@@ -342,7 +342,7 @@ class FF_List {
                 $s_foundText = _('No Results');
             }
             else {
-                $s_foundText = sprintf(_('Results %1$d - %2$d of %3$d results.'), 
+                $s_foundText = sprintf(_('Results %1$d - %2$d of %3$d results.'),
                         $this->getRecordOffset() + 1,
                         $this->getRecordOffset() + $s_numListed,
                         $this->getMatchedRecords());
@@ -353,15 +353,15 @@ class FF_List {
 
         if ($a_listVars['searchBoxType'] == SEARCH_BOX_SIMPLE) {
             $o_searchWidget->assign(array('T_switch_type' => $this->o_output->link(
-                            FastFrame::selfURL(array_merge($this->persistentData, $a_listVars, 
+                            FastFrame::selfURL(array_merge($this->persistentData, $a_listVars,
                                     array('searchBoxType' => SEARCH_BOX_ADVANCED))), '&#187; ' . _('More Search Options'))));
         }
         elseif ($a_listVars['searchBoxType'] != SEARCH_BOX_ONLYSEARCH) {
-            $s_limitText = sprintf(_('Display %s results per page'), 
+            $s_limitText = sprintf(_('Display %s results per page'),
                     $o_renderer->elementToHtml("displayLimit[$this->listId]"));
 
             $o_searchWidget->assign(array('T_switch_type' => $this->o_output->link(
-                            FastFrame::selfURL(array_merge($this->persistentData, $a_listVars, 
+                            FastFrame::selfURL(array_merge($this->persistentData, $a_listVars,
                                     array('searchBoxType' => SEARCH_BOX_SIMPLE))), '&#171; ' . _('Fewer Search Options')),
                         'T_search_limit' => $s_limitText,
                         'T_search_fields' => _('Search fields'),
@@ -374,7 +374,7 @@ class FF_List {
             $o_searchWidget->assign('has_extra_elements', true);
             foreach ($this->extraSearchElements as $a_element) {
                 $tmp_desc = $a_element[0] == 'checkbox' ? '' : $a_element[1];
-                $o_searchWidget->append('extraElements', 
+                $o_searchWidget->append('extraElements',
                         array('T_desc' => $tmp_desc, 'T_element' => $o_renderer->elementToHtml($a_element[2])));
             }
         }
@@ -392,7 +392,7 @@ class FF_List {
      * the multiple pages of data.
      *
      * @access public
-     * @return array An array of the navigation links. 
+     * @return array An array of the navigation links.
      */
     function generateNavigationLinks()
     {
@@ -403,34 +403,34 @@ class FF_List {
         $lang_lastPage  = array('title' => _('Go to Last Page'));
         $lang_atFirst   = array('title' => _('Disabled'));
         $lang_atLast    = array('title' => _('Disabled'));
-      
+
         $a_urlVars = array_merge($this->persistentData, $this->getAllListVariables());
         // set up the four actions
         $a_navigation = array();
-        $a_navigation['first']    = $this->getPageOffset() > 1 ? 
+        $a_navigation['first']    = $this->getPageOffset() > 1 ?
                                     $this->o_output->link(
                                             FastFrame::selfURL(array_merge($a_urlVars, array(
-                                                    "pageOffset[$this->listId]" => $this->getPageId('first')))), 
+                                                    "pageOffset[$this->listId]" => $this->getPageId('first')))),
                                             '&#171; ' . _('First'), $lang_firstPage) : '&nbsp;';
 
         $a_navigation['previous'] = $this->getPageOffset() > 1 ?
                                     $this->o_output->link(
                                             FastFrame::selfURL(array_merge($a_urlVars, array(
-                                                    "pageOffset[$this->listId]" => $this->getPageId('previous')))), 
+                                                    "pageOffset[$this->listId]" => $this->getPageId('previous')))),
                                             '&#139; ' . _('Previous'), $lang_prevPage) : '&nbsp;';
 
-        $a_navigation['next']     = $this->getPageOffset() < $this->getPageId('last') ? 
+        $a_navigation['next']     = $this->getPageOffset() < $this->getPageId('last') ?
                                     $this->o_output->link(
                                             FastFrame::selfURL(array_merge($a_urlVars, array(
-                                                    "pageOffset[$this->listId]" => $this->getPageId('next')))), 
+                                                    "pageOffset[$this->listId]" => $this->getPageId('next')))),
                                             _('Next') . ' &#155;', $lang_nextPage) : '&nbsp;';
 
-        $a_navigation['last']     = $this->getPageOffset() < $this->getPageId('last') ? 
+        $a_navigation['last']     = $this->getPageOffset() < $this->getPageId('last') ?
                                     $this->o_output->link(
                                             FastFrame::selfURL(array_merge($a_urlVars, array(
-                                                    "pageOffset[$this->listId]" => $this->getPageId('last')))), 
+                                                    "pageOffset[$this->listId]" => $this->getPageId('last')))),
                                             _('Last') . ' &#187;', $lang_lastPage) : '&nbsp;';
-        
+
         return $a_navigation;
     }
 
@@ -463,22 +463,22 @@ class FF_List {
                 // Modify the two get variables for this sort
                 $a_listVars["sortField[$this->listId]"] = $a_colData['sort'];
                 $a_listVars["sortOrder[$this->listId]"] = $tmp_sort;
-                $tmp_title = sprintf(_('Sort %1$s (%2$s)'), 
-                        (isset($a_colData['title']) ? $a_colData['title'] : $a_colData['name']), 
-                        $tmp_sort ? _('Ascending') : _('Descending')); 
-                $tmp_href = $this->o_output->link(FastFrame::selfURL($a_listVars), 
+                $tmp_title = sprintf(_('Sort %1$s (%2$s)'),
+                        (isset($a_colData['title']) ? $a_colData['title'] : $a_colData['name']),
+                        $tmp_sort ? _('Ascending') : _('Descending'));
+                $tmp_href = $this->o_output->link(FastFrame::selfURL($a_listVars),
                         $a_colData['name'], array('title' => $tmp_title ));
 
-                // see if we should display an arrow 
+                // see if we should display an arrow
                 if ($this->getSortField() == $a_colData['sort']) {
                     // Determine which image to display
-                    $tmp_img = $this->getSortOrder() ? 
-                        $this->o_output->imgTag('up.gif', 'arrows', array('align' => 'middle', 'height' => 8, 'width' => 8)) : 
+                    $tmp_img = $this->getSortOrder() ?
+                        $this->o_output->imgTag('up.gif', 'arrows', array('align' => 'middle', 'height' => 8, 'width' => 8)) :
                         $this->o_output->imgTag('down.gif', 'arrows', array('align' => 'middle', 'height' => 8, 'width' => 8));
-                    $tmp_href .= ' ' . $this->o_output->link(FastFrame::selfURL($a_listVars), 
-                            $tmp_img, array('title' => $tmp_title)); 
+                    $tmp_href .= ' ' . $this->o_output->link(FastFrame::selfURL($a_listVars),
+                            $tmp_img, array('title' => $tmp_title));
                 }
-                
+
                 if (isset($a_colData['style'])) {
                     $tmp_href = '<div style="' . $a_colData['style'] . '">' . $tmp_href . '</div>';
                 }
@@ -503,7 +503,7 @@ class FF_List {
     /**
      * Adds a select list to the search box.
      *
-     * @param string $in_desc The description for the select 
+     * @param string $in_desc The description for the select
      * @param string $in_name The name of the element
      * @param array $in_options The array of options
      * @param string $in_default (optional) The default option
@@ -513,7 +513,7 @@ class FF_List {
      * @access public
      * @return void
      */
-    function addSearchSelect($in_desc, $in_name, $in_options, $in_default = null, $in_params = array('style' => 'vertical-align: middle;', 'onchange' => 'this.form.submit();')) 
+    function addSearchSelect($in_desc, $in_name, $in_options, $in_default = null, $in_params = array('style' => 'vertical-align: middle;', 'onchange' => 'this.form.submit();'))
     {
         FF_Request::setParam($in_name, FF_Request::getParam($in_name, 'gps', $in_default), 's');
         $this->extraSearchElements[] = array('select', $in_desc, $in_name,
@@ -599,7 +599,7 @@ class FF_List {
     function getSearchBoxOptions()
     {
         return array(
-                SEARCH_BOX_SIMPLE => _('Simple'), 
+                SEARCH_BOX_SIMPLE => _('Simple'),
                 SEARCH_BOX_ADVANCED => _('Advanced'));
     }
 
@@ -624,7 +624,7 @@ class FF_List {
      * Sets the search box type variable from $in_value or GET/POST/SESSION if not passed
      * in, defaulting to SEARCH_BOX_SIMPLE if value is not present.
      *
-     * @param int $in_value (optional) Search box type. 
+     * @param int $in_value (optional) Search box type.
      * @param bool $in_updateSession Update the session parameter with
      *        the new value?
      *
@@ -676,7 +676,7 @@ class FF_List {
      * Sets the display limit variable from GET/POST/SESSION or if that is not present falls
      * back onto passed in value
      *
-     * @param int $in_limit Fallback display limit per page. 
+     * @param int $in_limit Fallback display limit per page.
      *
      * @access public
      * @return void
@@ -715,7 +715,7 @@ class FF_List {
      * Sets the page offset variable from $in_value or GET/POST/SESSION if not passed in,
      * defaulting to 1 if not present.
      *
-     * @param int $in_value (optional) What page to show. 
+     * @param int $in_value (optional) What page to show.
      *
      * @access public
      * @return void
@@ -745,8 +745,8 @@ class FF_List {
      */
     function getRecordOffset()
     {
-        return $this->getDisplayLimit() ? 
-               ($this->getPageOffset() - 1) * $this->getDisplayLimit() : 
+        return $this->getDisplayLimit() ?
+               ($this->getPageOffset() - 1) * $this->getDisplayLimit() :
                0;
     }
 
@@ -852,7 +852,7 @@ class FF_List {
      * Sets the search string variable from $in_value or GET/POST/SESSION if not passed in,
      * defaulting to empty string if not present.
      *
-     * @param string $in_value (optional) What string to search for. 
+     * @param string $in_value (optional) What string to search for.
      *
      * @access public
      * @return void
@@ -891,7 +891,7 @@ class FF_List {
      * Sets the search field variable from $in_value or GET/POST/SESSION
      * if not passed in, defaulting to all fields if not present.
      *
-     * @param string $in_value (optional) What field to search on. 
+     * @param string $in_value (optional) What field to search on.
      *
      * @access public
      * @return void
@@ -955,12 +955,12 @@ class FF_List {
      * @param bool $in_excludeAll (optional) Exclude the All Fields key from the list?
      *
      * @access public
-     * @return array An array of the searchable fields 
+     * @return array An array of the searchable fields
      */
     function getSearchableFields($in_excludeAll = false)
     {
         if ($in_excludeAll) {
-            $a_list = array(); 
+            $a_list = array();
             foreach ($this->searchableFields as $a_val) {
                 if ($a_val['search'] != $this->allFieldsKey) {
                     $a_list[] = $a_val;
@@ -978,10 +978,10 @@ class FF_List {
     // {{{ getColumnData()
 
     /**
-     * Gets the column data. 
+     * Gets the column data.
      *
      * @access public
-     * @return array The column data 
+     * @return array The column data
      */
     function getColumnData()
     {
@@ -992,7 +992,7 @@ class FF_List {
     // {{{ setColumnData()
 
     /**
-     * Sets the column data. 
+     * Sets the column data.
      *
      * @param array $in_columnData A multidimensional array with the
      *              primary keys in the order the columns are to be
@@ -1015,7 +1015,7 @@ class FF_List {
     // {{{ setMatchedRecords()
 
     /**
-     * Sets the matched records variable 
+     * Sets the matched records variable
      *
      * @param int $in_matchedRecords The total number of matched records in the data set.
      *
@@ -1031,7 +1031,7 @@ class FF_List {
     // {{{ getMatchedRecords()
 
     /**
-     * Gets the matched records variable 
+     * Gets the matched records variable
      *
      * @access public
      * @return int The matched number of records
@@ -1085,10 +1085,10 @@ class FF_List {
     // {{{ getTotalPages()
 
     /**
-     * Calculates the total number of pages are in the data set. 
+     * Calculates the total number of pages are in the data set.
      *
      * @access public
-     * @return int The total number of pages. 
+     * @return int The total number of pages.
      */
     function getTotalPages()
     {
@@ -1102,7 +1102,7 @@ class FF_List {
      * Get the allFieldsKey
      *
      * @access public
-     * @return string The key used for searching all fields 
+     * @return string The key used for searching all fields
      */
     function getAllFieldsKey()
     {

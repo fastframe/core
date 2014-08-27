@@ -33,9 +33,9 @@ require_once dirname(__FILE__) . '/../ListModeler.php';
  * The FF_Action_List:: class creates a list of items by using the FF_List class
  *
  * @author  Jason Rust <jrust@codejanitor.com>
- * @version Revision: 1.0 
+ * @version Revision: 1.0
  * @access  public
- * @package ActionHandler 
+ * @package ActionHandler
  */
 
 // }}}
@@ -43,8 +43,8 @@ class FF_Action_List extends FF_Action_Form {
     // {{{ properties
 
     /**
-     * The list object 
-     * @var object 
+     * The list object
+     * @var object
      */
     var $o_list;
 
@@ -56,9 +56,9 @@ class FF_Action_List extends FF_Action_Form {
 
     // }}}
     // {{{ run()
-    
+
     /**
-     * Lists the object from the database 
+     * Lists the object from the database
      *
      * @access public
      * @return object The next action object
@@ -75,12 +75,12 @@ class FF_Action_List extends FF_Action_Form {
         }
 
         $this->renderAdditionalLinks();
-        $this->o_output->o_tpl->assign(array('has_search_box' => true, 
+        $this->o_output->o_tpl->assign(array('has_search_box' => true,
                     'W_search_box' => $this->o_list->renderSearchBox($this->getPluralText(), true)));
         $this->o_output->setPageName($this->getPageName());
         $this->o_output->o_tpl->append('content_middle', $this->createListTable());
         $this->setNextAction();
-        return $this->o_nextAction; 
+        return $this->o_nextAction;
     }
 
     // }}}
@@ -95,10 +95,10 @@ class FF_Action_List extends FF_Action_Form {
     function initList()
     {
         $o_actionHandler =& FF_ActionHandler::singleton();
-        $this->o_list =& new FF_List(
+        $this->o_list =& FF_List(
             // a unique id for this list
             $o_actionHandler->getAppId() . $o_actionHandler->getModuleId() . $this->currentActionId,
-            $this->getDefaultSortField(), 
+            $this->getDefaultSortField(),
             $this->getDefaultSortOrder(),
             $this->getDefaultDisplayLimit()
         );
@@ -115,12 +115,12 @@ class FF_Action_List extends FF_Action_Form {
      * Queries the datasource for the list data.
      *
      * @access public
-     * @return bool True if successful, false otherwise 
+     * @return bool True if successful, false otherwise
      */
     function queryData()
     {
         list($s_filter, $a_filterData) = $this->getFilter();
-        $this->o_listModeler =& new FF_ListModeler($this->o_list, $this->o_model, $s_filter, $a_filterData);
+        $this->o_listModeler =& FF_ListModeler($this->o_list, $this->o_model, $s_filter, $a_filterData);
         if (!$this->o_listModeler->performSearch()) {
             $this->o_output->setMessage(_('Unable to query data'), FASTFRAME_ERROR_MESSAGE);
             $this->o_nextAction->setNextActionId(ACTION_PROBLEM);
@@ -164,7 +164,7 @@ class FF_Action_List extends FF_Action_Form {
     function createListTable()
     {
         $s_numCols = count($this->o_list->getColumnData());
-        $o_tableWidget =& new FF_Smarty('multiColumnTable');
+        $o_tableWidget =& FF_Smarty('multiColumnTable');
         $s_id = 'listTable';
         if (!is_null($this->getHighlightedRowUrl())) {
             $s_id = 'listTableHighlight';
@@ -173,13 +173,13 @@ class FF_Action_List extends FF_Action_Form {
         $o_tableWidget->assign(array('has_table_header' => true, 'has_field_row' => true,
                     'S_table' => 'id="' . $s_id . '"',
                     'T_table_header' => $this->getTableHeaderText(),
-                    'S_table_columns' => $s_numCols)); 
+                    'S_table_columns' => $s_numCols));
         foreach ($this->o_list->generateSortFields() as $s_cell) {
             $o_tableWidget->append('fieldCells', array('T_table_field_cell' => $s_cell));
         }
 
         $a_data = $this->o_list->generateNavigationLinks();
-        $o_tableWidget->assign(array('S_table_columns' => $s_numCols, 
+        $o_tableWidget->assign(array('S_table_columns' => $s_numCols,
                     'T_navigation_first' => $a_data['first'],
                     'T_navigation_previous' => $a_data['previous'],
                     'T_navigation_next' => $a_data['next'],
@@ -188,7 +188,7 @@ class FF_Action_List extends FF_Action_Form {
         $this->renderListData($o_tableWidget, $s_numCols);
         return $o_tableWidget->fetch();
     }
-    
+
     // }}}
     // {{{ renderAdditionalLinks()
 
@@ -234,7 +234,7 @@ class FF_Action_List extends FF_Action_Form {
             $a_buttonCells = $this->getButtonCells();
             $a_map = $this->getFieldMap();
             while ($this->o_listModeler->loadNextModel()) {
-                $tmp_extraJs = $b_highlightRows ? 
+                $tmp_extraJs = $b_highlightRows ?
                     ' id="' . $this->getHighlightedRowUrl() . '"' : '';
                 $a_cells = array();
                 foreach ($a_map as $tmp_fields) {
@@ -295,10 +295,10 @@ class FF_Action_List extends FF_Action_Form {
 
     /**
      * Process the field map configuration used by FastFrame into the
-     * columnData and searchableFields properties of the list object. 
+     * columnData and searchableFields properties of the list object.
      *
      * @access public
-     * @return array An array of 0 => colData, 1 => searchData 
+     * @return array An array of 0 => colData, 1 => searchData
      */
     function processFieldMapForList()
     {
@@ -332,7 +332,7 @@ class FF_Action_List extends FF_Action_Form {
                 $a_colData[$s_key]['name'] = $a_val['img'];
             }
         }
-        
+
         return array($a_colData, $a_searchData);
     }
 
@@ -382,14 +382,14 @@ class FF_Action_List extends FF_Action_Form {
 
     // }}}
     // {{{ getButtonCells()
-    
+
     /**
      * Gets an array of cells that have clickable buttons in them
      *
      * @access public
      * @return array An array of values with the method names of cells that will render buttons
      */
-    
+
     function getButtonCells()
     {
         return array('getOptions');
@@ -428,7 +428,7 @@ class FF_Action_List extends FF_Action_Form {
 
     // }}}
     // {{{ getDefaultSortField()
-    
+
     /**
      * Returns the default sort field
      *
@@ -442,9 +442,9 @@ class FF_Action_List extends FF_Action_Form {
 
     // }}}
     // {{{ getDefaultDisplayLimit()
-    
+
     /**
-     * Returns the default display limit for the list page 
+     * Returns the default display limit for the list page
      *
      * @access public
      * @return int The display limit
@@ -456,13 +456,13 @@ class FF_Action_List extends FF_Action_Form {
 
     // }}}
     // {{{ getDefaultSortOrder()
-    
+
     /**
      * Returns the default sort order for the list in the form of an integer (0 = DESC, 1 =
      * ASC)
      *
      * @access public
-     * @return int The sort order 
+     * @return int The sort order
      */
     function getDefaultSortOrder()
     {
@@ -505,7 +505,7 @@ class FF_Action_List extends FF_Action_Form {
     // {{{ getPageName()
 
     /**
-     * Returns the page name for this action 
+     * Returns the page name for this action
      *
      * @access public
      * @return string The page name
@@ -556,15 +556,15 @@ class FF_Action_List extends FF_Action_Form {
     {
         return sprintf(_('No %s were found.'), strtolower($this->getPluralText()));
     }
-    
+
     // }}}
     // {{{ getTableHeaderText()
 
     /**
-     * Gets the description of the table 
+     * Gets the description of the table
      *
      * @access public
-     * @return string The text for the header of the table 
+     * @return string The text for the header of the table
      */
     function getTableHeaderText()
     {

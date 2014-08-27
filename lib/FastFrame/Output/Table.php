@@ -27,9 +27,9 @@
  * types of tables.
  *
  * @author  Jason Rust <jrust@codejanitor.com>
- * @version Revision: 1.0 
+ * @version Revision: 1.0
  * @access  public
- * @package Output 
+ * @package Output
  */
 
 // }}}
@@ -79,7 +79,7 @@ class FF_Output_Table {
     var $tableHeaders = array(
         0 => array(
             'title' => 'Example Element',
-            'data' => 'example data', 
+            'data' => 'example data',
             'titleStyle' => 'style="text-align: right;"',
             'dataStyle' => '',
         )
@@ -116,12 +116,12 @@ class FF_Output_Table {
     {
         switch($this->type) {
             case 'multiColumn':
-                $this->o_widget =& new FF_Smarty('multiColumnTable');
+                $this->o_widget =& FF_Smarty('multiColumnTable');
                 $this->_renderMultiColumnTable();
                 break;
             case 'twoColumn':
             default:
-                $this->o_widget =& new FF_Smarty('twoColumnTable');
+                $this->o_widget =& FF_Smarty('twoColumnTable');
                 $this->_renderTwoColumnTable();
         }
 
@@ -151,7 +151,7 @@ class FF_Output_Table {
      * Creates a basic two column table of | title | data |
      *
      * @access public
-     * @return void 
+     * @return void
      */
     function _renderTwoColumnTable()
     {
@@ -164,7 +164,7 @@ class FF_Output_Table {
                         'T_table_field_cell' => isset($tmp_header['title']) ? $tmp_header['title'] : '',
                         'S_table_field_cell' => isset($tmp_header['titleStyle']) ? $tmp_header['titleStyle'] : '',
                         'T_table_content_cell' => $this->o_output->processCellData($tmp_header['data'],
-                            (isset($tmp_header['dataIsSafe']) ? $tmp_header['dataIsSafe'] : false)), 
+                            (isset($tmp_header['dataIsSafe']) ? $tmp_header['dataIsSafe'] : false)),
                         'S_table_content_cell' => isset($tmp_header['dataStyle']) ? $tmp_header['dataStyle'] : ''));
         }
     }
@@ -187,7 +187,7 @@ class FF_Output_Table {
      *           2 => array('data' => 'test2'))
      *
      * @access private
-     * @return void 
+     * @return void
      */
     function _renderMultiColumnTable()
     {
@@ -255,28 +255,28 @@ class FF_Output_Table {
 
     // }}}
     // {{{ setTableHeaderText()
-    
+
     /**
-     * Sets the description of the table 
+     * Sets the description of the table
      *
      * @param string $in_text The table header text
      *
      * @access public
-     * @return void 
+     * @return void
      */
     function setTableHeaderText($in_text)
     {
-        $this->tableHeaderText = $in_text; 
+        $this->tableHeaderText = $in_text;
     }
 
     // }}}
     // {{{ getNumColumns()
 
     /**
-     * Gets the number of columns the table has 
+     * Gets the number of columns the table has
      *
      * @access public
-     * @return int The number of table columns 
+     * @return int The number of table columns
      */
     function getNumColumns()
     {
@@ -287,11 +287,11 @@ class FF_Output_Table {
     // {{{ setNumColumns()
 
     /**
-     * Sets the number of columns the table has 
+     * Sets the number of columns the table has
      *
      * @param $in_numCols The number of columns
      * @access public
-     * @return void 
+     * @return void
      */
     function setNumColumns($in_numCols)
     {

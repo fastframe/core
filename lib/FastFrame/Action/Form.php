@@ -31,12 +31,12 @@ require_once 'HTML/QuickForm/Renderer/QuickHtml.php';
 
 /**
  * The FF_Action_Form:: class has methods and properties that are needed for
- * actions that use forms. 
+ * actions that use forms.
  *
  * @author  Jason Rust <jrust@codejanitor.com>
- * @version Revision: 1.0 
+ * @version Revision: 1.0
  * @access  public
- * @package ActionHandler 
+ * @package ActionHandler
  */
 
 // }}}
@@ -44,7 +44,7 @@ class FF_Action_Form extends FF_Action {
     // {{{ properties
 
     /**
-     * QuickForm instance 
+     * QuickForm instance
      * @var object
      */
     var $o_form;
@@ -93,7 +93,7 @@ class FF_Action_Form extends FF_Action {
 
     /**
      * Any persistent data that should be passed on to the search box
-     * @var array 
+     * @var array
      */
     var $persistentData = array('actionId' => ACTION_LIST);
 
@@ -112,13 +112,13 @@ class FF_Action_Form extends FF_Action {
     {
         parent::__construct(&$in_model);
         $this->clearExpiredFormTokens();
-        $this->o_form =& new HTML_QuickForm($this->formName, $this->formMethod, $this->getFormAction(), $this->formTarget);
-        $this->o_renderer =& new HTML_QuickForm_Renderer_QuickHtml();        
+        $this->o_form =& HTML_QuickForm($this->formName, $this->formMethod, $this->getFormAction(), $this->formTarget);
+        $this->o_renderer =& HTML_QuickForm_Renderer_QuickHtml();
     }
 
     // }}}
     // {{{ run()
-    
+
     /**
      * Sets up the edit form.
      *
@@ -208,10 +208,10 @@ class FF_Action_Form extends FF_Action {
 
         require_once dirname(__FILE__) . '/../List.php';
         $o_actionHandler =& FF_ActionHandler::singleton();
-        $o_list =& new FF_List($o_actionHandler->getAppId() . $o_actionHandler->getModuleId() . $this->persistentData['actionId'], null, null, FF_Request::getParam('defDispLimit', 's'));
+        $o_list =& FF_List($o_actionHandler->getAppId() . $o_actionHandler->getModuleId() . $this->persistentData['actionId'], null, null, FF_Request::getParam('defDispLimit', 's'));
         $o_list->setSearchBoxType(SEARCH_BOX_ONLYSEARCH, false);
         $o_list->setPersistentData($this->persistentData);
-        $this->o_output->o_tpl->assign(array('has_search_box' => true, 
+        $this->o_output->o_tpl->assign(array('has_search_box' => true,
                     'W_search_box' => $o_list->renderSearchBox($this->getPluralText(), false)));
     }
 
@@ -221,9 +221,9 @@ class FF_Action_Form extends FF_Action {
     /**
      * Renders the submit row html for the form
      *
-     * @param object $in_tableWidget The table widget 
-     * @param int $in_colspan The number of columns to span 
-     * 
+     * @param object $in_tableWidget The table widget
+     * @param int $in_colspan The number of columns to span
+     *
      * @access private
      * @return void
      */
@@ -241,12 +241,12 @@ class FF_Action_Form extends FF_Action {
      * Renders the table and form using the twoColumnTable widget.
      *
      * @access public
-     * @return object The table object 
+     * @return object The table object
      */
     function renderFormTable()
     {
         require_once dirname(__FILE__) . '/../Output/Table.php';
-        $o_table =& new FF_Output_Table('twoColumn');
+        $o_table =& FF_Output_Table('twoColumn');
         $o_table->setTableHeaderText($this->getTableHeaderText());
         $o_table->setTableHeaders($this->_setDataAsSafe($this->getTableData()));
         $o_table->render();
@@ -260,7 +260,7 @@ class FF_Action_Form extends FF_Action {
 
     /**
      * Creates the form elements needed for the form and any rules that apply to those
-     * elements. 
+     * elements.
      *
      * @access public
      * @return void
@@ -318,7 +318,7 @@ class FF_Action_Form extends FF_Action {
      * Is this an update (return true) or add (return false)?
      *
      * @access public
-     * @return bool True if is an update, false if it is an add 
+     * @return bool True if is an update, false if it is an add
      */
     function isUpdate()
     {
@@ -331,7 +331,7 @@ class FF_Action_Form extends FF_Action {
     /**
      * Sets the actionId that should be used when the form is submitted.
      *
-     * @access public 
+     * @access public
      * @returns void
      */
     function setSubmitActionId()
@@ -348,9 +348,9 @@ class FF_Action_Form extends FF_Action {
     // {{{ setProblemActionId()
 
     /**
-     * Sets the actionId that should be used when an error occurs in retrieving the data 
+     * Sets the actionId that should be used when an error occurs in retrieving the data
      *
-     * @access public 
+     * @access public
      * @returns void
      */
     function setProblemActionId()
@@ -379,7 +379,7 @@ class FF_Action_Form extends FF_Action {
      * Gets the action used for the form, which is the current page.
      *
      * @access public
-     * @return string The form action 
+     * @return string The form action
      */
     function getFormAction()
     {
@@ -391,16 +391,16 @@ class FF_Action_Form extends FF_Action {
 
     /**
      * Gets the constant values to be filled into the forms.  Constants means it will
-     * override GET/POST data with the same key. 
+     * override GET/POST data with the same key.
      *
      * @access public
-     * @return mixed An array of the defaults or false if there was a problem 
+     * @return mixed An array of the defaults or false if there was a problem
      */
     function getFormConstants()
     {
         return array(
                    'actionId' => $this->formActionId,
-                   'objectId' => FF_Request::getParam('objectId', 'pg'), 
+                   'objectId' => FF_Request::getParam('objectId', 'pg'),
                    'token' => $this->getFormToken(),
                    'submitbutton' => html_entity_decode('&raquo;') . ' ' . $this->getTableHeaderText(),
                );
@@ -411,7 +411,7 @@ class FF_Action_Form extends FF_Action {
 
     /**
      * Gets the defaults to be filled into the form by retrieving the data from the
-     * model. 
+     * model.
      *
      * @access public
      * @return array An array of the defaults
@@ -462,9 +462,9 @@ class FF_Action_Form extends FF_Action {
 
     // }}}
     // {{{ getTableHeaderText()
-    
+
     /**
-     * Gets the description of this form to be placed in the table header 
+     * Gets the description of this form to be placed in the table header
      *
      * @access public
      * @return string The text for the header.
@@ -511,7 +511,7 @@ class FF_Action_Form extends FF_Action {
     // {{{ getPageName()
 
     /**
-     * Returns the page name for this action 
+     * Returns the page name for this action
      *
      * @access public
      * @return string The page name

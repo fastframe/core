@@ -357,7 +357,7 @@ class FF_Auth {
 
             // Couldn't find an auth source, so give a dummy
             if (!isset($a_authSources[$in_name])) {
-                $a_authSources[$in_name] =& new FF_AuthSource($in_name, array());
+                $a_authSources[$in_name] =& FF_AuthSource($in_name, array());
             }
         }
 

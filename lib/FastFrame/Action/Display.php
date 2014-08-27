@@ -25,16 +25,16 @@
 require_once dirname(__FILE__) . '/../Action.php';
 
 // }}}
-// {{{ class FF_Action_Display 
+// {{{ class FF_Action_Display
 
 /**
  * The FF_Action_Display:: class handles displaying a representation of the model to the
- * user 
+ * user
  *
  * @author  Jason Rust <jrust@codejanitor.com>
- * @version Revision: 1.0 
+ * @version Revision: 1.0
  * @access  public
- * @package Action 
+ * @package Action
  */
 
 // }}}
@@ -43,13 +43,13 @@ class FF_Action_Display extends FF_Action {
 
     /**
      * Any persistent data that should be passed on to the search box
-     * @var array 
+     * @var array
      */
     var $persistentData = array('actionId' => ACTION_LIST);
 
     // }}}
     // {{{ run()
-    
+
     /**
      * Displays data about the model.
      *
@@ -106,10 +106,10 @@ class FF_Action_Display extends FF_Action {
 
         require_once dirname(__FILE__) . '/../List.php';
         $o_actionHandler =& FF_ActionHandler::singleton();
-        $o_list =& new FF_List($o_actionHandler->getAppId() . $o_actionHandler->getModuleId() . $this->persistentData['actionId'], null, null, FF_Request::getParam('defDispLimit', 's'));
+        $o_list =& FF_List($o_actionHandler->getAppId() . $o_actionHandler->getModuleId() . $this->persistentData['actionId'], null, null, FF_Request::getParam('defDispLimit', 's'));
         $o_list->setSearchBoxType(SEARCH_BOX_ONLYSEARCH, false);
         $o_list->setPersistentData($this->persistentData);
-        $this->o_output->o_tpl->assign(array('has_search_box' => true, 
+        $this->o_output->o_tpl->assign(array('has_search_box' => true,
                     'W_search_box' => $o_list->renderSearchBox($this->getPluralText(), $in_focusSearch)));
     }
 
@@ -128,11 +128,11 @@ class FF_Action_Display extends FF_Action {
         $b_result = $this->o_model->fillById(FF_Request::getParam('objectId', 'gp'));
         if (!$b_result) {
             $this->o_output->setMessage(
-                sprintf(_('Could not find the specified %s'), $this->getSingularText()), 
+                sprintf(_('Could not find the specified %s'), $this->getSingularText()),
                 FASTFRAME_ERROR_MESSAGE
             );
             $this->o_nextAction->setNextActionId(ACTION_LIST);
-            return false; 
+            return false;
         }
 
         return true;
@@ -184,7 +184,7 @@ class FF_Action_Display extends FF_Action {
     // {{{ getPageName()
 
     /**
-     * Returns the page name for this action 
+     * Returns the page name for this action
      *
      * @access public
      * @return string The page name

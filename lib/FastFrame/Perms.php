@@ -63,7 +63,7 @@ class FF_Perms {
 
     /**
      * User Id of the user associated with this permissions object
-     * @var int 
+     * @var int
      */
     var $userId;
 
@@ -75,7 +75,7 @@ class FF_Perms {
 
     /**
      * The array of super users defined in the config file
-     * @var array 
+     * @var array
      */
     var $superUsers = array();
 
@@ -104,7 +104,7 @@ class FF_Perms {
      * Attempts to return a concrete Perms instance based on the type specified in the
      * registry.  Currently supported are 'dummy' which should be used when no permissions
      * support is wanted and 'permissions_app' which will use the library provided by the
-     * permissions application. 
+     * permissions application.
      *
      * @access public
      * @return object The newly created concrete Perms instance
@@ -121,17 +121,17 @@ class FF_Perms {
         }
         if (!isset($a_instances[$s_type]) || !isset($a_instances[$s_type][$in_userId])) {
             // the dummy type is just an instance of this class whose methods will
-            // allow all users to do everything 
-            if ($s_type == 'dummy') { 
-                $a_instances[$s_type][$in_userId] =& new FF_Perms($in_userId);
-            } 
+            // allow all users to do everything
+            if ($s_type == 'dummy') {
+                $a_instances[$s_type][$in_userId] =& FF_Perms($in_userId);
+            }
             // use the model class from the permissions app to tell us info about perms
             elseif ($s_type == 'permissions_app') {
                 require_once $o_registry->getAppFile('Model/Perms.php', 'permissions', 'libs');
-                $a_instances[$s_type][$in_userId] =& new FF_Perms_PermissionsApp($in_userId);
-            } 
+                $a_instances[$s_type][$in_userId] =& FF_Perms_PermissionsApp($in_userId);
+            }
             else {
-                trigger_error('Invalid permissions source was defined in the config file.', E_USER_ERROR); 
+                trigger_error('Invalid permissions source was defined in the config file.', E_USER_ERROR);
             }
         }
 
@@ -149,7 +149,7 @@ class FF_Perms {
      *              OR the permissions together (only ensuring the user
      *              has one of the specified perms), otherwise we AND
      *              them together (ensuring the user has all the
-     *              specified perms). 
+     *              specified perms).
      * @param string $in_app The application the permission is associated with
      *               If not passed we use the current application
      *

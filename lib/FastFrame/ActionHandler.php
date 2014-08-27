@@ -60,7 +60,7 @@ define('ACTION_CONTACT',        'contact');
 define('ACTION_CONTACT_SUBMIT', 'contact_submit');
 
 // }}}
-// {{{ class FF_ActionHandler 
+// {{{ class FF_ActionHandler
 
 /**
  * The FF_ActionHandler:: class handles page actions.
@@ -71,9 +71,9 @@ define('ACTION_CONTACT_SUBMIT', 'contact_submit');
  * finds the action to take.
  *
  * @author  Jason Rust <jrust@codejanitor.com>
- * @version Revision: 1.0 
+ * @version Revision: 1.0
  * @access  public
- * @package FF_ActionHandler 
+ * @package FF_ActionHandler
  */
 
 // }}}
@@ -82,31 +82,31 @@ class FF_ActionHandler {
 
     /**
      * The actionId.  One of the above-defined constants
-     * @var string 
+     * @var string
      */
     var $actionId;
 
     /**
      * The app currently being run
-     * @var string 
+     * @var string
      */
     var $appId;
 
     /**
      * The module within the application where the action exists
-     * @var string 
+     * @var string
      */
     var $moduleId;
 
     /**
      * The module configuration object for the currently executing module
-     * @var string 
+     * @var string
      */
     var $moduleConfig;
 
     /**
      * The default actionId for when an invalid actionId is passed in
-     * @var string 
+     * @var string
      */
     var $defaultActionId;
 
@@ -123,7 +123,7 @@ class FF_ActionHandler {
     var $o_registry;
 
     /**
-     * The primary model object 
+     * The primary model object
      * @var object
      */
     var $o_model;
@@ -182,14 +182,14 @@ class FF_ActionHandler {
         }
         elseif (FF_Request::getParam('app', 'pg', false) === false) {
             foreach ($this->o_registry->getApps() as $s_app) {
-                $m_hosts = (array) $this->o_registry->getAppParam('hostnames', array(), $s_app); 
+                $m_hosts = (array) $this->o_registry->getAppParam('hostnames', array(), $s_app);
                 foreach ($m_hosts as $s_host ) {
                     if (!empty($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] == $s_host ) {
                         $this->setActionId('');
                         $this->setModuleId('');
                         $this->setAppId($s_app);
                         break;
-                    }    
+                    }
                 }
             }
         }
@@ -241,7 +241,7 @@ class FF_ActionHandler {
             $this->moduleConfig->checkPerms();
             $pth_actionFile = $this->availableActions[$this->actionId][0];
             require_once $pth_actionFile;
-            $o_action =& new $this->availableActions[$this->actionId][1]($this->o_model);
+            $o_action =& $this->availableActions[$this->actionId][1]($this->o_model);
             $o_nextAction = $o_action->run();
             if ($o_nextAction->isLastAction()) {
                 $hitLastAction = true;
@@ -286,7 +286,7 @@ class FF_ActionHandler {
             $this->moduleId = $this->o_registry->getConfigParam('general/initial_module');
         }
 
-        // no need to reload if not changing module and app 
+        // no need to reload if not changing module and app
         if ($s_lastApp == $this->appId && $s_lastModule == $this->moduleId) {
             return;
         }
@@ -295,10 +295,10 @@ class FF_ActionHandler {
         $s_lastModule = $this->moduleId;
         $s_className = 'FF_ActionHandlerConfig_' . $this->moduleId;
         if (!isset($a_configObjects[$s_className])) {
-            $pth_config= $this->o_registry->getAppFile("ActionHandler/$this->moduleId.php", $this->appId, 'libs'); 
+            $pth_config= $this->o_registry->getAppFile("ActionHandler/$this->moduleId.php", $this->appId, 'libs');
             if (file_exists($pth_config)) {
                 require_once $pth_config;
-                $a_configObjects[$s_className] =& new $s_className($this);
+                $a_configObjects[$s_className] =& $s_className($this);
             }
             else {
                 trigger_error('The class file ' . basename($pth_config) . ' for module ' . $this->moduleId . ' does not exist', E_USER_ERROR);
@@ -315,8 +315,8 @@ class FF_ActionHandler {
 
     /**
      * Adds/modifies an available action and registers the necessary class filees.
-     * 
-     * @param string $in_actionId The action id 
+     *
+     * @param string $in_actionId The action id
      * @param string $in_classFile The path to the class file for this action
      * @param string $in_className The name of the class for this action
      *
@@ -364,7 +364,7 @@ class FF_ActionHandler {
      * @param string $in_appId (optional) The appId to load actions and modules from.
      *
      * @access public
-     * @return void 
+     * @return void
      */
     function setAppId($in_appId)
     {
@@ -378,7 +378,7 @@ class FF_ActionHandler {
      * Gets the appId.
      *
      * @access public
-     * @return string The current application 
+     * @return string The current application
      */
     function getAppId()
     {
@@ -394,7 +394,7 @@ class FF_ActionHandler {
      * @param string $in_moduleId The module to act load actions from.
      *
      * @access public
-     * @return void 
+     * @return void
      */
     function setModuleId($in_moduleId)
     {
@@ -408,7 +408,7 @@ class FF_ActionHandler {
      * Gets the moduleId.
      *
      * @access public
-     * @return string The current moduleId 
+     * @return string The current moduleId
      */
     function getModuleId()
     {
@@ -424,7 +424,7 @@ class FF_ActionHandler {
      * @param string $in_actionId (optional) The actionId to act upon.
      *
      * @access public
-     * @return void 
+     * @return void
      */
     function setActionId($in_actionId)
     {
@@ -438,7 +438,7 @@ class FF_ActionHandler {
      * Gets the actionId.
      *
      * @access public
-     * @return string The current ActionId 
+     * @return string The current ActionId
      */
     function getActionId()
     {
@@ -472,14 +472,14 @@ class FF_ActionHandler {
      *        the module has auth?  Useful if this is being called from
      *        an ActionHandlerConfig class
      *
-     * @access public 
+     * @access public
      * @return void
      */
     function checkAuth($in_noModuleCheck = false)
     {
         if (!$in_noModuleCheck && $this->moduleConfig->hasCheckAuth()) {
             $this->moduleConfig->checkAuth();
-        } 
+        }
         else {
             if (!FF_Auth::checkAuth(true)) {
                 $this->setAppId('login');
@@ -556,7 +556,7 @@ class FF_ActionHandler {
     function _initializeErrorHandler()
     {
         // This causes all pear errors to be sent to the error handler
-        PEAR::setErrorHandling(PEAR_ERROR_TRIGGER, E_USER_NOTICE); 
+        PEAR::setErrorHandling(PEAR_ERROR_TRIGGER, E_USER_NOTICE);
         // Don't re-initialize the error handler
         if (!isset($GLOBALS['o_error'])) {
             $o_error = new FF_ErrorHandler($this->o_registry->getConfigParam('error/reporters', array()));
