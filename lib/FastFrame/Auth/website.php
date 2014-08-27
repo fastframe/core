@@ -30,7 +30,7 @@ require_once 'HTTP/Request.php';
 /**
  * An authentication source for testing against an external website
  *
- * @version Revision: 1.0 
+ * @version Revision: 1.0
  * @author  Jason Rust <jrust@codejanitor.com>
  * @access  public
  * @package FastFrame
@@ -73,7 +73,7 @@ class FF_AuthSource_website extends FF_AuthSource {
     /**
      * Initialize the FF_AuthSource_website class
      *
-     * Create an instance of the FF_AuthSource class.  
+     * Create an instance of the FF_AuthSource class.
      *
      * @param string $in_name The name of this auth source
      * @param array $in_params Parameters needed for authenticating
@@ -111,13 +111,13 @@ class FF_AuthSource_website extends FF_AuthSource {
         $a_options['allowRedirects'] = true;
         $this->url = str_replace('%username%', urlencode($in_username), $this->url);
         $this->url = str_replace('%password%', urlencode($in_password), $this->url);
-        $this->http = &new HTTP_Request($this->url, $a_options);
+        $this->http = new HTTP_Request($this->url, $a_options);
 
         $result = $this->http->sendRequest();
         if (is_a($result, 'PEAR_Error')) {
             $this->o_result->addMessage(_('Error loading authentication website.  Please try again later.'));
             return $this->o_result;
-        } 
+        }
 
         $result = $this->http->getResponseBody();
         if (strpos($result, $this->matchString) !== false) {

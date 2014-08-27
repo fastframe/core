@@ -147,7 +147,7 @@ class FF_CLI {
         $o_registry =& FF_Registry::singleton();
         $o_registry->pushApp($in_app);
         if (!isset($GLOBALS['o_error'])) {
-            PEAR::setErrorHandling(PEAR_ERROR_TRIGGER, E_USER_NOTICE); 
+            PEAR::setErrorHandling(PEAR_ERROR_TRIGGER, E_USER_NOTICE);
             if ($this->_console) {
                 $a_reporter = array('stdout' => array('level' => E_VERY_ALL));
             }
@@ -172,7 +172,7 @@ class FF_CLI {
     {
         static $instance;
         if (!isset($instance)) {
-            $instance = &new FF_CLI();
+            $instance = new FF_CLI();
         }
 
         return $instance;
