@@ -110,7 +110,7 @@ class FF_Action_Form extends FF_Action {
      */
     function __construct(&$in_model)
     {
-        parent::__construct(&$in_model);
+        parent::__construct($in_model);
         $this->clearExpiredFormTokens();
         $this->o_form =& HTML_QuickForm($this->formName, $this->formMethod, $this->getFormAction(), $this->formTarget);
         $this->o_renderer =& HTML_QuickForm_Renderer_QuickHtml();
