@@ -283,10 +283,10 @@ class FF_List {
                 array('size' => 15, 'style' => 'vertical-align: middle;',
                     'onfocus' => 'this.select();', 'id' => "searchString-$this->listId",
                     'accesskey' => $this->o_output->getAccessKey(_('Search for'))));
-        $o_form->addElement('submit', 'query_submit', _('� Search'),
+        $o_form->addElement('submit', 'query_submit', _('» Search'),
                 array('style' => 'vertical-align: bottom;'));
         if ($this->listAll) {
-            $o_form->addElement('submit', 'listall_submit', _('� List All'),
+            $o_form->addElement('submit', 'listall_submit', _('» List All'),
                 array('onclick' => "$('searchString-$this->listId').value = '';",
                     'style' => 'vertical-align: bottom;'));
         }
